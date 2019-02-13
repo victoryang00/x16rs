@@ -6,7 +6,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 set(SOURCES
-      x16r.c
+      x16rs.c
       sha3/blake.c
       sha3/bmw.c
       sha3/groestl.c
@@ -26,5 +26,5 @@ set(SOURCES
       sha3/sha2big.c
 )
 
-add_library(x16r_hash STATIC ${SOURCES})
+add_library(x16rs_hash STATIC ${SOURCES})
 

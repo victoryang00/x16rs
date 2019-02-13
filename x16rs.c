@@ -179,6 +179,7 @@ void x16r_hash(const char* input, char* output)
 // input length must more than 32
 void x16rs_hash(const char* input, char* output)
 {
+
     uint32_t hash[64/4];
 
     // char hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
@@ -294,5 +295,7 @@ void x16rs_hash(const char* input, char* output)
         in = (void*) hash;
         size = 64;
     }
+
     memcpy(output, hash, 32);
+
 }

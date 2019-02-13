@@ -2,9 +2,9 @@ package x16r
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"testing"
 )
 
@@ -33,11 +33,12 @@ func TestX16RS(t *testing.T) {
 func TestX16RS_LOOP(t *testing.T) {
 
 	data := make([]byte, 32)
-	for i := 0; i < 10000*10; i++ {
+	for i := 0; i < 10000*10000*100; i++ {
 		rand.Read(data)
 		//fmt.Println(token)
 		res := HashX16RS(data)
-		if bytes.HasPrefix(res, []byte{0}) {
+		//res := data
+		if bytes.HasPrefix(res, []byte{0, 0}) {
 			fmt.Println(hex.EncodeToString(res))
 		}
 	}

@@ -2,22 +2,32 @@ package x16r
 
 /*
 #cgo LDFLAGS: libx16rs_hash.a
+#include <stdlib.h>
 #include "x16rs.h"
 */
 import "C"
 
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
 
 func Sum(data []byte) []byte {
 	var res [32]C.char
-	C.x16r_hash(C.CString(string(data)), &res[0])
+	var cstr = C.CString(string(data))
+	defer C.free(unsafe.Pointer(cstr))
+	C.x16r_hash(cstr, &res[0])
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
 func HashX16RS(data []byte) []byte {
 	var res [32]C.char
-	C.x16rs_hash(C.CString(string(data)), &res[0])
-	return []byte(C.GoStringN(&res[0], 32))
+	var cstr = C.CString(string(data))
+	defer C.free(unsafe.Pointer(cstr))
+	C.x16rs_hash(cstr, &res[0])
+	restr := C.GoStringN(&res[0], 32)
+	return []byte(restr)
+	//return []byte{0}
 }
 
 func main() {

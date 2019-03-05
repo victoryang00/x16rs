@@ -8,10 +8,17 @@ package x16r
 import "C"
 
 import (
-	"fmt"
 	"unsafe"
 )
 
+/*
+
+rm -f ../libx16rs_hash.a  && rm -rf * && cmake ../ && make && mv -f ./libx16rs_hash.a ../
+
+ */
+
+
+//
 func Sum(data []byte) []byte {
 	var res [32]C.char
 	var cstr = C.CString(string(data))
@@ -25,15 +32,16 @@ func HashX16RS(data []byte) []byte {
 	var cstr = C.CString(string(data))
 	defer C.free(unsafe.Pointer(cstr))
 	C.x16rs_hash(cstr, &res[0])
-	restr := C.GoStringN(&res[0], 32)
-	return []byte(restr)
-	//return []byte{0}
+	return []byte(C.GoStringN(&res[0], 32))
 }
 
+/*
 func main() {
 	fmt.Println(Sum([]byte("test")))
 	fmt.Println(HashX16RS([]byte("test")))
 }
+*/
+
 
 /*
 

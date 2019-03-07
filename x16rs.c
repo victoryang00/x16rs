@@ -44,8 +44,8 @@ enum Algo {
 static void getAlgoString(const uint8_t* prevblock, char *output)
 {
     char *sptr = output;
-
-    for (int j = 0; j < HASH_FUNC_COUNT; j++) {
+    int j;
+    for (j = 0; j < HASH_FUNC_COUNT; j++) {
         char b = (15 - j) >> 1; // 16 ascii hex chars, reversed
         uint8_t algoDigit = (j & 1) ? prevblock[b] & 0xF : prevblock[b] >> 4;
         if (algoDigit >= 10)
@@ -83,8 +83,9 @@ void x16r_hash(const char* input, char* output)
     int size = 80;
 
     getAlgoString((uint8_t*)&input[4], hashOrder);
-
-    for (int i = 0; i < 16; i++) {
+    
+    int i;
+    for (i = 0; i < 16; i++) {
         const char elem = hashOrder[i];
         const uint8_t algo = elem >= 'A' ? elem - 'A' + 10 : elem - '0';
 
@@ -214,7 +215,8 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
     int size = insize;
 
-    for(int i = 0; i < 1; i++) {
+    int i;
+    for(i = 0; i < 1; i++) {
 
         uint8_t algo = hash[7] % 16;
 
@@ -402,7 +404,8 @@ void diamond_hash(const char* blkhash32, const char* addr21, const char* nonce8,
     //
     uint16_t diamond[16];
     memcpy(diamond, output, 32);
-    for(int i=0; i<16; i++){
+    int i;
+    for(i=0; i<16; i++){
         output16[i] = diamond_hash_base_stuff[diamond[i] % 17];
     }
 
@@ -443,7 +446,8 @@ void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, c
         diamond_hash(input32, addr21, noncenum, diamond);
         uint8_t isok = 1;
         uint8_t isnchar = 0;
-        for( int k=0; k<16; k++ ) {
+        int k;
+        for( k=0; k<16; k++ ) {
             if( k<zerofront && diamond[k] != 48 ){
                 isok = 0;
                 break;
@@ -467,22 +471,24 @@ void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, c
             memcpy(nonce8, noncenum, 8);
             memcpy(output16, diamond, 16);
 
+            int i;
+
             printf("hash: ");
             uint8_t *input32p = (uint8_t*)input32;
-            for(int i=0; i<32; i++){
+            for(i=0; i<32; i++){
                 printf("%u,", input32p[i]);
             }
             printf("  addr: ");
             uint8_t *addr21p = (uint8_t*)addr21;
-            for(int i=0; i<21; i++){
+            for(i=0; i<21; i++){
                 printf("%u,", addr21p[i]);
             }
             printf("  nonce: ");
-            for(int i=0; i<8; i++){
+            for(i=0; i<8; i++){
                 printf("%u,", noncenum[i]);
             }
             uint8_t noncenum_swap[8];
-            for(int i=0; i<8; i++){ noncenum_swap[i] = noncenum[7-i]; }
+            for(i=0; i<8; i++){ noncenum_swap[i] = noncenum[7-i]; }
             uint64_t *nnum = (uint64_t*)noncenum;
             uint64_t *nnum_swap = (uint64_t*)noncenum_swap;
             printf("  diamond nonce = %ld/%ld, value = %16.16s \n", *nnum_swap, *nnum, diamond);

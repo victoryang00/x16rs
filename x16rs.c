@@ -423,21 +423,29 @@ void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, c
     uint8_t diamond[16];
 
     uint8_t noncenum[8] = {0,0,0,0,0,0,0,0};
-    for(uint8_t i0=0; i0<255; i0++){
+    uint8_t i0;
+    for(i0=0; i0<255; i0++){
     noncenum[0] = i0;
-    for(uint8_t i1=0; i1<255; i1++){
+    uint8_t i1;
+    for(i1=0; i1<255; i1++){
     noncenum[1] = i1;
-    for(uint8_t i2=0; i2<255; i2++){
+    uint8_t i2;
+    for(i2=0; i2<255; i2++){
     noncenum[2] = i2;
-    for(uint8_t i3=0; i3<255; i3++){
+    uint8_t i3;
+    for(i3=0; i3<255; i3++){
     noncenum[3] = i3;
-    for(uint8_t i4=0; i4<255; i4++){
+    uint8_t i4;
+    for(i4=0; i4<255; i4++){
     noncenum[4] = i4;
-    for(uint8_t i5=0; i5<255; i5++){
+    uint8_t i5;
+    for(i5=0; i5<255; i5++){
     noncenum[5] = i5;
-    for(uint8_t i6=0; i6<255; i6++){
+    uint8_t i6;
+    for(i6=0; i6<255; i6++){
     noncenum[6] = i6;
-    for(uint8_t i7=0; i7<255; i7++){
+    uint8_t i7;
+    for(i7=0; i7<255; i7++){
     noncenum[7] = i7;
 
 

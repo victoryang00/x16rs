@@ -1,7 +1,7 @@
 package x16r
 
 /*
-#cgo LDFLAGS: libx16rs_hash.a
+#cgo LDFLAGS: ${SRCDIR}/libx16rs_hash.a
 #include <stdlib.h>
 #include "x16rs.h"
 */

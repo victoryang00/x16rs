@@ -24,6 +24,7 @@ set(SOURCES
       sha3/shabal.c
       sha3/whirlpool.c
       sha3/sha2big.c
+      sha3_256/sha3.c
 )
 
 add_library(x16rs_hash STATIC ${SOURCES})

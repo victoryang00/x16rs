@@ -15,8 +15,7 @@ import (
 
 rm -f ../libx16rs_hash.a  && rm -rf * && cmake ../ && make && mv -f ./libx16rs_hash.a ../
 
- */
-
+*/
 
 //
 func Sum(data []byte) []byte {
@@ -35,13 +34,24 @@ func HashX16RS(data []byte) []byte {
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
+func MinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
+	var res [4]C.char
+	var tarhash = C.CString(string(tarhashvalue))
+	var stuff = C.CString(string(blockheadmeta))
+	defer C.free(unsafe.Pointer(tarhash))
+	defer C.free(unsafe.Pointer(stuff))
+	//fmt.Println("C.miner_x16rs_hash_v1")
+	C.miner_x16rs_hash_v1((*C.char)((unsafe.Pointer)(stopmark)), tarhash, stuff, &res[0])
+	//fmt.Println("C.miner_x16rs_hash_v1 finish")
+	return []byte(C.GoStringN(&res[0], 4))
+}
+
 /*
 func main() {
 	fmt.Println(Sum([]byte("test")))
 	fmt.Println(HashX16RS([]byte("test")))
 }
 */
-
 
 /*
 

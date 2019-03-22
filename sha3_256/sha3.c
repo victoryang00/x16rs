@@ -1,397 +1,191 @@
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
+// sha3.c
+// 19-Nov-11  Markku-Juhani O. Saarinen <mjos@iki.fi>
+
+// Revised 07-Aug-15 to match with official release of FIPS PUB 202 "SHA3"
+// Revised 03-Sep-15 for portability + OpenSSL - style API
+
 #include "sha3.h"
 
-/* Useful macros */
-/* Rotate a 64b word to the left by n positions */
-#define ROL64(a, n) ((((n)%64) != 0) ? ((((uint64_t)a) << ((n)%64)) ^ (((uint64_t)a) >> (64-((n)%64)))) : a)
-#define BIT(c, i) ((c & (1 << i)) ? 1 : 0)
-#define positive_modulo(i,n) (((i%n) + n) % n)
-#define index(x,y) ((( 5 * (y % 5))+ (x % 5)))
+// update the state with given number of rounds
 
-uint64_t RC[24] = {0x0000000000000001,0x0000000000008082,0x800000000000808A,0x8000000080008000,0x000000000000808B,0x0000000080000001,0x8000000080008081,0x8000000000008009,0x000000000000008A,0x0000000000000088,0x0000000080008009,0x000000008000000A,0x000000008000808B,0x800000000000008B,0x8000000000008089,0x8000000000008003,0x8000000000008002,0x8000000000000080,0x000000000000800A,0x800000008000000A,0x8000000080008081,0x8000000000008080,0x0000000080000001,0x8000000080008008};
-unsigned long concatenate(unsigned char **Z, const unsigned char *X,
-              unsigned long X_len, const unsigned char *Y,
-              unsigned long Y_len);
-unsigned long concatenate_01(unsigned char **Z, const unsigned char *X,
-                 unsigned long X_len);
-unsigned long pad10x1(unsigned char **P, unsigned int x, unsigned int m);
-unsigned char rc(unsigned int t);
-
-
-
-void sponge(unsigned char *out, unsigned int out_len, unsigned char* m , unsigned int l );
-
-/* Compute the SHA-3 hash for a message.
- *
- * d - the output buffer
- * s - size of the output buffer in bits
- * m - the input message
- * l - size of the input message in bits
- */
-void sha3(unsigned char *d, unsigned int s, const unsigned char *m,
-      unsigned int l)
+void sha3_keccakf(uint64_t st[25])
 {
-    /* The hash size must be one of the supported ones */
-    if (s != 224 && s != 256 && s != 384 && s != 512)
-        return;
+    // constants
+    const uint64_t keccakf_rndc[24] = {
+        0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
+        0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
+        0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
+        0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
+        0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
+        0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
+        0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
+        0x8000000000008080, 0x0000000080000001, 0x8000000080008008
+    };
+    const int keccakf_rotc[24] = {
+        1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
+        27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44
+    };
+    const int keccakf_piln[24] = {
+        10, 7,  11, 17, 18, 3, 5,  16, 8,  21, 24, 4,
+        15, 23, 19, 13, 12, 2, 20, 14, 22, 9,  6,  1
+    };
 
-    /* Implement the rest of this function */
-    unsigned char *input;
-    unsigned long length;
+    // variables
+    int i, j, r;
+    uint64_t t, bc[5];
 
-    // Concatenate Message with 01 i.e. input = M || 01
-    length = concatenate_01(&input,m,l);
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+    uint8_t *v;
 
-    // Sponge function
-    sponge(d,s,input,length);
-    free(input);
-}
-
-/* Concatenate two bit strings (X||Y)
- *
- * Z     - the output bit string. The array is allocated by this function: the
- *         caller must take care of freeing it after use.
- * X     - the first bit string
- * X_len - the length of the first string in bits
- * Y     - the second bit string
- * Y_len - the length of the second string in bits
- *
- * Returns the length of the output string in bits. The length in Bytes of the
- * output C array is ceiling(output_bit_len/8).
- */
-unsigned long concatenate(unsigned char **Z, const unsigned char *X,
-              unsigned long X_len, const unsigned char *Y,
-              unsigned long Y_len)
-{
-    /* The bit length of Z: the sum of X_len and Y_len */
-    unsigned long Z_bit_len = X_len + Y_len;
-    /* The byte length of Z:
-     * the least multiple of 8 greater than X_len + Y_len */
-    unsigned long Z_byte_len = (Z_bit_len / 8) + (Z_bit_len % 8 ? 1 : 0);
-    // Allocate the output string and initialize it to 0
-    *Z = calloc(Z_byte_len, sizeof(unsigned char));
-    if (*Z == NULL)
-        return 0;
-    // Copy X_len/8 bytes from X to Z
-    memcpy(*Z, X, X_len / 8);
-    // Copy X_len%8 bits from X to Z
-    for (unsigned int i = 0; i < X_len % 8; i++) {
-        (*Z)[X_len / 8] |= (X[X_len / 8] & (1 << i));
+    // endianess conversion. this is redundant on little-endian targets
+    for (i = 0; i < 25; i++) {
+        v = (uint8_t *) &st[i];
+        st[i] = ((uint64_t) v[0])     | (((uint64_t) v[1]) << 8) |
+            (((uint64_t) v[2]) << 16) | (((uint64_t) v[3]) << 24) |
+            (((uint64_t) v[4]) << 32) | (((uint64_t) v[5]) << 40) |
+            (((uint64_t) v[6]) << 48) | (((uint64_t) v[7]) << 56);
     }
-    // Copy Y_len bits from Y to Z
-    unsigned long Z_byte_cursor = X_len / 8, Z_bit_cursor = X_len % 8;
-    unsigned long Y_byte_cursor = 0, Y_bit_cursor = 0;
-    unsigned int v;
-    for (unsigned long i = 0; i < Y_len; i++) {
-        // Get the bit
-        v = ((Y[Y_byte_cursor] >> Y_bit_cursor) & 1);
-        // Set the bit
-        (*Z)[Z_byte_cursor] |= (v << Z_bit_cursor);
-        // Increment cursors
-        if (++Y_bit_cursor == 8) {
-            Y_byte_cursor++;
-            Y_bit_cursor = 0;
+#endif
+
+    // actual iteration
+    for (r = 0; r < KECCAKF_ROUNDS; r++) {
+
+        // Theta
+        for (i = 0; i < 5; i++)
+            bc[i] = st[i] ^ st[i + 5] ^ st[i + 10] ^ st[i + 15] ^ st[i + 20];
+
+        for (i = 0; i < 5; i++) {
+            t = bc[(i + 4) % 5] ^ ROTL64(bc[(i + 1) % 5], 1);
+            for (j = 0; j < 25; j += 5)
+                st[j + i] ^= t;
         }
-        if (++Z_bit_cursor == 8) {
-            Z_byte_cursor++;
-            Z_bit_cursor = 0;
+
+        // Rho Pi
+        t = st[1];
+        for (i = 0; i < 24; i++) {
+            j = keccakf_piln[i];
+            bc[0] = st[j];
+            st[j] = ROTL64(t, keccakf_rotc[i]);
+            t = bc[0];
         }
-    }
-    return Z_bit_len;
-}
 
-/* Concatenate the 01 bit string to a given bit string (X||01)
- *
- * Z     - the output bit string. The array is allocated by this function: the
- *         caller must take care of freeing it after use.
- * X     - the bit string
- * X_len - the length of the string in bits
- *
- * Returns the length of the output string in bits. The length in Bytes of the
- * output C array is ceiling(output_bit_len/8).
- */
-unsigned long concatenate_01(unsigned char **Z, const unsigned char *X,
-                 unsigned long X_len)
-{
-    /* Due to the SHA-3 bit string representation convention, the 01
-     * bit string is represented in hexadecimal as 0x02.
-     * See Appendix B.1 of the Standard.
-     */
-    unsigned char zeroone[] = { 0x02 };
-    return concatenate(Z, X, X_len, zeroone, 2);
-}
+        //  Chi
+        for (j = 0; j < 25; j += 5) {
+            for (i = 0; i < 5; i++)
+                bc[i] = st[j + i];
+            for (i = 0; i < 5; i++)
+                st[j + i] ^= (~bc[(i + 1) % 5]) & bc[(i + 2) % 5];
+        }
 
-/* Performs the pad10*1(x, m) algorithm
- *
- * P - the output bit string. The array is allocated by this function: the
- *     caller must take care of freeing it after use.
- * x - the alignment value
- * m - the existing string length in bits
- *
- * Returns the length in bits of the output bit string.
- */
-unsigned long pad10x1(unsigned char **P, unsigned int x, unsigned int m)
-{
-    /* 1. j = (-m-2) mod x */
-    long j = x - ((m + 2) % x);
-    /* 2. P = 1 || zeroes(j) || 1 */
-    // Compute P bit and byte length
-    unsigned long P_bit_len = 2 + j;
-    unsigned long P_byte_len = (P_bit_len / 8) + (P_bit_len % 8 ? 1 : 0);
-    // Allocate P and initialize to 0
-    *P = calloc(P_byte_len, sizeof(unsigned char));
-    if (*P == NULL)
-        return 0;
-    // Set the 1st bit of P to 1
-    (*P)[0] |= 1;
-    // Set the last bit of P to 1
-    (*P)[P_byte_len - 1] |= (1 << (P_bit_len - 1) % 8);
-
-    return P_bit_len;
-}
-
-/* Perform the rc(t) algorithm
- *
- * t - the number of rounds to perform in the LFSR
- *
- * Returns a single bit stored as the LSB of an unsigned char.
- */
-unsigned char rc(unsigned int t)
-{
-    unsigned int tmod = t % 255;
-    /* 1. If t mod255 = 0, return 1 */
-    if (tmod == 0)
-        return 1;
-    /* 2. Let R = 10000000
-     *    The LSB is on the right: R[0] = R &0x80, R[8] = R &1 */
-    unsigned char R = 0x80, R0;
-    /* 3. For i from 1 to t mod 255 */
-    for (unsigned int i = 1; i <= tmod; i++) {
-        /* a. R = 0 || R */
-        R0 = 0;
-        /* b. R[0] ^= R[8] */
-        R0 ^= (R & 1);
-        /* c. R[4] ^= R[8] */
-        R ^= (R & 0x1) << 4;
-        /* d. R[5] ^= R[8] */
-        R ^= (R & 0x1) << 3;
-        /* e. R[6] ^= R[8] */
-        R ^= (R & 0x1) << 2;
-        /* Shift right by one */
-        R >>= 1;
-        /* Copy the value of R0 in */
-        R ^= R0 << 7;
-    }
-    /* 4. Return R[0] */
-    return R >> 7;
-}
-
-/* Perform the theta(A) algorithm
- * a - input state array
- * aprime - output state array
- */
-void theta( uint64_t *a )
-{
-    uint64_t c[5] , d[5];
-    for ( unsigned int i = 0 ; i < 5 ; i++)
-    {
-        c[i] =  *(a+index(i,0)) ^ *(a+index(i,1)) ^ *(a+index(i,2)) ^ *(a+index(i,3)) ^ *(a+index(i,4));
+        //  Iota
+        st[0] ^= keccakf_rndc[r];
     }
 
-    for ( unsigned int i = 0 ; i < 5 ; i++)
-    {
-        d[i] = c[((i-1)+5)%5] ^ ROL64(c[(i+1)%5],1);
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+    // endianess conversion. this is redundant on little-endian targets
+    for (i = 0; i < 25; i++) {
+        v = (uint8_t *) &st[i];
+        t = st[i];
+        v[0] = t & 0xFF;
+        v[1] = (t >> 8) & 0xFF;
+        v[2] = (t >> 16) & 0xFF;
+        v[3] = (t >> 24) & 0xFF;
+        v[4] = (t >> 32) & 0xFF;
+        v[5] = (t >> 40) & 0xFF;
+        v[6] = (t >> 48) & 0xFF;
+        v[7] = (t >> 56) & 0xFF;
     }
+#endif
+}
 
-    for ( unsigned int i = 0 ; i < 5 ; i++)
-    {
-        for ( unsigned int j = 0 ; j < 5 ; j++)
-        {
-            *(a + index(i,j)) = *(a + index(i,j)) ^ d[i];
+// Initialize the context for SHA3
+
+int sha3_init(sha3_ctx_t *c, int mdlen)
+{
+    int i;
+
+    for (i = 0; i < 25; i++)
+        c->st.q[i] = 0;
+    c->mdlen = mdlen;
+    c->rsiz = 200 - 2 * mdlen;
+    c->pt = 0;
+
+    return 1;
+}
+
+// update state with more data
+
+int sha3_update(sha3_ctx_t *c, const void *data, size_t len)
+{
+    size_t i;
+    int j;
+
+    j = c->pt;
+    for (i = 0; i < len; i++) {
+        c->st.b[j++] ^= ((const uint8_t *) data)[i];
+        if (j >= c->rsiz) {
+            sha3_keccakf(c->st.q);
+            j = 0;
         }
     }
+    c->pt = j;
+
+    return 1;
 }
 
-/* Perform the p(A) algorithm
- * a - input state array
- * aprime - output state array
- */
-void rho( uint64_t *a )
+// finalize and output a hash
+
+int sha3_final(void *md, sha3_ctx_t *c)
 {
-    /* For t from 0 to 23:
-     *   a. for all z such that 0≤z<w, let A′[x, y, z] = A[x, y, (z–(t+1)(t+2)/2) mod w];
-     *   b. let (x, y) = (y, (2x+3y) mod 5).
-     */
-    int i = 1;
-    int j = 0;
-    int tmp = 0;
-    for ( int t = 0; t < 24 ; t++)
-    {
-        *(a + index(i,j)) = ROL64(*(a + index(i,j)),((t+1)*(t+2))/2);
-        tmp = i;
-        i = j;
-        j = ((2 * tmp) + (3 * j)) % 5;
+    int i;
+
+    c->st.b[c->pt] ^= 0x06;
+    c->st.b[c->rsiz - 1] ^= 0x80;
+    sha3_keccakf(c->st.q);
+
+    for (i = 0; i < c->mdlen; i++) {
+        ((uint8_t *) md)[i] = c->st.b[i];
     }
+
+    return 1;
 }
 
-/* Perform the pi(A) algorithm
- * a - input state array
- * aprime - output state array
- */
-void pi( uint64_t *a )
-{
-    uint64_t *b;
-    b = calloc(25,sizeof(uint64_t));
-    // memset(b,0,sizeof(b));
+// compute a SHA-3 hash (md) of given byte length from "in"
 
-    // For all x,y,z -> A′[x, y, z]= A[(x + 3y) mod 5, x, z].
-    for (int i = 0 ; i < 5 ; i++)
-    {
-        for(int j = 0 ; j < 5 ; j++)
-        {
-            *(b + index(i,j)) = *(a + index((i+(3*j))%5,i));
+void *sha3(const void *in, size_t inlen, void *md, int mdlen)
+{
+    sha3_ctx_t sha3;
+
+    sha3_init(&sha3, mdlen);
+    sha3_update(&sha3, in, inlen);
+    sha3_final(md, &sha3);
+
+    return md;
+}
+
+// SHAKE128 and SHAKE256 extensible-output functionality
+
+void shake_xof(sha3_ctx_t *c)
+{
+    c->st.b[c->pt] ^= 0x1F;
+    c->st.b[c->rsiz - 1] ^= 0x80;
+    sha3_keccakf(c->st.q);
+    c->pt = 0;
+}
+
+void shake_out(sha3_ctx_t *c, void *out, size_t len)
+{
+    size_t i;
+    int j;
+
+    j = c->pt;
+    for (i = 0; i < len; i++) {
+        if (j >= c->rsiz) {
+            sha3_keccakf(c->st.q);
+            j = 0;
         }
+        ((uint8_t *) out)[i] = c->st.b[j++];
     }
-    memcpy(a,b,200);
-    free(b);
+    c->pt = j;
 }
 
-/* Perform the chi(A) algorithm
- * A - input state array
- * A' - output state array
- */
-void chi( uint64_t *a)
-{
-    uint64_t *b;
-    uint64_t tmp;
-    b = calloc(25,sizeof(uint64_t));
-    // memset(b,0,sizeof(b));
-
-    // For all x,y,z -> A′[x,y,z] = A[x,y,z] ⊕ ((A[(x+1) mod 5, y, z] ⊕ 1) ⋅ A[(x+2) mod 5, y, z]).
-    for (int i = 0 ; i < 5 ; i++)
-    {
-        for(int j = 0 ; j < 5 ; j++)
-        {
-            tmp = (*(a + index((i+1)%5,j)) ^ 0xFFFFFFFFFFFFFFFF) & (*(a + index((i+2)%5,j)));
-            *(b + index(i,j)) = *(a + index(i,j)) ^ tmp;
-        }
-    }
-    memcpy(a,b,200);
-    free(b);
-}
-
-/* Perform the iota(A,ir) algorithm
- * a - input/output state array
- * ir - round index
- */
-void iota( uint64_t *a , unsigned long ir)
-{
-    // a[0,0,z]=a[0,0,z] ⊕ RC[ir].
-    *( a + index(0,0))= *( a + index(0,0))^ RC[ir];
-}
-
-/* Perform the keccakp(s,b,nr) algorithm
- * s - input string
- * b - string length
- * nr - number of rounds
- * op - output string
- */
-void keccakp(unsigned char *s , unsigned int b ,unsigned long nr , unsigned char* op)
-{
-    uint64_t *a;
-    a = (uint64_t*)s;
-
-    // 12+2l–nr to 12+2l-1 ... l = 6 and nr = 24
-    for (unsigned int ir = 0 ; ir < nr ; ir++)
-    {
-        theta(a);
-        // printf("Theta\n");
-        // printstring(a,1600);
-
-        rho(a);
-        // printf("\nRho\n");
-        // printstring(a,1600);
-
-        pi(a);
-        // printf("\nPi\n");
-        // printstring(a,1600);
-        chi(a);
-        // printf("\nCHi\n");
-        // printstring(a,1600);
-        iota(a,ir);
-        // printf("\nIota\n");
-        // printstring(a,1600);
-    }
-    memcpy(op,a,200);
-}
-
-/* Perform the sponge algorithm
- * m - input string
- * l - non negative integer
- * out - output string
- * out_len - length of output
- */
-void sponge(unsigned char *out, unsigned int out_len, unsigned char* m , unsigned int l )
-{
-    unsigned char *P;
-    unsigned long p_len;
-    unsigned char *inter;
-    unsigned long inter_len;
-
-    // pad(r, len(N))
-    inter_len = pad10x1(&inter, 1088, l);
-
-    //  P= N || pad(r, len(N))
-    p_len = concatenate(&P,m,l,inter,inter_len);
-    unsigned long n = p_len / 1088;
-
-    // S = 0 * 200
-    unsigned char *S;
-    S = calloc(200,sizeof(unsigned char));
-    if ( S == NULL)
-    {
-        printf("Memory Not allocated\n");
-    }
-
-    // 0 to n-1 S=f(S ^ (Pi || 0c)).
-    for (unsigned long i = 0 ; i < n ; i++)
-    {
-        /* S = S ^ Pi for 136 bytes
-         * Remaining 64 bytes of P's are 0
-         */
-        for ( int j = 0 ; j < 136 ; j++)
-        {
-            *(S+j) = *(S+j) ^ *(P+j+(i*136));
-        }
-        // Keccackp
-        keccakp(S, 1600 , 24 , S);
-    }
-
-    unsigned char *Z;
-    unsigned int Z_len = 0;
-
-    // Z = Z || S
-    Z_len = concatenate(&Z,Z,0,S,1088);
-
-    // While |Z| < 256
-    while (Z_len < out_len){
-        // S=f(S)
-        keccakp(S, 1600 ,24 , S);
-
-        // Z=Z || Truncr(S)
-        Z_len = concatenate(&Z,Z,Z_len,S,1088);
-    }
-
-    // Copy 32 bytes of Z to out
-    memcpy(out,Z,32);
-
-    // Freeing Memory
-    free(inter);
-    free(P);
-    free(S);
-    free(Z);
-}

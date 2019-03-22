@@ -1,35 +1,46 @@
-/* Implement the following API. Do NOT modify the given prototypes. */
+// sha3.h
+// 19-Nov-11  Markku-Juhani O. Saarinen <mjos@iki.fi>
 
-#include <inttypes.h>
-/* Compute the SHA-3 hash for a message.
- *
- * d - the output buffer (allocated by the caller)
- * s - size of the output buffer in bits
- * m - the input message
- * l - size of the input message in bits
- */
-void sha3(unsigned char *d, unsigned int s, const unsigned char *m,
-	  unsigned int l);
+#ifndef SHA3_H
+#define SHA3_H
 
-/* You can add your own functions below this line.
- * Do NOT modify anything above.
+#include <stddef.h>
+#include <stdint.h>
 
-// String To State and State To String
-void string_state(unsigned char *n , unsigned char z[5][5][64],unsigned int size);
-void state_string(unsigned char *n , unsigned char z[5][5][64]);
-// RND Functions
-void theta( uint64_t *a );
-void rho( uint64_t *a );
-void pi( uint64_t *a );
-void chi( uint64_t *a );
-void iota( uint64_t *a , unsigned long ir);
+#ifndef KECCAKF_ROUNDS
+#define KECCAKF_ROUNDS 24
+#endif
 
-void keccakp(unsigned char *s , unsigned int b ,unsigned long nr ,unsigned char* op);
-void sponge(unsigned char *out, unsigned int out_len, unsigned char* m , unsigned int l );
+#ifndef ROTL64
+#define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
+#endif
 
-// Print Functions
-void printstring(unsigned char* s,unsigned int length);
-void print(unsigned char a[5][5][64]);
-void print_in_pairs(unsigned char a[5][5][64]);
-void print_2d(unsigned char *a, int l, int m);
-*/
+// state context
+typedef struct {
+    union {                                 // state:
+        uint8_t b[200];                     // 8-bit bytes
+        uint64_t q[25];                     // 64-bit words
+    } st;
+    int pt, rsiz, mdlen;                    // these don't overflow
+} sha3_ctx_t;
+
+// Compression function.
+void sha3_keccakf(uint64_t st[25]);
+
+// OpenSSL - like interfece
+int sha3_init(sha3_ctx_t *c, int mdlen);    // mdlen = hash output in bytes
+int sha3_update(sha3_ctx_t *c, const void *data, size_t len);
+int sha3_final(void *md, sha3_ctx_t *c);    // digest goes to md
+
+// compute a sha3 hash (md) of given byte length from "in"
+void *sha3(const void *in, size_t inlen, void *md, int mdlen);
+
+// SHAKE128 and SHAKE256 extensible-output functions
+#define shake128_init(c) sha3_init(c, 16)
+#define shake256_init(c) sha3_init(c, 32)
+#define shake_update sha3_update
+
+void shake_xof(sha3_ctx_t *c);
+void shake_out(sha3_ctx_t *c, void *out, size_t len);
+
+#endif

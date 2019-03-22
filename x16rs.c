@@ -519,8 +519,10 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
 {
 //    printf("miner_x16rs_hash_v1()\n");
     // 签名信息
-    uint8_t stuffnew[89];
-    memcpy(stuffnew, input_stuff89, 89);
+    uint8_t stuffnew_base[90];
+    uint8_t *stuffnew = stuffnew_base+1;
+    memcpy( stuffnew, input_stuff89, 89);
+    uint32_t *stuffnew_uint32 = (uint32_t*)stuffnew_base;
 
     // 计算 sha3的结果
     unsigned char sha3res[32];
@@ -540,14 +542,14 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
     // nonce值
     uint32_t noncenum;
     for(noncenum=0; noncenum<4294967294; noncenum++){
-
         // 停止标记检测
         if( is_stop[0] != 0 )
         {
             return;
         }
         // 重置nonce
-        memcpy(&stuffnew[79], &noncenum, 4);
+        stuffnew_uint32[20] = noncenum;
+//        memcpy(&stuffnew[79], &noncenum, 4);
         // 计算 sha3
         sha3(sha3res, 256, stuffnew, 89*8);
         /*
@@ -571,12 +573,11 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
         for(pi=0; pi<32; pi++){
             uint8_t o1 = target_difficulty_hash32[pi];
             uint8_t o2 = hashnew[pi];
-            if(o2<o1){
-                iscalcok = 1;
+            if(o2>o1){
                 break;
             }
-            if(o2>o1){
-                iscalcok = 0;
+            if(o2<o1){
+                iscalcok = 1;
                 break;
             }
         }
@@ -590,7 +591,7 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
             }
             printf("\n");
         */
-            // 返回
+            // 返回 copy to out
             memcpy(nonce4, &noncenum, 4);
             return; // success
         }

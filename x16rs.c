@@ -518,33 +518,37 @@ void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, c
 void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_hash32, const char* input_stuff89, char* nonce4)
 {
 //    printf("miner_x16rs_hash_v1()\n");
+    // 签名信息
+    uint8_t stuffnew[89];
+    memcpy(stuffnew, input_stuff89, 89);
 
+    // 计算 sha3的结果
+    unsigned char sha3res[32];
+
+    // x16rs hash的结果
+    uint8_t hashnew[32];
+
+    // 判断哈希是否满足要求
+    uint8_t iscalcok = 0;
+
+    // 检查结果的for循环值
+    uint8_t pi = 0;
+
+    // 停止标记
     uint8_t *is_stop = (uint8_t*)stop_mark1;
 
-    uint8_t noncenum[4] = {0,0,0,0};
-    uint8_t i0;
-    for(i0=0; i0<255; i0++){
-    noncenum[0] = i0;
-    uint8_t i1;
-    for(i1=0; i1<255; i1++){
-    noncenum[1] = i1;
-    uint8_t i2;
-    for(i2=0; i2<255; i2++){
-    noncenum[2] = i2;
-    uint8_t i3;
-    for(i3=0; i3<255; i3++){
-    noncenum[3] = i3;
-        // stop now
+    // nonce值
+    uint32_t noncenum;
+    for(noncenum=0; noncenum<4294967294; noncenum++){
+
+        // 停止标记检测
         if( is_stop[0] != 0 )
         {
             return;
         }
         // 重置nonce
-        uint8_t stuffnew[89];
-        memcpy(stuffnew, input_stuff89, 89);
-        memcpy(&stuffnew[79], noncenum, 4);
+        memcpy(&stuffnew[79], &noncenum, 4);
         // 计算 sha3
-	    unsigned char sha3res[32];
         sha3(sha3res, 256, stuffnew, 89*8);
         /*
             printf("  hash: ");
@@ -554,8 +558,6 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
             }
             printf("\n");
         */
-        // x16rs hash
-        uint8_t hashnew[32];
         x16rs_hash(((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
@@ -565,23 +567,21 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
             }
             printf("\n");
         */
-        // 判断哈希是否满足要求
-        uint8_t isok = 0;
-        uint8_t pi;
+        iscalcok = 0;
         for(pi=0; pi<32; pi++){
             uint8_t o1 = target_difficulty_hash32[pi];
             uint8_t o2 = hashnew[pi];
             if(o2<o1){
-                isok = 1;
+                iscalcok = 1;
                 break;
             }
             if(o2>o1){
-                isok = 0;
+                iscalcok = 0;
                 break;
             }
         }
         // 结果判断
-        if(isok == 1) {
+        if(iscalcok == 1) {
         /*
             printf("finish hash: ");
             uint8_t i;
@@ -591,10 +591,16 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
             printf("\n");
         */
             // 返回
-            memcpy(nonce4, noncenum, 4);
+            memcpy(nonce4, &noncenum, 4);
             return; // success
         }
         // 继续下一次计算
-    }}}}
+    }
+
+    // 循环完毕，失败
+    noncenum = 0;
+    memcpy(nonce4, &noncenum, 4);
+    return;
 
 }
+

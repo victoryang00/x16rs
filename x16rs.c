@@ -25,7 +25,14 @@
 void sha3_256(const char *input, const int in_size, char *output)
 {
 
-    sha3(input, in_size, output, 32);
+    sha3_ctx ctx;
+    rhash_sha3_256_init(&ctx);
+    rhash_sha3_update(&ctx, input, in_size);
+    rhash_sha3_final(&ctx, output);
+
+
+
+//    sha3(input, in_size, output, 32);
 
 
 //    sph_keccak256_context  ctx_keccak;

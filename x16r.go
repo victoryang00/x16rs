@@ -13,6 +13,7 @@ import (
 
 /*
 
+mkdir -p build && cd build
 rm -f ../libx16rs_hash.a  && rm -rf * && cmake ../ && make && mv -f ./libx16rs_hash.a ../
 
 */
@@ -23,6 +24,17 @@ func Sum(data []byte) []byte {
 	var cstr = C.CString(string(data))
 	defer C.free(unsafe.Pointer(cstr))
 	C.x16r_hash(cstr, &res[0])
+	return []byte(C.GoStringN(&res[0], 32))
+}
+
+//
+func Sha3_256(data []byte) []byte {
+	var res [32]C.char
+	var cstr = C.CString(string(data))
+	var cint = C.int(len(data))
+	// fmt.Println(len(data))
+	defer C.free(unsafe.Pointer(cstr))
+	C.sha3_256(cstr, cint, &res[0])
 	return []byte(C.GoStringN(&res[0], 32))
 }
 

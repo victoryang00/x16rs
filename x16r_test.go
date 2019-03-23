@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"testing"
 	"time"
 )
@@ -87,4 +88,21 @@ func TestX16RS_miner_do(t *testing.T) {
 	nonce := MinerNonceHashX16RS(stopmark, targetdiffhash, blockheadmeta)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
+}
+
+
+func TestSha3_256(t *testing.T) {
+	stuff := []byte("12345678901234567890123456789012")
+	checkResult, _ := hex.DecodeString("dcb35cb4900cd08e524b8609b1df612e2e9d1fbfeedaa9d58a00fc0984f4a387")
+	checkResult2 := sha3.Sum256(stuff)
+
+	result := Sha3_256(stuff)
+
+	fmt.Println(result)
+	fmt.Println(checkResult)
+	fmt.Println(checkResult2)
+
+	if !bytes.Equal(checkResult, result) {
+		t.Error("hash", hex.EncodeToString(result))
+	}
 }

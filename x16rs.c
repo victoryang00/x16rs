@@ -22,6 +22,24 @@
 #include "sha3/sph_sha2.h"
 #include "sha3_256/sha3.h"
 
+void sha3_256(const char *input, const int in_size, char *output)
+{
+
+    sha3(input, in_size, output, 32);
+
+
+//    sph_keccak256_context  ctx_keccak;
+//    sph_keccak256_init(&ctx_keccak);
+//    sph_keccak256(&ctx_keccak, (void*)input, in_size);
+//    sph_keccak256_close(&ctx_keccak, (void*)output);
+
+//    sph_sha256_context  ctx_keccak;
+//    sph_sha256_init(&ctx_keccak);
+//    sph_sha256(&ctx_keccak, (void*)input, in_size);
+//    sph_sha256_close(&ctx_keccak, (void*)output);
+}
+
+
 enum Algo {
     BLAKE = 0,
     BMW,
@@ -551,7 +569,7 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
         stuffnew_uint32[20] = noncenum;
 //        memcpy(&stuffnew[79], &noncenum, 4);
         // 计算 sha3
-        sha3(sha3res, 256, stuffnew, 89*8);
+        sha3_256(stuffnew, 89, sha3res);
         /*
             printf("  hash: ");
             uint8_t i;

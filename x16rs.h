@@ -7,6 +7,8 @@ extern "C" {
 
 #include <stdint.h>
 
+void sha3_256(const char *input, const int in_size, char *output);
+
 void x16r_hash(const char* input, char* output);
 void x16rs_hash(const char* input, char* output);
 void diamond_hash(const char* blkhash32, const char* addr21, const char* nonce8, char* output16);

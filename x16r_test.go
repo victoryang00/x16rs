@@ -90,7 +90,6 @@ func TestX16RS_miner_do(t *testing.T) {
 
 }
 
-
 func TestSha3_256(t *testing.T) {
 	stuff := []byte("12345678901234567890123456789012")
 	checkResult, _ := hex.DecodeString("dcb35cb4900cd08e524b8609b1df612e2e9d1fbfeedaa9d58a00fc0984f4a387")
@@ -105,4 +104,30 @@ func TestSha3_256(t *testing.T) {
 	if !bytes.Equal(checkResult, result) {
 		t.Error("hash", hex.EncodeToString(result))
 	}
+}
+
+func Test_diamond_miner_do(t *testing.T) {
+
+	//blkbts, _ := hex.DecodeString("010000003f37005c90a5b80000000d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87aadd0ada0615668c7bf3658efeab80ef2a6be1e884a2844d52afdb88fa82f5c6000000010070db79e48fffa400000000ff89de02003bea1b64e8d5659d314c078ad37551f801012020202020202020202020202020202000")
+	//blockheadmeta := blkbts[0:89]
+	blockhash, _ := hex.DecodeString("000009d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c8788")
+	address, _ := hex.DecodeString("000c1aaa4e6007cc58cfb932052ac0ec25ca356183") // 1271438866CSDpJUqrnchoJAiGGBFSQhjd
+
+	//fmt.Println(blockheadmeta)
+	//fmt.Println(len(targetdiffhash))
+
+	var stopmark *byte = new(byte)
+	*stopmark = 0
+
+	nonce, diamond := MinerHacashDiamond(stopmark, blockhash, address)
+	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
+
+	// 验证钻石算法是否正确
+	diamond_str := Diamond(blockhash, nonce, address)
+	fmt.Println("diamond_str is", diamond_str)
+
+	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {
+		t.Error("diamond: ", diamond, "but get", diamond_str)
+	}
+
 }

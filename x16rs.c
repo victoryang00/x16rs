@@ -30,20 +30,6 @@ void sha3_256(const char *input, const int in_size, char *output)
     rhash_sha3_update(&ctx, input, in_size);
     rhash_sha3_final(&ctx, output);
 
-
-
-//    sha3(input, in_size, output, 32);
-
-
-//    sph_keccak256_context  ctx_keccak;
-//    sph_keccak256_init(&ctx_keccak);
-//    sph_keccak256(&ctx_keccak, (void*)input, in_size);
-//    sph_keccak256_close(&ctx_keccak, (void*)output);
-
-//    sph_sha256_context  ctx_keccak;
-//    sph_sha256_init(&ctx_keccak);
-//    sph_sha256(&ctx_keccak, (void*)input, in_size);
-//    sph_sha256_close(&ctx_keccak, (void*)output);
 }
 
 
@@ -403,47 +389,98 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
 // input length must be 32
 static const uint8_t diamond_hash_base_stuff[17] = "0WTYUIAHXVMEKBSZN";
-void diamond_hash(const char* blkhash32, const char* addr21, const char* nonce8, char* output16)
+void diamond_hash(const char* hash32, char* output16)
 {
-
-    int insize = 32+21+8;
-    uint8_t input[insize];
-    memcpy(input, blkhash32, 32);
-    memcpy(input+32, addr21, 21);
-    memcpy(input+32+21, nonce8, 8);
-
-//    printf("input: ");
-//    for(int i=0; i<insize; i++){
-//        printf("%d,", input[i]);
-//    }
-//    printf("\n");
-
-    uint8_t output[32];
-    x16rs_hash_sz(((void*)input), ((void*)output), insize);
-
-//    printf("output: ");
-//    for(int i=0; i<32; i++){
-//        printf("%d,", output[i]);
-//    }
-//    printf("\n");
-
-    //
-    uint16_t diamond[16];
-    memcpy(diamond, output, 32);
+    uint8_t *stuff32 = (uint8_t*)hash32;
     int i;
     for(i=0; i<16; i++){
-        output16[i] = diamond_hash_base_stuff[diamond[i] % 17];
+        int num = (int)stuff32[i*2] * (int)stuff32[i*2+1];
+        output16[i] = diamond_hash_base_stuff[num % 17];
     }
-
-    // ok
-
-
 }
 
 
 // input length must be 32
-void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, char* output16)
+void miner_diamond_hash(const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
+
+    // 停止标记
+    uint8_t *is_stop = (uint8_t*)stop_mark1;
+
+    uint32_t basestuff[8+2+6];
+    memcpy( (void*)basestuff, (void*)input32, 32);
+    memcpy( (void*)basestuff+40, (void*)addr21, 21);
+
+    uint8_t sha3res[32];
+    uint8_t hashnew[32];
+    uint8_t diamond[16];
+
+    uint32_t noncenum1;
+    uint32_t noncenum2;
+    for(noncenum1=1; noncenum1<4294967294; noncenum1++){
+        basestuff[8] = noncenum1;
+        for(noncenum2=1; noncenum2<4294967294; noncenum2++){
+            basestuff[9] = noncenum2;
+
+            // 停止
+            if( is_stop[0] != 0 ) {
+                uint8_t noncenum_empty[8] = {0,0,0,0,0,0,0,0};
+                memcpy( nonce8, noncenum_empty, 8);
+                return; // 返回空
+            }
+
+            // 哈希计算
+            sha3_256((char*)basestuff, 61, (char*)sha3res);
+            x16rs_hash((char*)sha3res, (char*)hashnew);
+            diamond_hash((char*)hashnew, (char*)diamond);
+            /*
+            printf("hash: ");
+            uint8_t *input32p = (uint8_t*)hashnew;
+            int j;
+            for(j=0; j<32; j++){
+                printf("%u,", input32p[j]);
+            }
+            printf("\n");
+            */
+            // 判断结果是否为钻石
+            uint8_t success = 1;
+            uint8_t haschar = 0;
+            int k;
+            for( k=0; k<16; k++ ) {
+                if(k<5){
+                    if( diamond[k] != 48 ){
+                        success = 0;
+                        break;
+                    }
+                }else{
+                    if( haschar && diamond[k] == 48 ){
+                        success = 0;
+                        break;
+                    }
+                    if( diamond[k] != 48 ){
+                        haschar = 1;
+                    }
+                }
+            }
+
+            // 挖出钻石
+            if( success == 1 ) {
+                uint32_t nonce[2] = {0, 0};
+                nonce[0] = noncenum1;
+                nonce[1] = noncenum2;
+                memcpy( (char*)nonce8, (char*)nonce, 8);
+                memcpy( (char*)diamond16, (char*)diamond, 16);
+                return; // 拷贝值，返回成功
+            }
+        }
+    }
+
+
+
+
+
+    /*
+
     int zerofront = 8;
 
     uint8_t diamond[16];
@@ -473,8 +510,6 @@ void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, c
     uint8_t i7;
     for(i7=0; i7<255; i7++){
     noncenum[7] = i7;
-
-
 
 
         diamond_hash(input32, addr21, noncenum, diamond);
@@ -531,9 +566,10 @@ void miner_diamond_hash(const char* input32, const char* addr21, char* nonce8, c
         }
 
 
-
-
     }}}}}}}}
+
+
+    */
 
 
 }
@@ -566,7 +602,7 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
 
     // nonce值
     uint32_t noncenum;
-    for(noncenum=0; noncenum<4294967294; noncenum++){
+    for(noncenum=1; noncenum<4294967294; noncenum++){
         // 停止标记检测
         if( is_stop[0] != 0 )
         {

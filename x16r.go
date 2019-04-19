@@ -98,6 +98,13 @@ func MinerHacashDiamond(stopmark *byte, blockhash []byte, address []byte) ([]byt
 	return []byte(C.GoStringN(&nonce[0], 8)), C.GoStringN(&diamond[0], 16)
 }
 
+////////////////////////  GPU OpenCL  ////////////////////////////
+
+func OpenCLMinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
+	return nil
+}
+
+
 func main() {
 	//fmt.Println(Sum([]byte("test")))
 	//fmt.Println(HashX16RS([]byte("test")))

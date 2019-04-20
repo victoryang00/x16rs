@@ -2,11 +2,15 @@ package x16r
 
 import (
 	"bytes"
-	"crypto/rand"
+	crypto_rand "crypto/rand"
+	"math/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
+	"log"
+	"os"
 	"testing"
 	"time"
 )
@@ -46,7 +50,7 @@ func TestX16RS_LOOP(t *testing.T) {
 
 	data := make([]byte, 32)
 	for i := 0; i < 10000*10000*100; i++ {
-		rand.Read(data)
+		crypto_rand.Read(data)
 		//fmt.Println(token)
 		res := HashX16RS(data)
 		//res := data
@@ -131,3 +135,98 @@ func Test_diamond_miner_do(t *testing.T) {
 	}
 
 }
+
+func Test_print_x16rs(t *testing.T)  {
+
+	data := bytes.Repeat([]byte{9,2,3,4,5,6,7,8}, 4)
+	fmt.Println(data)
+	resultBytes := TestPrintX16RS(data)
+	for i:=0; i<16; i++ {
+		fmt.Println(i, resultBytes[i])
+	}
+
+}
+
+
+//////////////////// OpenCL /////////////////////
+
+
+//按字节读取，将整个文件读取到缓冲区buffer
+func ReadFileBytes( filename string ) []byte {
+	file,err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	fileinfo, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fileSize := fileinfo.Size()
+	buffer := make([]byte, fileSize)
+	bytesread, err := file.Read(buffer)
+	if err != nil {
+		log.Fatal(err, bytesread)
+	}
+	//fmt.Println("bytes read:", bytesread)
+	//fmt.Println("bytestream to string:", string(buffer))
+	return buffer
+}
+
+
+func Test_OpenCL(t *testing.T) {
+
+	// source
+	kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
+
+	// input data
+	var data [100]float32
+	for i := 0; i < len(data); i++ {
+		data[i] = rand.Float32()
+	}
+	// init
+	platforms, _ := cl.GetPlatforms()
+	platform := platforms[0]
+	devices, _ := platform.GetDevices(cl.DeviceTypeAll)
+	device := devices[0]
+	context, _ := cl.CreateContext([]*cl.Device{device})
+	queue, _ := context.CreateCommandQueue(device, 0)
+	program, _ := context.CreateProgramWithSource([]string{string(kernelSource)})
+	program.BuildProgram(nil, "-I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
+	kernel, _ := program.CreateKernel("test_hash_x16rs")
+	// input and output
+	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
+	output, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
+	// copy set input
+	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{9,2,3,4,5,6,7,8}, 4), nil)
+	// set argvs
+	kernel.SetArgs(input, output)
+
+	// run prepare
+	local, _ := kernel.WorkGroupSize(device)
+	fmt.Printf("Work group size: %d\n", local)
+	size, _ := kernel.PreferredWorkGroupSizeMultiple(nil)
+	fmt.Printf("Preferred Work Group Size Multiple: %d\n", size)
+	global := len(data)
+	d := len(data) % local
+	if d != 0 {
+		global += local - d
+	}
+	// run
+	queue.EnqueueNDRangeKernel(kernel, nil, []int{global}, []int{local}, nil)
+	queue.Finish()
+	results := make([]byte, 32)
+	// copy get output
+	queue.EnqueueReadBufferByte(output, true, 0, results, nil)
+	fmt.Println(results)
+
+	// check results
+
+	fmt.Println("==========================")
+
+
+
+
+
+}
+

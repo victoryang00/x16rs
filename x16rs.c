@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
+void print_byte_list(void *data, int len, int wide);
+
 #include "sha3/sph_blake.h"
 #include "sha3/sph_bmw.h"
 #include "sha3/sph_groestl.h"
@@ -21,6 +23,19 @@
 #include "sha3/sph_whirlpool.h"
 #include "sha3/sph_sha2.h"
 #include "sha3_256/sha3.h"
+
+
+void print_byte_list(void *data, int len, int wide)
+{
+    int i;
+    printf("%d", ((uint8_t*)data)[0]);
+    for(i=1; i<len; i++){
+        if(wide>0 && i%wide==0) printf("\n");
+        printf(",%d", ((uint8_t*)data)[i]);
+    }
+    printf("\n");
+    fflush(stdout);
+}
 
 void sha3_256(const char *input, const int in_size, char *output)
 {
@@ -666,3 +681,207 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
 
 }
 
+
+
+
+
+
+
+
+
+///////////////////// TEST /////////////////////
+
+
+
+void test_print_x16rs(const char* input, char* output32x16)
+{
+    int insize = 32;
+    int size = insize;
+    int i = 0;
+//    printf("%s\n", input);
+
+    uint32_t hash[64/4];
+
+    // char hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
+
+    sph_blake512_context     ctx_blake;
+    sph_bmw512_context       ctx_bmw;
+    sph_groestl512_context   ctx_groestl;
+    sph_skein512_context     ctx_skein;
+    sph_jh512_context        ctx_jh;
+    sph_keccak512_context    ctx_keccak;
+    sph_luffa512_context     ctx_luffa;
+    sph_cubehash512_context  ctx_cubehash;
+    sph_shavite512_context   ctx_shavite;
+    sph_simd512_context      ctx_simd;
+    sph_echo512_context      ctx_echo;
+    sph_hamsi512_context     ctx_hamsi;
+    sph_fugue512_context     ctx_fugue;
+    sph_shabal512_context    ctx_shabal;
+    sph_whirlpool_context    ctx_whirlpool;
+    sph_sha512_context       ctx_sha512;
+
+    void *in = (void*) input;
+    uint8_t output[32];
+    // memcpy((void*)hash, input, 32); // first
+
+    sph_blake512_init(&ctx_blake);
+    sph_blake512(&ctx_blake, in, size);
+    sph_blake512_close(&ctx_blake, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*0, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_bmw512_init(&ctx_bmw);
+    sph_bmw512(&ctx_bmw, in, size);
+    sph_bmw512_close(&ctx_bmw, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*1, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_groestl512_init(&ctx_groestl);
+    sph_groestl512(&ctx_groestl, in, size);
+    sph_groestl512_close(&ctx_groestl, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*2, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_skein512_init(&ctx_skein);
+    sph_skein512(&ctx_skein, in, size);
+    sph_skein512_close(&ctx_skein, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*3, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_jh512_init(&ctx_jh);
+    sph_jh512(&ctx_jh, in, size);
+    sph_jh512_close(&ctx_jh, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*4, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_keccak512_init(&ctx_keccak);
+    sph_keccak512(&ctx_keccak, in, size);
+    sph_keccak512_close(&ctx_keccak, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*5, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_luffa512_init(&ctx_luffa);
+    sph_luffa512(&ctx_luffa, in, size);
+    sph_luffa512_close(&ctx_luffa, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*6, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_cubehash512_init(&ctx_cubehash);
+    sph_cubehash512(&ctx_cubehash, in, size);
+    sph_cubehash512_close(&ctx_cubehash, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*7, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_shavite512_init(&ctx_shavite);
+    sph_shavite512(&ctx_shavite, in, size);
+    sph_shavite512_close(&ctx_shavite, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*8, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_simd512_init(&ctx_simd);
+    sph_simd512(&ctx_simd, in, size);
+    sph_simd512_close(&ctx_simd, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*9, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_echo512_init(&ctx_echo);
+    sph_echo512(&ctx_echo, in, size);
+    sph_echo512_close(&ctx_echo, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*10, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_hamsi512_init(&ctx_hamsi);
+    sph_hamsi512(&ctx_hamsi, in, size);
+    sph_hamsi512_close(&ctx_hamsi, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*11, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_fugue512_init(&ctx_fugue);
+    sph_fugue512(&ctx_fugue, in, size);
+    sph_fugue512_close(&ctx_fugue, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*12, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_shabal512_init(&ctx_shabal);
+    sph_shabal512(&ctx_shabal, in, size);
+    sph_shabal512_close(&ctx_shabal, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*13, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_whirlpool_init(&ctx_whirlpool);
+    sph_whirlpool(&ctx_whirlpool, in, size);
+    sph_whirlpool_close(&ctx_whirlpool, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*14, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+    
+    sph_sha512_init(&ctx_sha512);
+    sph_sha512(&ctx_sha512,(const void*) in, size);
+    sph_sha512_close(&ctx_sha512,(void*) hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*15, (void*)hash, 32);
+    /*printf("switch (algo) = %d \n", algo);
+    for(int i=0; i<8; i++){
+        printf("hash %d = %d\n", i, hash[i]);
+    }*/
+}

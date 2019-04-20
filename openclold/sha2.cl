@@ -1,10 +1,15 @@
-#ifndef SHA2_CL
-#define SHA2_CL
-
 #ifndef uint32_t
 #define uint32_t unsigned int
 #endif
 
+#define H0 0x6a09e667
+#define H1 0xbb67ae85
+#define H2 0x3c6ef372
+#define H3 0xa54ff53a
+#define H4 0x510e527f
+#define H5 0x9b05688c
+#define H6 0x1f83d9ab
+#define H7 0x5be0cd19
 
 
 uint rotr(uint x, int n) {
@@ -63,15 +68,14 @@ __kernel void sha256_crypt_kernel(__global uint *data_info,__global char *plain_
 
 //  printf("ulen: %u total:%u\n", ulen, total);
 
-  digest[0] = 0x6a09e667;
-  digest[1] = 0xbb67ae85;
-  digest[2] = 0x3c6ef372;
-  digest[3] = 0xa54ff53a;
-  digest[4] = 0x510e527f;
-  digest[5] = 0x9b05688c;
-  digest[6] = 0x1f83d9ab;
-  digest[7] = 0x5be0cd19;
-
+  digest[0] = H0;
+  digest[1] = H1;
+  digest[2] = H2;
+  digest[3] = H3;
+  digest[4] = H4;
+  digest[5] = H5;
+  digest[6] = H6;
+  digest[7] = H7;
   for(item=0; item<total; item++)
   {
 
@@ -167,6 +171,3 @@ __kernel void sha256_crypt_kernel(__global uint *data_info,__global char *plain_
 
 
 }
-
-
-#endif // SHA2_CL

@@ -87,6 +87,7 @@
  * thus avoiding any data-dependent table access pattern.
  */
 
+
 #if !defined SPH_HAMSI_EXPAND_SMALL
   #if SPH_SMALL_FOOTPRINT_HAMSI
     #define SPH_HAMSI_EXPAND_SMALL  4
@@ -103,6 +104,7 @@
 #pragma warning (disable: 4146)
 #endif
 
+
 //temp fix for shortened implementation of X15
 #ifdef SPH_HAMSI_SHORT
   #if SPH_HAMSI_SHORT == 1 && SPH_HAMSI_EXPAND_BIG == 1
@@ -111,8 +113,10 @@
     #include "hamsi_helper.cl"
   #endif
 #else
-  #include "hamsi_helper.cl"
+    #include "hamsi_helper.cl"
 #endif
+
+
 
 __constant static const sph_u32 HAMSI_IV224[] = {
   SPH_C32(0xc3967a67), SPH_C32(0xc3bc6c20), SPH_C32(0x4bc3bcc3),

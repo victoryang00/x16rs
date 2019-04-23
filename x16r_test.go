@@ -3,13 +3,13 @@ package x16r
 import (
 	"bytes"
 	crypto_rand "crypto/rand"
-	"math/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
 	"log"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -138,7 +138,7 @@ func Test_diamond_miner_do(t *testing.T) {
 
 func Test_print_x16rs(t *testing.T)  {
 
-	data := bytes.Repeat([]byte{9,2,3,4,5,6,7,8}, 4)
+	data := bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241}, 1)
 	fmt.Println(data)
 	resultBytes := TestPrintX16RS(data)
 	for i:=0; i<16; i++ {
@@ -146,6 +146,9 @@ func Test_print_x16rs(t *testing.T)  {
 	}
 
 }
+
+// 234,214,164,90,45,197,130,255,13,248,176,44,151,46,87,41,204,138,20,15,157,191,112, 255,107,107,118,6,83,243,227,192
+// 12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241
 
 
 //////////////////// OpenCL /////////////////////
@@ -180,7 +183,7 @@ func Test_OpenCL(t *testing.T) {
 	kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
 
 	// input data
-	var data [100]float32
+	var data [2]float32
 	for i := 0; i < len(data); i++ {
 		data[i] = rand.Float32()
 	}
@@ -198,7 +201,7 @@ func Test_OpenCL(t *testing.T) {
 	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	output, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	// copy set input
-	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{9,2,3,4,5,6,7,8}, 4), nil)
+	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241}, 1), nil)
 	// set argvs
 	kernel.SetArgs(input, output)
 
@@ -223,9 +226,6 @@ func Test_OpenCL(t *testing.T) {
 	// check results
 
 	fmt.Println("==========================")
-
-
-
 
 
 }

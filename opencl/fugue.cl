@@ -638,6 +638,51 @@ __constant const sph_u32 mixtab3_c[] = {
   S08 = B35; S07 = B34; S06 = B33; S05 = B32; S04 = B31; S03 = B30; S02 = B29; S01 = B28; S00 = B27; \
   } while (0)
 
+#define ROR12   do { \
+  sph_u32 B24 = S24, B25 = S25, B26 = S26, B27 = S27, B28 = S28, B29 = S29, B30 = S30, B31 = S31, B32 = S32, B33 = S33, B34 = S34, B35 = S35; \
+    S35 = S23; S34 = S22; S33 = S21; S32 = S20; S31 = S19; S30 = S18; S29 = S17; S28 = S16; S27 = S15; \
+  S26 = S14; S25 = S13; S24 = S12; S23 = S11; S22 = S10; S21 = S09; S20 = S08; S19 = S07; S18 = S06; \
+  S17 = S05; S16 = S04; S15 = S03; S14 = S02; S13 = S01; S12 = S00; S11 = B35; S10 = B34; S09 = B33; \
+  S08 = B32; S07 = B31; S06 = B30; S05 = B29; S04 = B28; S03 = B27; S02 = B26; S01 = B25; S00 = B24; \
+  } while (0)
+
+
+#define FUGUE512_one(x)    do {  \
+    TIX4(x, S00, S01, S04, S07, S08, S22, S24, S27, S30); \
+    CMIX36(S33, S34, S35, S01, S02, S03, S15, S16, S17); \
+    SMIX(S33, S34, S35, S00); \
+    CMIX36(S30, S31, S32, S34, S35, S00, S12, S13, S14); \
+    SMIX(S30, S31, S32, S33); \
+    CMIX36(S27, S28, S29, S31, S32, S33, S09, S10, S11); \
+    SMIX(S27, S28, S29, S30); \
+    CMIX36(S24, S25, S26, S28, S29, S30, S06, S07, S08); \
+    SMIX(S24, S25, S26, S27); \
+  } while (0)
+
+#define FUGUE512_two(y)    do {  \
+    TIX4(y, S24, S25, S28, S31, S32, S10, S12, S15, S18); \
+    CMIX36(S21, S22, S23, S25, S26, S27, S03, S04, S05); \
+    SMIX(S21, S22, S23, S24); \
+    CMIX36(S18, S19, S20, S22, S23, S24, S00, S01, S02); \
+    SMIX(S18, S19, S20, S21); \
+    CMIX36(S15, S16, S17, S19, S20, S21, S33, S34, S35); \
+    SMIX(S15, S16, S17, S18); \
+    CMIX36(S12, S13, S14, S16, S17, S18, S30, S31, S32); \
+    SMIX(S12, S13, S14, S15); \
+  } while (0)
+
+#define FUGUE512_trd(z)    do {  \
+    TIX4(z, S12, S13, S16, S19, S20, S34, S00, S03, S06); \
+    CMIX36(S09, S10, S11, S13, S14, S15, S27, S28, S29); \
+    SMIX(S09, S10, S11, S12); \
+    CMIX36(S06, S07, S08, S10, S11, S12, S24, S25, S26); \
+    SMIX(S06, S07, S08, S09); \
+    CMIX36(S03, S04, S05, S07, S08, S09, S21, S22, S23); \
+    SMIX(S03, S04, S05, S06); \
+    CMIX36(S00, S01, S02, S04, S05, S06, S18, S19, S20); \
+    SMIX(S00, S01, S02, S03); \
+  } while (0)
+
 #define FUGUE512_3(x, y, z)    do {  \
     TIX4(x, S00, S01, S04, S07, S08, S22, S24, S27, S30); \
     CMIX36(S33, S34, S35, S01, S02, S03, S15, S16, S17); \

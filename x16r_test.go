@@ -147,12 +147,22 @@ func Test_print_x16rs(t *testing.T)  {
 
 }
 
+
+func Test_print_testX16RS(t *testing.T) {
+
+	data := bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1)
+	fmt.Println(data)
+	resultBytes := HashX16RS(data)
+	fmt.Println(resultBytes)
+
+}
+
 // 234,214,164,90,45,197,130,255,13,248,176,44,151,46,87,41,204,138,20,15,157,191,112, 255,107,107,118,6,83,243,227,192
-// 12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241
-
-
+// 12,52,5,230,151,150,139,223,254,37,62,187,3,34,169,36,48,200,23,127,166,146,160,123,134,36,215,137,113,139,34,241
+// 12 52 5 230 151 150 139 223 254 37 62 187 3 34 169 36 48 200 23 127 166 146 160 123 134 36 215 137 113 139 34 241
+// 190, 201, 237, 69, 96, 107, 53, 61, 164, 23, 100, 251, 210, 169,203,189,199,200,184,172,187,60,210,209,109,96,122,78,2,172,220,201
 //////////////////// OpenCL /////////////////////
-
+// 108 220 63 239 43 104 233 103 219 79 119 139 26 152 146 61 47 77 229 77 11 14 13 202 42 188 120 72 225 240 38 167
 
 //按字节读取，将整个文件读取到缓冲区buffer
 func ReadFileBytes( filename string ) []byte {
@@ -196,12 +206,12 @@ func Test_OpenCL(t *testing.T) {
 	queue, _ := context.CreateCommandQueue(device, 0)
 	program, _ := context.CreateProgramWithSource([]string{string(kernelSource)})
 	program.BuildProgram(nil, "-I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
-	kernel, _ := program.CreateKernel("test_hash_x16rs")
+	kernel, _ := program.CreateKernel("hash_x16rs")
 	// input and output
 	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	output, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	// copy set input
-	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241}, 1), nil)
+	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1), nil)
 	// set argvs
 	kernel.SetArgs(input, output)
 
@@ -216,7 +226,7 @@ func Test_OpenCL(t *testing.T) {
 		global += local - d
 	}
 	// run
-	queue.EnqueueNDRangeKernel(kernel, nil, []int{global}, []int{local}, nil)
+	queue.EnqueueNDRangeKernel(kernel, nil, []int{1}, []int{1}, nil)
 	queue.Finish()
 	results := make([]byte, 32)
 	// copy get output

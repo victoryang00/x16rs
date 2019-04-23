@@ -80,12 +80,12 @@ typedef int sph_s32;
 
 #if SPH_BIG_ENDIAN
   #define DEC64E(x) (x)
-  #define DEC64BE(x) (*(const __global sph_u64 *) (x));
-  #define DEC32LE(x) SWAP4(*(const __global sph_u32 *) (x));
+  #define DEC64BE(x) (*(const sph_u64 *) (x));
+  #define DEC32LE(x) SWAP4(*(const sph_u32 *) (x));
 #else
   #define DEC64E(x) SWAP8(x)
-  #define DEC64BE(x) SWAP8(*(const __global sph_u64 *) (x));
-  #define DEC32LE(x) (*(const __global sph_u32 *) (x));
+  #define DEC64BE(x) SWAP8(*(const sph_u64 *) (x));
+  #define DEC32LE(x) (*(const sph_u32 *) (x));
 #endif
 
 #define SHL(x, n) ((x) << (n))
@@ -104,10 +104,16 @@ typedef union {
 
 
 // blake
-void hash_x16rs_func_0(__global unsigned char* block, __global unsigned char* output)
+// void hash_x16rs_func_0(unsigned char* block, unsigned char* output)
+void hash_x16rs_func_0(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
+    
+    // hash_t hashobj;
+    // hash_t* hash = &hashobj;
+
+    // for(int i = 0; i < 32; i++)
+    //     hash->h1[i] = block[i];
+    
 
     // blake
     sph_u64 H0 = SPH_C64(0x6A09E667F3BCC908), H1 = SPH_C64(0xBB67AE8584CAA73B);
@@ -126,10 +132,10 @@ void hash_x16rs_func_0(__global unsigned char* block, __global unsigned char* ou
     sph_u64 V0, V1, V2, V3, V4, V5, V6, V7;
     sph_u64 V8, V9, VA, VB, VC, VD, VE, VF;
 
-    M0 = DEC64BE(block +  0);
-    M1 = DEC64BE(block +  8);
-    M2 = DEC64BE(block + 16);
-    M3 = DEC64BE(block + 24);
+    M0 = SWAP8(hash->h8[0]);
+    M1 = SWAP8(hash->h8[1]);
+    M2 = SWAP8(hash->h8[2]);
+    M3 = SWAP8(hash->h8[3]);
     M4 = SPH_C64(0x8000000000000000);
     M5 = 0;
     M6 = 0;
@@ -154,29 +160,14 @@ void hash_x16rs_func_0(__global unsigned char* block, __global unsigned char* ou
     hash->h8[6] = SWAP8(H6);
     hash->h8[7] = SWAP8(H7);
 
-    int i;
-    for(i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-    // unsigned char *ttt = (unsigned char*)(&T0);
-    // for(i=0; i<8; i++){
-    //     output[i] = ttt[i];
-    // }
-
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
 }
 
 // bmw
-void hash_x16rs_func_1(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_1(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
     // bmw
     sph_u64 BMW_H[16];
 
@@ -442,25 +433,13 @@ void hash_x16rs_func_1(__global unsigned char* block, __global unsigned char* ou
     hash->h8[7] = BMW_H[15];
 
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
-
     //   barrier(CLK_GLOBAL_MEM_FENCE);
 
 }
 
 // groestl
-void hash_x16rs_func_2(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_2(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
     // groestl
 
     sph_u64 H[16];
@@ -506,12 +485,6 @@ void hash_x16rs_func_2(__global unsigned char* block, __global unsigned char* ou
     PERM_BIG_P(g);
     PERM_BIG_Q(m);
 
-    // for(int i=0; i<32; i++){
-    //     output[i] = ((char*)m)[32+i];
-    // }
-    // for(int i=0; i<32; i++){
-    //     output[i] = ((char*)g)[i];
-    // }
 
 
     //#pragma unroll 16
@@ -536,23 +509,12 @@ void hash_x16rs_func_2(__global unsigned char* block, __global unsigned char* ou
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
 
 }
 
 // skein
-void hash_x16rs_func_3(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_3(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
     // skein
     sph_u64 h0 = SPH_C64(0x4903ADFF749C51CE), h1 = SPH_C64(0x0D95DE399746DF03), 
     h2 = SPH_C64(0x8FD1934127C79BCE), h3 = SPH_C64(0x9A255629FF352CB1), 
@@ -571,10 +533,6 @@ void hash_x16rs_func_3(__global unsigned char* block, __global unsigned char* ou
     m6 = 0;
     m7 = 0;
 
-    // for(int i=0; i<32; i++){
-    //     output[i] = ((char*)&m0)[i];
-    // }
-
     UBI_BIG(480, 32); // 64 => 43
 
     bcount = 0;
@@ -591,24 +549,12 @@ void hash_x16rs_func_3(__global unsigned char* block, __global unsigned char* ou
     hash->h8[6] = h6;
     hash->h8[7] = h7;
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
     // barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 // jh
-void hash_x16rs_func_4(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_4(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
-
     // jh
     sph_u64 h0h = C64e(0x6fd14b963e00aa17), h0l = C64e(0x636a2e057a15d543), h1h = C64e(0x8a225e8d0c97ef0b), h1l = C64e(0xe9341259f2b3c361), h2h = C64e(0x891da0c1536f801e), h2l = C64e(0x2aa9056bea2b6d80), h3h = C64e(0x588eccdb2075baa6), h3l = C64e(0xa90f3a76baf83bf7);
     sph_u64 h4h = C64e(0x0169e60541e34a69), h4l = C64e(0x46b58a8e2e6fe65a), h5h = C64e(0x1047a7d0c1843c24), h5l = C64e(0x3b6e71b12d5ac199), h6h = C64e(0xcf57f6ec9db1f856), h6l = C64e(0xa706887c5716b156), h7h = C64e(0xe3c2fcdfe68517fb), h7l = C64e(0x545a4678cc8cdd4b);
@@ -664,11 +610,6 @@ void hash_x16rs_func_4(__global unsigned char* block, __global unsigned char* ou
             h7l ^= SPH_C64(0x0001000000000000);
         }
 
-        // pppp+=1; if(pppp==2){
-        //     for(int i=0; i<32; i++){
-        //         output[i] = ((char*)&h4h)[i];
-        //     }
-        // }
 
     }
 
@@ -681,11 +622,6 @@ void hash_x16rs_func_4(__global unsigned char* block, __global unsigned char* ou
     hash->h8[6] = h7h;
     hash->h8[7] = h7l;
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
 
@@ -693,14 +629,8 @@ void hash_x16rs_func_4(__global unsigned char* block, __global unsigned char* ou
 }
 
 // keccak
-void hash_x16rs_func_5(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_5(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
     // keccak
     sph_u64 a00 = 0, a01 = 0, a02 = 0, a03 = 0, a04 = 0;
     sph_u64 a10 = 0, a11 = 0, a12 = 0, a13 = 0, a14 = 0;
@@ -742,21 +672,11 @@ void hash_x16rs_func_5(__global unsigned char* block, __global unsigned char* ou
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
 }
 
 // luffa
-void hash_x16rs_func_6(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_6(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
 
     // luffa
     sph_u32 V00 = SPH_C32(0x6d251e69), V01 = SPH_C32(0x44b051e0), V02 = SPH_C32(0x4eaa6fb4), V03 = SPH_C32(0xdbf78465), V04 = SPH_C32(0x6e292011), V05 = SPH_C32(0x90152df4), V06 = SPH_C32(0xee058139), V07 = SPH_C32(0xdef610bb);
@@ -802,18 +722,18 @@ void hash_x16rs_func_6(__global unsigned char* block, __global unsigned char* ou
             hash->h4[6] = SWAP4(V06 ^ V16 ^ V26 ^ V36 ^ V46);
             hash->h4[7] = SWAP4(V07 ^ V17 ^ V27 ^ V37 ^ V47);
         }
-        /*else if(i == 4)
-        {
-            hash->h4[8] = SWAP4(V00 ^ V10 ^ V20 ^ V30 ^ V40);
-            hash->h4[9] = SWAP4(V01 ^ V11 ^ V21 ^ V31 ^ V41);
-            hash->h4[10] = SWAP4(V02 ^ V12 ^ V22 ^ V32 ^ V42);
-            hash->h4[11] = SWAP4(V03 ^ V13 ^ V23 ^ V33 ^ V43);
-            hash->h4[12] = SWAP4(V04 ^ V14 ^ V24 ^ V34 ^ V44);
-            hash->h4[13] = SWAP4(V05 ^ V15 ^ V25 ^ V35 ^ V45);
-            hash->h4[14] = SWAP4(V06 ^ V16 ^ V26 ^ V36 ^ V46);
-            hash->h4[15] = SWAP4(V07 ^ V17 ^ V27 ^ V37 ^ V47);
-            break;
-        }*/
+        // else if(i == 4)
+        // {
+        //     hash->h4[8] = SWAP4(V00 ^ V10 ^ V20 ^ V30 ^ V40);
+        //     hash->h4[9] = SWAP4(V01 ^ V11 ^ V21 ^ V31 ^ V41);
+        //     hash->h4[10] = SWAP4(V02 ^ V12 ^ V22 ^ V32 ^ V42);
+        //     hash->h4[11] = SWAP4(V03 ^ V13 ^ V23 ^ V33 ^ V43);
+        //     hash->h4[12] = SWAP4(V04 ^ V14 ^ V24 ^ V34 ^ V44);
+        //     hash->h4[13] = SWAP4(V05 ^ V15 ^ V25 ^ V35 ^ V45);
+        //     hash->h4[14] = SWAP4(V06 ^ V16 ^ V26 ^ V36 ^ V46);
+        //     hash->h4[15] = SWAP4(V07 ^ V17 ^ V27 ^ V37 ^ V47);
+        //     break;
+        // }
 
         MI5;
         LUFFA_P5;
@@ -823,22 +743,11 @@ void hash_x16rs_func_6(__global unsigned char* block, __global unsigned char* ou
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
 }
 
 // cubehash
-void hash_x16rs_func_7(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_7(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
 
     // cubehash.h1
 
@@ -905,23 +814,11 @@ void hash_x16rs_func_7(__global unsigned char* block, __global unsigned char* ou
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
-
 }
 
 // shavite
-void hash_x16rs_func_8(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_8(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
 
     // shavite
     sph_u32 AES0[256], AES1[256], AES2[256], AES3[256];
@@ -933,8 +830,6 @@ void hash_x16rs_func_8(__global unsigned char* block, __global unsigned char* ou
         AES2[i] = AES2_C[i];
         AES3[i] = AES3_C[i];
     }
-
-    //   barrier(CLK_LOCAL_MEM_FENCE);
 
     // shavite
     // IV
@@ -949,7 +844,8 @@ void hash_x16rs_func_8(__global unsigned char* block, __global unsigned char* ou
     sph_u32 rk10, rk11, rk12, rk13, rk14, rk15, rk16, rk17;
     sph_u32 rk18, rk19, rk1A, rk1B, rk1C, rk1D, rk1E, rk1F;
 
-    sph_u32 sc_count0 = (32/* 64 >= 32 */ << 3), sc_count1 = 0, sc_count2 = 0, sc_count3 = 0;
+    // 64 >= 32
+    sph_u32 sc_count0 = (32 << 3), sc_count1 = 0, sc_count2 = 0, sc_count3 = 0;
 
     rk00 = (hash->h4[0]);
     rk01 = (hash->h4[1]);
@@ -975,10 +871,6 @@ void hash_x16rs_func_8(__global unsigned char* block, __global unsigned char* ou
     rk1E = 0;
     rk1F = (SPH_C32(0x02000000));
 
-    for(int i=0; i<32; i++){
-        // output[i] = ((char*)&rk08)[i];
-    }
-
     c512(buf);
 
     hash->h4[0] = h0;
@@ -997,25 +889,16 @@ void hash_x16rs_func_8(__global unsigned char* block, __global unsigned char* ou
     hash->h4[13] = hD;
     hash->h4[14] = hE;
     hash->h4[15] = hF;
+    
 
     //   barrier(CLK_GLOBAL_MEM_FENCE);
-
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
 
 }
 
 
 // simd
-void hash_x16rs_func_9(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_9(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
 
   // simd
   s32 q[256];
@@ -1120,13 +1003,6 @@ void hash_x16rs_func_9(__global unsigned char* block, __global unsigned char* ou
   A0 ^= (SPH_C32(0x00000100));
   // A0 ^= 0x200;
 
-    /*
-
-
-
-
-    */
-
 
     for(unsigned int i = 0; i < 128; i++)
         x[i] = 0;
@@ -1142,12 +1018,6 @@ void hash_x16rs_func_9(__global unsigned char* block, __global unsigned char* ou
         tq = REDS1(tq);
         q[i] = (tq <= 128 ? tq : tq - 257);
     }
-
-
-    //   for(int i=0; i<32; i++){ output[i +   0] = ((char*)q)[i+32]; }
-
-
-
 
 
   ONE_ROUND_BIG(0_, 0,  3, 23, 17, 27);
@@ -1197,23 +1067,12 @@ void hash_x16rs_func_9(__global unsigned char* block, __global unsigned char* ou
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
 
 }
 
-
 // echo
-void hash_x16rs_func_10(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_10(hash_t* hash)
 {
-    hash_t hash;
-    hash_t* hashp = &hash;
-
-    for(int i = 0; i < 32; i++)
-        hashp->h1[i] = block[i];
 
     // shavite
     sph_u32 AES0[256], AES1[256], AES2[256], AES3[256];
@@ -1254,10 +1113,10 @@ void hash_x16rs_func_10(__global unsigned char* block, __global unsigned char* o
   W61 = Vb61;
   W70 = Vb70;
   W71 = Vb71;
-  W80 = hash.h8[0];
-  W81 = hash.h8[1];
-  W90 = hash.h8[2];
-  W91 = hash.h8[3];
+  W80 = hash->h8[0];
+  W81 = hash->h8[1];
+  W90 = hash->h8[2];
+  W91 = hash->h8[3];
   WA0 = SPH_C64(0x0000000000000080);
   WA1 = 0;
   WB0 = 0;
@@ -1272,46 +1131,29 @@ void hash_x16rs_func_10(__global unsigned char* block, __global unsigned char* o
   WF1 = 0;
 
 
-    // for(int i=0; i<8; i++){ output[i +   0] = ((char*)&WE0)[i]; }
-    // for(int i=0; i<8; i++){ output[i +   8] = ((char*)&WE1)[i]; }
-    // for(int i=0; i<8; i++){ output[i +  16] = ((char*)&WF0)[i]; }
-    // for(int i=0; i<8; i++){ output[i +  24] = ((char*)&WF1)[i]; }
-
-
   for (unsigned u = 0; u < 10; u ++)
     BIG_ROUND;
 
 
 
-  hashp->h8[0] = hash.h8[0] ^ Vb00 ^ W00 ^ W80;
-  hashp->h8[1] = hash.h8[1] ^ Vb01 ^ W01 ^ W81;
-  hashp->h8[2] = hash.h8[2] ^ Vb10 ^ W10 ^ W90;
-  hashp->h8[3] = hash.h8[3] ^ Vb11 ^ W11 ^ W91;
-  hashp->h8[4] = hash.h8[4] ^ Vb20 ^ W20 ^ WA0;
-  hashp->h8[5] = hash.h8[5] ^ Vb21 ^ W21 ^ WA1;
-  hashp->h8[6] = hash.h8[6] ^ Vb30 ^ W30 ^ WB0;
-  hashp->h8[7] = hash.h8[7] ^ Vb31 ^ W31 ^ WB1;
+  hash->h8[0] = hash->h8[0] ^ Vb00 ^ W00 ^ W80;
+  hash->h8[1] = hash->h8[1] ^ Vb01 ^ W01 ^ W81;
+  hash->h8[2] = hash->h8[2] ^ Vb10 ^ W10 ^ W90;
+  hash->h8[3] = hash->h8[3] ^ Vb11 ^ W11 ^ W91;
+  hash->h8[4] = hash->h8[4] ^ Vb20 ^ W20 ^ WA0;
+  hash->h8[5] = hash->h8[5] ^ Vb21 ^ W21 ^ WA1;
+  hash->h8[6] = hash->h8[6] ^ Vb30 ^ W30 ^ WB0;
+  hash->h8[7] = hash->h8[7] ^ Vb31 ^ W31 ^ WB1;
 
     //   barrier(CLK_GLOBAL_MEM_FENCE);
 
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hashp->h1[i];
-    }
 
 
 }
 
-
-
 // hamsi
-void hash_x16rs_func_11(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_11(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
     for(int i = 0; i < 4; i++)
         hash->h8[i+4] = 0;
 
@@ -1322,9 +1164,6 @@ void hash_x16rs_func_11(__global unsigned char* block, __global unsigned char* o
       T512_L[i] = T512[i];
 
 
-    for(int i=0; i<32; i++){ output[i] = ((char*)&T512_L)[i]; }
-
-
   sph_u32 c0 = HAMSI_IV512[0], c1 = HAMSI_IV512[1], c2 = HAMSI_IV512[2], c3 = HAMSI_IV512[3];
   sph_u32 c4 = HAMSI_IV512[4], c5 = HAMSI_IV512[5], c6 = HAMSI_IV512[6], c7 = HAMSI_IV512[7];
   sph_u32 c8 = HAMSI_IV512[8], c9 = HAMSI_IV512[9], cA = HAMSI_IV512[10], cB = HAMSI_IV512[11];
@@ -1333,17 +1172,6 @@ void hash_x16rs_func_11(__global unsigned char* block, __global unsigned char* o
   sph_u32 m8, m9, mA, mB, mC, mD, mE, mF;
   sph_u32 h[16] = { c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, cA, cB, cC, cD, cE, cF };
 
-    // for(int i=0; i<32; i++){ output[i +   0] = ((char*)&h)[i]; }
-
-    // for(int i=0; i<4; i++){ output[i +   0] = ((char*)&c0)[i]; }
-    // for(int i=0; i<4; i++){ output[i +   4] = ((char*)&c1)[i]; }
-    // for(int i=0; i<4; i++){ output[i +   8] = ((char*)&c2)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  12] = ((char*)&c3)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  16] = ((char*)&c4)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  20] = ((char*)&c5)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  24] = ((char*)&c6)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  28] = ((char*)&c7)[i]; }
-int step = 0;
 
     unsigned char right_padding[32] = {0,0,0,0,0,0,0,0,17,16,0,0,0,0,0,0,73,78,80,85,84,95,66,73,71,32,98,117,102,58,32,58};
 
@@ -1379,27 +1207,14 @@ int step = 0;
   for (unsigned u = 0; u < 16; u ++)
       hash->h4[u] = SWAP4(h[u]);
 
-//   barrier(CLK_GLOBAL_MEM_FENCE);
+  //   barrier(CLK_GLOBAL_MEM_FENCE);
 
-
-
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
 
 }
 
-
 // fugue
-void hash_x16rs_func_12(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_12(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
-
   // mixtab
   sph_u32 mixtab0[256], mixtab1[256], mixtab2[256], mixtab3[256];
 
@@ -1446,15 +1261,6 @@ void hash_x16rs_func_12(__global unsigned char* block, __global unsigned char* o
     FUGUE512_trd((0));
     FUGUE512_one((SPH_C32(0x00000100)));
 
-
-    // for(int i=0; i<4; i++){ output[i +   0] = ((char*)&S00)[i]; }
-    // for(int i=0; i<4; i++){ output[i +   4] = ((char*)&S01)[i]; }
-    // for(int i=0; i<4; i++){ output[i +   8] = ((char*)&S02)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  12] = ((char*)&S03)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  16] = ((char*)&S04)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  20] = ((char*)&S05)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  24] = ((char*)&S06)[i]; }
-    // for(int i=0; i<4; i++){ output[i +  28] = ((char*)&S07)[i]; }
 
     ROR12;
 
@@ -1520,23 +1326,12 @@ void hash_x16rs_func_12(__global unsigned char* block, __global unsigned char* o
 
   // barrier(CLK_GLOBAL_MEM_FENCE);
 
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
 
 }
 
-
-
-
 // shabal
-void hash_x16rs_func_13(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_13(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
 
     // shabal
     sph_u32 A00 = A_init_512[0], A01 = A_init_512[1], A02 = A_init_512[2], A03 = A_init_512[3], A04 = A_init_512[4], A05 = A_init_512[5], A06 = A_init_512[6], A07 = A_init_512[7],
@@ -1603,29 +1398,14 @@ void hash_x16rs_func_13(__global unsigned char* block, __global unsigned char* o
 	hash->h4[14] = BE;
 	hash->h4[15] = BF;
 
-    //   bool result = (hash->h8[3] <= target);
-    //   if (result)
-    //     output[atomic_inc(output+0xFF)] = SWAP4(gid);
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
-
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
-
 
 }
 
 // whirlpool
-void hash_x16rs_func_14(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_14(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
 
     // whirlpool
     sph_u64 LT0[256], LT1[256], LT2[256], LT3[256], LT4[256], LT5[256], LT6[256], LT7[256];
@@ -1743,45 +1523,24 @@ void hash_x16rs_func_14(__global unsigned char* block, __global unsigned char* o
     state[6] ^= 0;
     state[7] ^= SPH_C64(0x0001000000000000);
 
-    // for(int i=0; i<8; i++){ output[i   ] = ((char*)&n0)[i]; }
-    // for(int i=0; i<8; i++){ output[i+ 8] = ((char*)&n1)[i]; }
-    // for(int i=0; i<8; i++){ output[i+16] = ((char*)&n2)[i]; }
-    // for(int i=0; i<8; i++){ output[i+24] = ((char*)&n3)[i]; }
-
 
     for (unsigned i = 0; i < 8; i ++){
         hash->h8[i] = state[i];
     }
 
-    // bool result = (hash->h8[3] <= target);
-    // if (result)
-    //     output[atomic_inc(output+0xFF)] = SWAP4(gid);
-
     // barrier(CLK_GLOBAL_MEM_FENCE);
-
-    // 结果
-    for(int i=0; i<32; i++){
-        output[i] = hash->h1[i];
-    }
 
 
 }
 
 // sha2
-void hash_x16rs_func_15(__global unsigned char* block, __global unsigned char* output)
+void hash_x16rs_func_15(hash_t* hash)
 {
-    hash_t hashobj;
-    hash_t* hash = &hashobj;
-
-    for(int i = 0; i < 32; i++)
-        hash->h1[i] = block[i];
-
     uint cnf[3] = { 0, 0, 32 };
-
 
     unsigned char data[32];
     for(int i=0; i<32; i++){
-        data[i] = block[i];
+        data[i] = hash->h1[i];
     }
 
     unsigned char digest[64];
@@ -1791,14 +1550,10 @@ void hash_x16rs_func_15(__global unsigned char* block, __global unsigned char* o
 
     // 结果
     for(int i=0; i<32; i++){
-        output[i] = ((char*)digest)[i];
+        hash->h1[i] = ((char*)digest)[i];
     }
 
 }
-
-
-
-
 
 
 

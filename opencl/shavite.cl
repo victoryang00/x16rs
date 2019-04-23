@@ -137,7 +137,6 @@
   p9 ^= x1; \
   pA ^= x2; \
   pB ^= x3; \
-  /*for(int i=0; i<4; i++){ output[i] = ((char*)&x0)[i]; }*/ \
  \
   for (r = 0; r < 3; r ++) { \
     /* round 1, 5, 9 */ \
@@ -152,7 +151,6 @@
       rk02 ^= sc_count2; \
       rk03 ^= SPH_T32(~sc_count3); \
     } \
-    if(r==0){ for(int i=0; i<4; i++){ output[i] = ((char*)&sc_count0)[i]; }} \
     x0 = p0 ^ rk00; \
     x1 = p1 ^ rk01; \
     x2 = p2 ^ rk02; \

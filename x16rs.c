@@ -217,7 +217,8 @@ void x16rs_hash(const char* input, char* output)
 // input length must more than 32
 void x16rs_hash_sz(const char* input, char* output, int insize)
 {
-//    printf("%s\n", input);
+    //    printf("%s\n", input);
+    // print_byte_list("x16rs_hash_sz input", (void*)input, 32, 0);
 
     uint32_t hash[64/4];
 
@@ -250,6 +251,10 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
     for(i = 0; i < 1; i++) {
 
         uint8_t algo = hash[7] % 16;
+
+        // print_byte_list("x16rs_hash_sz hash", (void*)hash, 4, 0);
+        // print_byte_list("x16rs_hash_sz hash[7]", (void*)&hash[7], 4, 0);
+        // print_byte_list("x16rs_hash_sz algo", (void*)&algo, 1, 0);
 
         switch (algo) {
             case BLAKE:
@@ -402,6 +407,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
     memcpy(output, hash, 32);
 
+    // print_byte_list("x16rs_hash_sz output", (void*)output, 32, 0);
 }
 
 
@@ -730,86 +736,87 @@ void test_print_x16rs(const char* input, char* output32x16)
     // memcpy((void*)hash, input, 32); // first
 
     
-    // sph_blake512_init(&ctx_blake);
-    // sph_blake512(&ctx_blake, in, size);
-    // sph_blake512_close(&ctx_blake, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*0, (void*)hash, 32);
+    sph_blake512_init(&ctx_blake);
+    sph_blake512(&ctx_blake, in, size);
+    sph_blake512_close(&ctx_blake, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*0, (void*)hash, 32);
     
     
-    
-    // sph_bmw512_init(&ctx_bmw);
-    // sph_bmw512(&ctx_bmw, in, size);
-    // sph_bmw512_close(&ctx_bmw, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*1, (void*)hash, 32);
-    
-
-    
-    // sph_groestl512_init(&ctx_groestl);
-    // sph_groestl512(&ctx_groestl, in, size);
-    // sph_groestl512_close(&ctx_groestl, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*2, (void*)hash, 32);
-    
-    
-    
-    // sph_skein512_init(&ctx_skein);
-    // sph_skein512(&ctx_skein, in, size);
-    // sph_skein512_close(&ctx_skein, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*3, (void*)hash, 32);
-    
-    
-    
-    // sph_jh512_init(&ctx_jh);
-    // sph_jh512(&ctx_jh, in, size);
-    // sph_jh512_close(&ctx_jh, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*4, (void*)hash, 32);
-    
-    
-    
-    // sph_keccak512_init(&ctx_keccak);
-    // sph_keccak512(&ctx_keccak, in, size);
-    // sph_keccak512_close(&ctx_keccak, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*5, (void*)hash, 32);
-    
-    
-    
-    // sph_luffa512_init(&ctx_luffa);
-    // sph_luffa512(&ctx_luffa, in, size);
-    // sph_luffa512_close(&ctx_luffa, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*6, (void*)hash, 32);
-    
-    
-    
-    // sph_cubehash512_init(&ctx_cubehash);
-    // sph_cubehash512(&ctx_cubehash, in, size);
-    // sph_cubehash512_close(&ctx_cubehash, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*7, (void*)hash, 32);
-    
-    
-    
-    // sph_shavite512_init(&ctx_shavite);
-    // sph_shavite512(&ctx_shavite, in, size);
-    // sph_shavite512_close(&ctx_shavite, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*8, (void*)hash, 32);
+    sph_bmw512_init(&ctx_bmw);
+    sph_bmw512(&ctx_bmw, in, size);
+    sph_bmw512_close(&ctx_bmw, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*1, (void*)hash, 32);
     
 
     
-    // sph_simd512_init(&ctx_simd);
-    // sph_simd512(&ctx_simd, in, size);
-    // sph_simd512_close(&ctx_simd, hash);
-    // in = (void*) hash;
-    // memcpy(output32x16 + 32*9, (void*)hash, 32);
+    sph_groestl512_init(&ctx_groestl);
+    sph_groestl512(&ctx_groestl, in, size);
+    sph_groestl512_close(&ctx_groestl, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*2, (void*)hash, 32);
     
     
     
+    sph_skein512_init(&ctx_skein);
+    sph_skein512(&ctx_skein, in, size);
+    sph_skein512_close(&ctx_skein, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*3, (void*)hash, 32);
+    
+    
+    
+    sph_jh512_init(&ctx_jh);
+    sph_jh512(&ctx_jh, in, size);
+    sph_jh512_close(&ctx_jh, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*4, (void*)hash, 32);
+    
+    
+    
+
+    sph_keccak512_init(&ctx_keccak);
+    sph_keccak512(&ctx_keccak, in, size);
+    sph_keccak512_close(&ctx_keccak, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*5, (void*)hash, 32);
+    
+    
+    
+    sph_luffa512_init(&ctx_luffa);
+    sph_luffa512(&ctx_luffa, in, size);
+    sph_luffa512_close(&ctx_luffa, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*6, (void*)hash, 32);
+    
+    
+    
+    sph_cubehash512_init(&ctx_cubehash);
+    sph_cubehash512(&ctx_cubehash, in, size);
+    sph_cubehash512_close(&ctx_cubehash, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*7, (void*)hash, 32);
+    
+    
+    
+    sph_shavite512_init(&ctx_shavite);
+    sph_shavite512(&ctx_shavite, in, size);
+    sph_shavite512_close(&ctx_shavite, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*8, (void*)hash, 32);
+    
+
+    
+    
+    sph_simd512_init(&ctx_simd);
+    sph_simd512(&ctx_simd, in, size);
+    sph_simd512_close(&ctx_simd, hash);
+    in = (void*) hash;
+    memcpy(output32x16 + 32*9, (void*)hash, 32); 
+
+
+ 
     sph_echo512_init(&ctx_echo);
     sph_echo512(&ctx_echo, in, size);
     sph_echo512_close(&ctx_echo, hash);
@@ -822,8 +829,7 @@ void test_print_x16rs(const char* input, char* output32x16)
     sph_hamsi512(&ctx_hamsi, in, size);
     sph_hamsi512_close(&ctx_hamsi, hash);
     in = (void*) hash;
-    memcpy(output32x16 + 32*11, (void*)hash, 32);
-    
+    memcpy(output32x16 + 32*11, (void*)hash, 32);  
 
     
     sph_fugue512_init(&ctx_fugue);

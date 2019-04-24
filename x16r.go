@@ -50,6 +50,13 @@ func HashX16RS(data []byte) []byte {
 	C.x16rs_hash(cstr, &res[0])
 	return []byte(C.GoStringN(&res[0], 32))
 }
+func HashX16RS_Optimize(data []byte) []byte {
+	var res [32]C.char
+	var cstr = C.CString(string(data))
+	defer C.free(unsafe.Pointer(cstr))
+	C.x16rs_hash_optimize(cstr, &res[0])
+	return []byte(C.GoStringN(&res[0], 32))
+}
 
 func MinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
 	var nonce [4]C.char

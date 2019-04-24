@@ -28,20 +28,23 @@ func TestX16RS(t *testing.T) {
 
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")
 	hash, _ := hex.DecodeString("57cef097f9a7cc0c45bcac6325b5b6e58199c8197763734cac6664e8d2b8e63e")
-	for i := 0; i < 1000; i++ {
-		res := HashX16RS(data)
-		fmt.Println(hex.EncodeToString(res))
+	for i := 0; i < 1; i++ {
+		res1 := HashX16RS(data)
+		fmt.Println(hex.EncodeToString(res1))
+		res2 := HashX16RS_Optimize(data)
+		fmt.Println(hex.EncodeToString(res2))
 		//time.Sleep(time.Duration(100) * time.Millisecond)
 	}
-
-	res := HashX16RS(data)
-	fmt.Println(hex.EncodeToString(res))
+	res1 := HashX16RS(data)
+	fmt.Println(hex.EncodeToString(res1))
+	res2 := HashX16RS_Optimize(data)
+	fmt.Println(hex.EncodeToString(res2))
 	//fmt.Println(data)
 	//fmt.Println(hash)
 	//fmt.Println(res)
 	//fmt.Println(hex.EncodeToString(res))
-	if !bytes.Equal(res, hash) {
-		t.Error("hash", hex.EncodeToString(res))
+	if !bytes.Equal(res1, hash) {
+		t.Error("hash", hex.EncodeToString(res1))
 	}
 
 }

@@ -749,8 +749,8 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
             }
             printf("\n");
         */
-        // x16rs_hash(((void*)sha3res), ((void*)hashnew));
-        x16rs_hash_optimize(((void*)sha3res), ((void*)hashnew));
+        x16rs_hash(((void*)sha3res), ((void*)hashnew));
+        // x16rs_hash_optimize(((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;

@@ -6,10 +6,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/xfong/go2opencl/cl"
+	// "github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
 	"log"
-	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -190,6 +189,7 @@ func ReadFileBytes( filename string ) []byte {
 }
 
 
+/*
 func Test_OpenCL(t *testing.T) {
 
 	// source
@@ -242,4 +242,4 @@ func Test_OpenCL(t *testing.T) {
 
 
 }
-
+*/

@@ -415,9 +415,14 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
 
 // input length must more than 32
-static const int x16rs_hash_insize = 32;
-void x16rs_hash_optimize(const char* input, char* output)
+static const size_t x16rs_hash_insize = 32;
+void x16rs_hash_optimize(const char* input, char* output_hash)
 {
+    // uint32_t input[64/4];
+    uint32_t output[64/4];
+
+    // memcpy((void*)input, input_hash, 32); // first
+
     // uint32_t hash[64/4];
     // uint32_t *hash = (uint32_t*) input;
     // uint8_t algo = hash[7] % 16;
@@ -429,88 +434,121 @@ void x16rs_hash_optimize(const char* input, char* output)
     //     ucharn[30]*256 +
     //     ucharn[31] ) % 16;
 
-    if( algo == BLAKE  ){
-        sph_blake512_context     ctx_blake;
+
+    sph_blake512_context     ctx_blake;
+    sph_bmw512_context       ctx_bmw;
+    sph_groestl512_context   ctx_groestl;
+    sph_skein512_context     ctx_skein;
+    sph_jh512_context        ctx_jh;
+    sph_keccak512_context    ctx_keccak;
+    sph_luffa512_context     ctx_luffa;
+    sph_cubehash512_context  ctx_cubehash;
+    sph_shavite512_context   ctx_shavite;
+    sph_simd512_context      ctx_simd;
+    sph_echo512_context      ctx_echo;
+    sph_hamsi512_context     ctx_hamsi;
+    sph_fugue512_context     ctx_fugue;
+    sph_shabal512_context    ctx_shabal;
+    sph_whirlpool_context    ctx_whirlpool;
+    sph_sha512_context       ctx_sha512;
+
+    switch (algo)
+    {
+    case BLAKE:
         sph_blake512_init(&ctx_blake);
         sph_blake512(&ctx_blake, input, x16rs_hash_insize);
         sph_blake512_close(&ctx_blake, output);
-    }else if( algo == BMW ){
-        sph_bmw512_context       ctx_bmw;
+    break;
+    case BMW:
         sph_bmw512_init(&ctx_bmw);
         sph_bmw512(&ctx_bmw, input, x16rs_hash_insize);
         sph_bmw512_close(&ctx_bmw, output);
-    }else if( algo == GROESTL ){
-        sph_groestl512_context   ctx_groestl;
+    break;
+    case GROESTL:
         sph_groestl512_init(&ctx_groestl);
         sph_groestl512(&ctx_groestl, input, x16rs_hash_insize);
         sph_groestl512_close(&ctx_groestl, output);
-    }else if( algo == SKEIN ){
-        sph_skein512_context     ctx_skein;
+    break;
+    case SKEIN:
         sph_skein512_init(&ctx_skein);
         sph_skein512(&ctx_skein, input, x16rs_hash_insize);
         sph_skein512_close(&ctx_skein, output);
-    }else if( algo == JH ){
-        sph_jh512_context        ctx_jh;
+    break;
+    case JH:
         sph_jh512_init(&ctx_jh);
         sph_jh512(&ctx_jh, input, x16rs_hash_insize);
         sph_jh512_close(&ctx_jh, output);
-    }else if( algo == KECCAK ){
-        sph_keccak512_context    ctx_keccak;
+    break;
+    case KECCAK:
         sph_keccak512_init(&ctx_keccak);
         sph_keccak512(&ctx_keccak, input, x16rs_hash_insize);
         sph_keccak512_close(&ctx_keccak, output);
-    }else if( algo == LUFFA ){
-        sph_luffa512_context     ctx_luffa;
+    break;
+    case LUFFA:
         sph_luffa512_init(&ctx_luffa);
         sph_luffa512(&ctx_luffa, input, x16rs_hash_insize);
         sph_luffa512_close(&ctx_luffa, output);
-    }else if( algo == CUBEHASH ){
-        sph_cubehash512_context  ctx_cubehash;
+    break;
+    case CUBEHASH:
         sph_cubehash512_init(&ctx_cubehash);
         sph_cubehash512(&ctx_cubehash, input, x16rs_hash_insize);
         sph_cubehash512_close(&ctx_cubehash, output);
-    }else if( algo == SHAVITE ){
-        sph_shavite512_context   ctx_shavite;
+    break;
+    case SHAVITE:
         sph_shavite512_init(&ctx_shavite);
         sph_shavite512(&ctx_shavite, input, x16rs_hash_insize);
         sph_shavite512_close(&ctx_shavite, output);
-    }else if( algo == SIMD ){
-        sph_simd512_context      ctx_simd;
+    break;
+    case SIMD:
         sph_simd512_init(&ctx_simd);
         sph_simd512(&ctx_simd, input, x16rs_hash_insize);
         sph_simd512_close(&ctx_simd, output);
-    }else if( algo == ECHO ){
-        sph_echo512_context      ctx_echo;
+    break;
+    case ECHO:
         sph_echo512_init(&ctx_echo);
         sph_echo512(&ctx_echo, input, x16rs_hash_insize);
         sph_echo512_close(&ctx_echo, output);
-    }else if( algo == HAMSI ){
-        sph_hamsi512_context     ctx_hamsi;
+    break;
+    case HAMSI:
         sph_hamsi512_init(&ctx_hamsi);
         sph_hamsi512(&ctx_hamsi, input, x16rs_hash_insize);
         sph_hamsi512_close(&ctx_hamsi, output);
-    }else if( algo == FUGUE ){
-        sph_fugue512_context     ctx_fugue;
+    break;
+    case FUGUE:
         sph_fugue512_init(&ctx_fugue);
         sph_fugue512(&ctx_fugue, input, x16rs_hash_insize);
         sph_fugue512_close(&ctx_fugue, output);
-    }else if( algo == SHABAL ){
-        sph_shabal512_context    ctx_shabal;
+    break;
+    case SHABAL:
         sph_shabal512_init(&ctx_shabal);
         sph_shabal512(&ctx_shabal, input, x16rs_hash_insize);
         sph_shabal512_close(&ctx_shabal, output);
-    }else if( algo == WHIRLPOOL ){
-        sph_whirlpool_context    ctx_whirlpool;
+    break;
+    case WHIRLPOOL:
         sph_whirlpool_init(&ctx_whirlpool);
         sph_whirlpool(&ctx_whirlpool, input, x16rs_hash_insize);
         sph_whirlpool_close(&ctx_whirlpool, output);
-    }else if( algo == SHA512 ){
-        sph_sha512_context       ctx_sha512;
+    break;
+    case SHA512:
         sph_sha512_init(&ctx_sha512);
         sph_sha512(&ctx_sha512,(const void*) input, x16rs_hash_insize);
         sph_sha512_close(&ctx_sha512,(void*) output);
+    break;
     }
-    
+
+
+    // memcpy((void*)output_hash, output, 32); // first
+
+
+    uint32_t *output_hash_ptr32 = (uint32_t *) output_hash;
+    output_hash_ptr32[0] = output[0];
+    output_hash_ptr32[1] = output[1];
+    output_hash_ptr32[2] = output[2];
+    output_hash_ptr32[3] = output[3];
+    output_hash_ptr32[4] = output[4];
+    output_hash_ptr32[5] = output[5];
+    output_hash_ptr32[6] = output[6];
+    output_hash_ptr32[7] = output[7];
 
 }
 
@@ -739,7 +777,7 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
         }
         // 重置nonce
         stuffnew_uint32[20] = noncenum;
-//        memcpy(&stuffnew[79], &noncenum, 4);
+        // memcpy(&stuffnew[79], &noncenum, 4);
         // 计算 sha3
         sha3_256(stuffnew, 89, sha3res);
         /*

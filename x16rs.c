@@ -422,11 +422,11 @@ void x16rs_hash_optimize(const char* input, char* output)
     // uint32_t *hash = (uint32_t*) input;
     // uint8_t algo = hash[7] % 16;
     uint8_t *ucharn = (uint8_t*) input;
-    uint8_t algo = (
-        ucharn[28]*256*256*256 +
-        ucharn[29]*256*256 +
-        ucharn[30]*256 +
-        ucharn[31] ) % 16;
+    uint8_t algo = ( // 小端模式
+        ucharn[28]+
+        ucharn[29]*256 +
+        ucharn[30]*256*256 +
+        ucharn[31]*256*256*256 ) % 16;
 
     if( algo == BLAKE  ){
         sph_blake512_context     ctx_blake;
@@ -749,8 +749,8 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
             }
             printf("\n");
         */
-        x16rs_hash(((void*)sha3res), ((void*)hashnew));
-        // x16rs_hash_optimize(((void*)sha3res), ((void*)hashnew));
+        // x16rs_hash(((void*)sha3res), ((void*)hashnew));
+        x16rs_hash_optimize(((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;

@@ -419,9 +419,14 @@ static const int x16rs_hash_insize = 32;
 void x16rs_hash_optimize(const char* input, char* output)
 {
     // uint32_t hash[64/4];
-    uint32_t *hash = (uint32_t*) input;
+    // uint32_t *hash = (uint32_t*) input;
     // uint8_t algo = hash[7] % 16;
-    uint8_t algo = *(hash+7) % 16;
+    uint8_t *ucharn = (uint8_t*) input;
+    uint8_t algo = (
+        ucharn[28]*256*256*256 +
+        ucharn[29]*256*256 +
+        ucharn[30]*256 +
+        ucharn[31] ) % 16;
 
     if( algo == BLAKE  ){
         sph_blake512_context     ctx_blake;

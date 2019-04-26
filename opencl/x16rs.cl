@@ -72,7 +72,7 @@ typedef int sph_s32;
 #include "fugue.cl"
 #include "shabal.cl"
 #include "whirlpool.cl"
-#include "sha512.cl"
+#include "sha2_512.cl"
 
 
 #define SWAP4(x) as_uint(as_uchar4(x).wzyx)

@@ -5,9 +5,10 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	// "github.com/xfong/go2opencl/cl"
+	"github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
 	"log"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -41,6 +42,12 @@ func TestX16RS(t *testing.T) {
 	//fmt.Println(hash)
 	//fmt.Println(res)
 	//fmt.Println(hex.EncodeToString(res))
+
+	sha3results := sha3.Sum256(bytes.Repeat([]byte{1,2,3,4}, 8))
+	fmt.Println("sha3results", sha3results)
+
+
+
 	if !bytes.Equal(res1, hash) {
 		t.Error("hash", hex.EncodeToString(res1))
 	}
@@ -189,7 +196,7 @@ func ReadFileBytes( filename string ) []byte {
 }
 
 
-/*
+
 func Test_OpenCL(t *testing.T) {
 
 	// source
@@ -209,12 +216,12 @@ func Test_OpenCL(t *testing.T) {
 	queue, _ := context.CreateCommandQueue(device, 0)
 	program, _ := context.CreateProgramWithSource([]string{string(kernelSource)})
 	program.BuildProgram(nil, "-I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
-	kernel, _ := program.CreateKernel("hash_x16rs")
+	kernel, _ := program.CreateKernel("hash_sha3")
 	// input and output
 	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	output, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	// copy set input
-	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1), nil)
+	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{1,2,3,4}, 8), nil)
 	// set argvs
 	kernel.SetArgs(input, output)
 
@@ -242,4 +249,15 @@ func Test_OpenCL(t *testing.T) {
 
 
 }
-*/
+
+
+
+
+
+func Test_OpenCL_2(t *testing.T) {
+
+	// source
+	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
+
+
+}

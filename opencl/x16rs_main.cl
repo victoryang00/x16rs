@@ -2,10 +2,8 @@
 // #define X16RX_MAIN_CL
 
 
-
+#include "sha3_256.cl"
 #include "x16rs.cl"
-
-
 
 
 void hash_x16rs_choice_step(hash_t* stephash){
@@ -80,6 +78,82 @@ __kernel void hash_x16rs(
 
 
 
+// x16rs hash miner 算法
+__kernel void miner_do_hash_x16rs(
+   __global unsigned char* target_difficulty_hash_32,
+   __global unsigned char* input_stuff_89,
+   const unsigned int   base_start,
+   __global unsigned char* output_nonce_4)
+{
+
+    int nonce = 23645 + get_global_id(0);
+    char *nonce_ptr = &nonce;
+
+    // stuff
+    unsigned char base_stuff[89];
+    for(int i=0; i<89; i++){
+        base_stuff[i] = input_stuff_89[i];
+    }
+    base_stuff[79] = nonce_ptr[0];
+    base_stuff[80] = nonce_ptr[1];
+    base_stuff[81] = nonce_ptr[2];
+    base_stuff[82] = nonce_ptr[3];
+
+    // hash x16rs
+    unsigned char hash1[64];
+    sha3_256_hash(base_stuff, 89, hash1);
+
+    hash_x16rs_choice_step(hash1);
+
+    // miner check
+    char is_ok = 1;
+    for(int i=0; i<32; i++){
+        unsigned char a1 = hash1[i];
+        unsigned char a2 = target_difficulty_hash_32[i];
+        if( a1 > a2 ){
+            is_ok = 0;
+            break;
+        }else if( a1 < a2 ){
+            is_ok = 1;
+            break;
+        }
+    }
+
+    // copy set
+    if(1){
+        output_nonce_4[0] = nonce_ptr[0];
+        output_nonce_4[1] = nonce_ptr[1];
+        output_nonce_4[2] = nonce_ptr[2];
+        output_nonce_4[3] = nonce_ptr[3];
+    }
+
+
+}
+
+
+
+///////////////////////////////////////////////////////////
+
+
+
+// sha3 hash 算法
+__kernel void hash_sha3(
+   __global unsigned char* input,
+   __global unsigned char* output)
+{
+    hash_t hs0;
+    for(int i = 0; i < 32; i++)
+        hs0.h1[i] = input[i];
+
+    sha3_256_hash(hs0.h1, 32, hs0.h1);
+
+    // 结果
+    for(int i=0; i<32; i++){
+        output[i] = hs0.h1[i];
+    }
+
+
+}
 
 
 //////////////////////////////////////////////////////////////////////////

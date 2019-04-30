@@ -1,4 +1,4 @@
-package main_2
+package test
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func main()  {
+func test() {
 	fmt.Println(os.Args)
 	//cldir := flag.String("cldir", "./", "Opencl source file absolute path")
 	//item_wide := flag.Int("iw", 64, "Number of concurrent processing at a time")
@@ -19,31 +19,26 @@ func main()  {
 
 	BuildProgram("/media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl", "", 0, false)
 
+}
+
+func CreateWorkKernel(item_wide int) {
 
 }
 
-func CreateWorkKernel(item_wide int)  {
-
-
-
-
-	
-}
-
-func BuildProgram(cldir string, plat string, dvid int, rebuild bool) () {
+func BuildProgram(cldir string, plat string, dvid int, rebuild bool) {
 
 	// init
-	platids := 0;
+	platids := 0
 
 	platforms, _ := cl.GetPlatforms()
 
-	if(len(platforms) == 0){
+	if len(platforms) == 0 {
 		fmt.Println("not find any platforms.")
 		return
 	}
-	for i, pt := range platforms{
+	for i, pt := range platforms {
 		fmt.Printf("- platform %d: %s\n", i, pt.Name())
-		if(strings.Compare(plat, "")!=0 && strings.Contains(pt.Name(), plat)){
+		if strings.Compare(plat, "") != 0 && strings.Contains(pt.Name(), plat) {
 			platids = i
 		}
 	}
@@ -54,12 +49,12 @@ func BuildProgram(cldir string, plat string, dvid int, rebuild bool) () {
 
 	devices, _ := platform.GetDevices(cl.DeviceTypeAll)
 
-	if(len(devices) == 0){
+	if len(devices) == 0 {
 		fmt.Println("not find any devices.")
 		return
 	}
 
-	for i, dv := range devices{
+	for i, dv := range devices {
 		fmt.Printf("- device %d: %s\n", i, dv.Name())
 	}
 
@@ -70,64 +65,63 @@ func BuildProgram(cldir string, plat string, dvid int, rebuild bool) () {
 	queue, _ := context.CreateCommandQueue(device, 0)
 	program, _ := context.CreateProgramWithSource([]string{` #include "x16rs_main.cl" `})
 
-	fmt.Println("building opencl program from dir "+cldir+", please wait...")
-	bderr := program.BuildProgram(nil, "-I " + cldir) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
-	if bderr != nil { panic(bderr) }
+	fmt.Println("building opencl program from dir " + cldir + ", please wait...")
+	bderr := program.BuildProgram(nil, "-I "+cldir) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
+	if bderr != nil {
+		panic(bderr)
+	}
 
 	/*
-	binfilestuff := platform.Name() + "_" + device.Name()
-	binfilename := strings.Replace(binfilestuff, " ", "_", -1)
-	binfilepath := cldir + "/" + binfilename + ".objcache"
-	binstat, staterr := os.Stat(binfilepath)
-	if rebuild || staterr != nil {
-		bderr := program.BuildProgram(nil, "-I " + cldir) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
-		if bderr != nil {
-			panic(bderr)
-		}
-		fmt.Println("program.GetBinarySizes_2()")
-		sizes, _ := program.GetBinarySizes_2( 1 )
-		fmt.Println(sizes)
-		fmt.Println(sizes[0])
-		fmt.Println("program.GetBinaries_2()")
-		bins, _ := program.GetBinaries_2( []int{sizes[0]} )
-		fmt.Println(bins[0])
+		binfilestuff := platform.Name() + "_" + device.Name()
+		binfilename := strings.Replace(binfilestuff, " ", "_", -1)
+		binfilepath := cldir + "/" + binfilename + ".objcache"
+		binstat, staterr := os.Stat(binfilepath)
+		if rebuild || staterr != nil {
+			bderr := program.BuildProgram(nil, "-I " + cldir) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
+			if bderr != nil {
+				panic(bderr)
+			}
+			fmt.Println("program.GetBinarySizes_2()")
+			sizes, _ := program.GetBinarySizes_2( 1 )
+			fmt.Println(sizes)
+			fmt.Println(sizes[0])
+			fmt.Println("program.GetBinaries_2()")
+			bins, _ := program.GetBinaries_2( []int{sizes[0]} )
+			fmt.Println(bins[0])
 
-		f, e := os.OpenFile(binfilepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
-		if e != nil {
-			panic(e)
-		}
-		fmt.Println("f.Write(wbin) "+binfilepath, sizes[0])
-		f.Write(wbin)
+			f, e := os.OpenFile(binfilepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
+			if e != nil {
+				panic(e)
+			}
+			fmt.Println("f.Write(wbin) "+binfilepath, sizes[0])
+			f.Write(wbin)
 
-	}else{
-		fmt.Println("os.Open(binfilepath) ", binfilepath)
-		file, _ := os.OpenFile(binfilepath, os.O_RDWR, 0777)
-		bin := make([]byte, binstat.Size())
-		fmt.Println("file.Read(bin) size", binstat.Size())
-		file.Read(bin)
-		fmt.Println(bin)
-		var berr error
-		program, berr = context.CreateProgramWithBinary_2([]*cl.Device{device}, []int{int(binstat.Size())}, [][]byte{bin})
-		if berr != nil {
-			panic(berr)
+		}else{
+			fmt.Println("os.Open(binfilepath) ", binfilepath)
+			file, _ := os.OpenFile(binfilepath, os.O_RDWR, 0777)
+			bin := make([]byte, binstat.Size())
+			fmt.Println("file.Read(bin) size", binstat.Size())
+			file.Read(bin)
+			fmt.Println(bin)
+			var berr error
+			program, berr = context.CreateProgramWithBinary_2([]*cl.Device{device}, []int{int(binstat.Size())}, [][]byte{bin})
+			if berr != nil {
+				panic(berr)
+			}
+			fmt.Println("context.CreateProgramWithBinary")
 		}
-		fmt.Println("context.CreateProgramWithBinary")
-	}
 	*/
-
-
 
 	fmt.Println("build complete create kernel call...")
 	kernel, _ := program.CreateKernel("miner_do_hash_x16rs_v1")
 
-
 	t1 := time.Now() // get current time
 	fmt.Println(t1.Format("15:04:05"))
 	/////////////////////////////////////////
-	group_size := 4096*4
+	group_size := 4096 * 4
 	var i uint32
 	var nonce []byte = nil
-	for i=0; i<1000000; i++ {
+	for i = 0; i < 1000000; i++ {
 		nonce = doGroupMiner(device, context, queue, kernel, i*uint32(group_size), group_size)
 		fmt.Println(i, uint32(group_size)*(i+1), nonce)
 		if nonce != nil {
@@ -170,7 +164,7 @@ func doGroupMiner(
 	//fmt.Println(blockbytes[79:83])
 	queue.EnqueueWriteBufferByte(input_stuff, true, 0, blockbytes[0:89], nil)
 	//queue.EnqueueWriteBufferByte(input_basestart, true, 0, []byte{0,112,219,120}, nil
-	queue.EnqueueWriteBufferByte(output_nonce, true, 0, []byte{0,0,0,0}, nil)
+	queue.EnqueueWriteBufferByte(output_nonce, true, 0, []byte{0, 0, 0, 0}, nil)
 
 	// set argvs
 	kernel.SetArgs(input_target, input_stuff, uint32(base_start), output_nonce, output_hash)
@@ -224,7 +218,7 @@ func doGroupMiner(
 
 	//fmt.Println(result_nonce)
 	nonce := binary.BigEndian.Uint32(result_nonce)
-	if nonce > 0{
+	if nonce > 0 {
 		// check results
 		fmt.Println("==========================", nonce, result_nonce)
 		fmt.Println("output_hash", result_hash, hex.EncodeToString(result_hash))

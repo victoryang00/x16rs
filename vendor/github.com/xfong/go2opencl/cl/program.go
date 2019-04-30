@@ -617,6 +617,54 @@ func (p *Program) GetBinarySizes() ([]int, error) {
 	return returnCount, nil
 }
 
+func (p *Program) GetBinarySizes_2(size int) ([]int, error) {
+	var val C.size_t
+	var arr = make([]C.size_t, size)
+	if err := C.clGetProgramInfo(p.clProgram, C.CL_PROGRAM_BINARY_SIZES, C.size_t(unsafe.Sizeof(val)), (unsafe.Pointer)(&arr[0]), &val); err != C.CL_SUCCESS {
+		panic("Should never fail")
+		return nil, toError(err)
+	}
+	returnCount := make([]int, int(val))
+	for i := 0; i < int(val) && i<size; i++ {
+		returnCount[i] = int(arr[i])
+	}
+	return returnCount, nil
+}
+
+func (p *Program) GetBinaries_2( sizes []int ) ([][]byte, error) {
+	var item *C.uchar
+	var val C.size_t
+	var arr = make([]*C.uchar, len(sizes))
+	for i, sz := range sizes {
+		//arr[i] = new(C.uchar)
+		//var one = make([]C.uchar, sz)
+		//arr[i] = (*C.uchar)(unsafe.Pointer(&one[0]))
+		arr[i] = (*C.uchar)(C.malloc(C.size_t(sz)))
+		defer C.free(unsafe.Pointer(arr[i]))
+	}
+	if err := C.clGetProgramInfo(p.clProgram, C.CL_PROGRAM_BINARIES, C.size_t(unsafe.Sizeof(item)), unsafe.Pointer(&arr[0]), &val); err != C.CL_SUCCESS {
+		panic("Should never fail")
+		return nil, toError(err)
+	}
+	//fmt.Println(val)
+	//fmt.Println(arr)
+	//fmt.Println( *(*C.uchar)(unsafe.Pointer(arr[0])) )
+
+	//fmt.Println(arr[0])
+
+	returnBinaries := make([][]byte, int(val))
+	for i := 0; i < int(val) && i<len(sizes); i++ {
+		returnBinaries[i] = make([]byte, sizes[i])
+		for k:=0; k<sizes[i]; k ++ {
+			returnBinaries[i][k] = *((*byte)(unsafe.Pointer(   uintptr(unsafe.Pointer(arr[i])) + uintptr(k)   )))
+			//fmt.Println(  (uintptr(unsafe.Pointer(arr[i])) + uintptr(k))   )
+		}
+	}
+	//fmt.Println(returnBinaries[0])
+	return returnBinaries, nil
+
+}
+
 func (p *Program) GetBinaries() ([]*uint8, error) {
 	var item *uint8
 	var val C.size_t
@@ -655,23 +703,32 @@ func (p *Program) GetKernelNames() (string, error) {
 	return C.GoStringN((*C.char)(unsafe.Pointer(&strC)), C.int(strN-1)), nil
 }
 
-func (ctx *Context) CreateProgramWithBinary(deviceList []*Device, program_lengths []int, program_binaries []*uint8) (*Program, error) {
-	var binary_in []*C.uchar
+func (ctx *Context) CreateProgramWithBinary_2(deviceList []*Device, program_lengths []int, program_binaries [][]byte) (*Program, error) {
+	var binary_in = make([]*C.uchar, len(program_lengths))
 	device_list_in := make([]C.cl_device_id, len(deviceList))
 	binary_lengths := make([]C.size_t, len(program_lengths))
-	defer C.free(unsafe.Pointer(&binary_in))
-	defer C.free(unsafe.Pointer(&binary_lengths))
-	defer C.free(unsafe.Pointer(&device_list_in))
-	var binErr []C.cl_int
+	//defer C.free(unsafe.Pointer(&binary_in))
+	//defer C.free(unsafe.Pointer(&binary_lengths))
+	//defer C.free(unsafe.Pointer(&device_list_in))
+	var binErr = make([]C.cl_int, len(program_lengths))
 	var err C.cl_int
-	for i, bin_val := range program_binaries {
+	for i, _ := range program_binaries {
 		binary_lengths[i] = C.size_t(program_lengths[i])
-		binary_in[i] = (*C.uchar)(bin_val)
+		//binary_in[i] = (*C.uchar)(unsafe.Pointer(bin_val))
+		binary_in[i] = (*C.uchar)(C.malloc(binary_lengths[i]))
+		C.memcpy(unsafe.Pointer(binary_in[i]), unsafe.Pointer(&program_binaries[i][0]), binary_lengths[i])
+		defer C.free(unsafe.Pointer(binary_in[i]))
 	}
 	for i, devItem := range deviceList {
 		device_list_in[i] = devItem.id
 	}
-	clProgram := C.clCreateProgramWithBinary(ctx.clContext, C.cl_uint(len(deviceList)), &device_list_in[0], &binary_lengths[0], &binary_in[0], &binErr[0], &err)
+	clProgram := C.clCreateProgramWithBinary(ctx.clContext,
+		C.cl_uint(len(deviceList)),
+		&device_list_in[0],
+		&binary_lengths[0],
+		&binary_in[0],
+		&binErr[0],
+		&err)
 	for i := range binary_lengths {
 		if binErr[i] != C.CL_SUCCESS {
 			errMsg := int(binErr[i])

@@ -123,7 +123,7 @@ func Test_diamond_miner_do(t *testing.T) {
 
 	//blkbts, _ := hex.DecodeString("010000003f37005c90a5b80000000d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87aadd0ada0615668c7bf3658efeab80ef2a6be1e884a2844d52afdb88fa82f5c6000000010070db79e48fffa400000000ff89de02003bea1b64e8d5659d314c078ad37551f801012020202020202020202020202020202000")
 	//blockheadmeta := blkbts[0:89]
-	blockhash, _ := hex.DecodeString("000009d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c8788")
+	blockhash, _ := hex.DecodeString("000000077790ba2fcdeaef4a4299d9b667135bac577ce204dee8388f1b97f7e6")
 	address, _ := hex.DecodeString("000c1aaa4e6007cc58cfb932052ac0ec25ca356183") // 1271438866CSDpJUqrnchoJAiGGBFSQhjd
 
 	//fmt.Println(blockheadmeta)
@@ -218,12 +218,16 @@ func Test_OpenCL(t *testing.T) {
 	program.BuildProgram(nil, "-I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
 	kernel, _ := program.CreateKernel("hash_sha3")
 	// input and output
-	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
+	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 89)
 	output, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
 	// copy set input
-	queue.EnqueueWriteBufferByte(input, true, 0, bytes.Repeat([]byte{1,2,3,4}, 8), nil)
+	blockbytes, _ := hex.DecodeString("010000000000005c57b08c0000000000000000000000000000000000000000000000000000000000000000ad557702fc70afaf70a855e7b8a4400159643cb5a7fc8a89ba2bce6f818a9b0100000001098b344500000000000000000c1aaa4e6007cc58cfb932052ac0ec25ca356183f80101686172646572746f646f62657474657200")
+	input_stuff := blockbytes[0:89]
+	fmt.Println( Sha3_256(input_stuff) )
+	fmt.Println( sha3.Sum256(input_stuff) )
+	queue.EnqueueWriteBufferByte(input, true, 0, input_stuff, nil)
 	// set argvs
-	kernel.SetArgs(input, output)
+	kernel.SetArgs(input, uint32(89), output)
 
 	// run prepare
 	local, _ := kernel.WorkGroupSize(device)

@@ -559,10 +559,14 @@ static const uint8_t diamond_hash_base_stuff[17] = "0WTYUIAHXVMEKBSZN";
 void diamond_hash(const char* hash32, char* output16)
 {
     uint8_t *stuff32 = (uint8_t*)hash32;
-    int i;
+    int i, p = 13;
     for(i=0; i<16; i++){
-        int num = (int)stuff32[i*2] * (int)stuff32[i*2+1];
-        output16[i] = diamond_hash_base_stuff[num % 17];
+        int num = p * (int)stuff32[i*2] * (int)stuff32[i*2+1];
+        p = num % 17;
+        output16[i] = diamond_hash_base_stuff[p];
+        if(p == 0){
+           p = 13; 
+        }
     }
 }
 
@@ -590,7 +594,7 @@ void miner_diamond_hash(const char* stop_mark1, const char* input32, const char*
             basestuff[9] = noncenum2;
 
             // 停止
-            if( is_stop[0] != 0 ) {
+            if( noncenum2%1000==0 && is_stop[0] != 0 ) {
                 uint8_t noncenum_empty[8] = {0,0,0,0,0,0,0,0};
                 memcpy( nonce8, noncenum_empty, 8);
                 return; // 返回空
@@ -611,21 +615,17 @@ void miner_diamond_hash(const char* stop_mark1, const char* input32, const char*
             */
             // 判断结果是否为钻石
             uint8_t success = 1;
-            uint8_t haschar = 0;
             int k;
             for( k=0; k<16; k++ ) {
-                if(k<5){
+                if(k<10){
                     if( diamond[k] != 48 ){
                         success = 0;
                         break;
                     }
                 }else{
-                    if( haschar && diamond[k] == 48 ){
+                    if( diamond[k] == 48 ){
                         success = 0;
                         break;
-                    }
-                    if( diamond[k] != 48 ){
-                        haschar = 1;
                     }
                 }
             }
@@ -771,7 +771,7 @@ void miner_x16rs_hash_v1(const char* stop_mark1, const char* target_difficulty_h
     uint32_t noncenum;
     for(noncenum=1; noncenum<4294967294; noncenum++){
         // 停止标记检测
-        if( is_stop[0] != 0 )
+        if( noncenum%10000==0 &&  is_stop[0] != 0 )
         {
             return;
         }

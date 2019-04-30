@@ -74,9 +74,14 @@ var diamond_hash_base_stuff = []byte("0WTYUIAHXVMEKBSZN")
 
 func DiamondHash(reshash []byte) string {
 	diamond_str := make([]byte, 16)
+	p := 13
 	for i := 0; i < 16; i++ {
-		num := int(reshash[i*2]) * int(reshash[i*2+1])
-		diamond_str[i] = diamond_hash_base_stuff[num%17]
+		num := p * int(reshash[i*2]) * int(reshash[i*2+1])
+		p = num%17
+		diamond_str[i] = diamond_hash_base_stuff[p]
+		if p == 0 {
+			p = 13
+		}
 	}
 	return string(diamond_str)
 }

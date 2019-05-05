@@ -2,8 +2,6 @@
 #define X16RX_MAIN_CL
 
 
-
-
 #include "sha3_256.cl"
 #include "x16rs.cl"
 
@@ -53,10 +51,10 @@ __kernel void miner_do_hash_x16rs_v1(
     for(int i=0; i<89; i++){
         base_stuff[i] = input_stuff_89[i];
     }
-    base_stuff[79] = nonce_ptr[3];
-    base_stuff[80] = nonce_ptr[2];
-    base_stuff[81] = nonce_ptr[1];
-    base_stuff[82] = nonce_ptr[0];
+    base_stuff[79] = nonce_ptr[0];
+    base_stuff[80] = nonce_ptr[1];
+    base_stuff[81] = nonce_ptr[2];
+    base_stuff[82] = nonce_ptr[3];
 
     // hash x16rs
     hash_t hs0;
@@ -95,27 +93,27 @@ __kernel void miner_do_hash_x16rs_v1(
     // copy set
     if(success_nonce_value == nonce){
 
-        /*
-	    printf("success_nonce_value == nonce == %d [%d,%d,%d,%d] , global_id = %d\n", 
-            success_nonce_value, 
-            nonce_ptr[0],
-            nonce_ptr[1],
-            nonce_ptr[2],
-            nonce_ptr[3],
-            global_id);
+        
+	    // printf("success_nonce_value == nonce == %d [%d,%d,%d,%d] , global_id = %d\n", 
+        //     success_nonce_value, 
+        //     nonce_ptr[0],
+        //     nonce_ptr[1],
+        //     nonce_ptr[2],
+        //     nonce_ptr[3],
+        //     global_id);
 
         
-	    printf("success_output_hash_32 [%d,%d,%d,%d,%d,%d,%d,%d...]\n", 
-            hs0.h1[0],
-            hs0.h1[1],
-            hs0.h1[2],
-            hs0.h1[3],
-            hs0.h1[4],
-            hs0.h1[5],
-            hs0.h1[6],
-            hs0.h1[7]
-            );
-        */
+	    // printf("success_output_hash_32 [%d,%d,%d,%d,%d,%d,%d,%d...]\n", 
+        //     hs0.h1[0],
+        //     hs0.h1[1],
+        //     hs0.h1[2],
+        //     hs0.h1[3],
+        //     hs0.h1[4],
+        //     hs0.h1[5],
+        //     hs0.h1[6],
+        //     hs0.h1[7]
+        //     );
+        
 
         output_nonce_4[0] = nonce_ptr[0];
         output_nonce_4[1] = nonce_ptr[1];

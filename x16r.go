@@ -77,7 +77,7 @@ func DiamondHash(reshash []byte) string {
 	p := 13
 	for i := 0; i < 16; i++ {
 		num := p * int(reshash[i*2]) * int(reshash[i*2+1])
-		p = num%17
+		p = num % 17
 		diamond_str[i] = diamond_hash_base_stuff[p]
 		if p == 0 {
 			p = 13
@@ -99,6 +99,28 @@ func Diamond(blockhash []byte, nonce []byte, address []byte) string {
 	return diamond_str
 }
 
+// 判断是否为钻石
+func IsDiamondHashResultString(diamondStr string) (string, bool) {
+	if len(diamondStr) != 16 {
+		return "", false
+	}
+	diamond_prefixs := []byte(diamondStr)[0:10]
+	if bytes.Compare(diamond_prefixs, bytes.Repeat(diamond_hash_base_stuff[0:1], 10)) != 0 {
+		return "", false
+	}
+	diamond_value := []byte(diamondStr)[10:]
+	for _, a := range diamond_value {
+		if a == diamond_hash_base_stuff[0] {
+			return "", false
+		}
+		if bytes.IndexByte(diamond_hash_base_stuff, a) == -1 {
+			return "", false
+		}
+	}
+	// 检查成功
+	return string(diamond_value), true
+}
+
 func MinerHacashDiamond(stopmark *byte, blockhash []byte, address []byte) ([]byte, string) {
 	var nonce [8]C.char
 	var diamond [16]C.char
@@ -111,14 +133,14 @@ func MinerHacashDiamond(stopmark *byte, blockhash []byte, address []byte) ([]byt
 }
 
 func TestPrintX16RS(stuff32 []byte) [][]byte {
-	var res [32*16]C.char
+	var res [32 * 16]C.char
 	var cstr = C.CString(string(stuff32))
 	defer C.free(unsafe.Pointer(cstr))
 	C.test_print_x16rs(cstr, &res[0])
 	var bytes = []byte(C.GoStringN(&res[0], 32*16))
 	var resbytes [][]byte
-	for i:=0; i<16; i++ {
-		resbytes = append(resbytes, bytes[ 32*i : 32*i+32 ])
+	for i := 0; i < 16; i++ {
+		resbytes = append(resbytes, bytes[32*i:32*i+32])
 	}
 	return resbytes
 }
@@ -128,7 +150,6 @@ func TestPrintX16RS(stuff32 []byte) [][]byte {
 func OpenCLMinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
 	return nil
 }
-
 
 func main() {
 	//fmt.Println(Sum([]byte("test")))

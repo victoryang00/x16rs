@@ -16,9 +16,11 @@ import (
 
 // 单个设备执行单例
 type minerDeviceExecute struct {
-	autoidx           uint64
-	deviceIndex       uint32
-	device            *cl.Device
+	autoidx     uint64
+	deviceIndex uint32
+	device      *cl.Device
+	//kernel            *cl.Kernel
+	//queue             *cl.CommandQueue
 	blockHeadBytes    [89]byte
 	targetHash        [32]byte
 	baseStart         uint32
@@ -26,6 +28,8 @@ type minerDeviceExecute struct {
 	blockHeight       uint32
 	blockCoinbaseMsg  [16]byte
 	blockCoinbaseAddr [21]byte
+	// 状态数据
+
 	// 挖矿状态
 	retry   bool // 重新尝试挖矿
 	success bool
@@ -39,9 +43,11 @@ type GpuMiner struct {
 	context  *cl.Context
 	program  *cl.Program
 	devices  []*cl.Device // 所有设备
+	//kernel  *cl.Kernel // 核心函数
+	//queues   []*cl.CommandQueue // 所有队列
 
 	// 执行队列
-	executeQueueCh chan *minerDeviceExecute
+	executeQueueChList []chan *minerDeviceExecute
 
 	///////////////////////////////
 
@@ -54,16 +60,18 @@ type GpuMiner struct {
 	targetHash     []byte
 
 	// config
-	openclPath  string
-	platName    string // 平台名称
-	dvid        int    // 设备id
-	groupSize   int    // 组大小
-	executeSize int    // 执行单例数量
-	rebuild     bool   // 强制重新编译
+	openclPath   string
+	platName     string // 平台名称
+	dvid         int    // 设备id
+	groupSize    int    // 组大小
+	exeWide      int
+	executeSize  int // 执行单例数量
+	printNumBase int
+	rebuild      bool // 强制重新编译
 
 	// msg
 	miningPrevId uint32
-	stopMark     map[uint32]bool
+	stopMarkCh   chan uint32
 }
 
 type MinerResult struct {
@@ -72,44 +80,81 @@ type MinerResult struct {
 	nonce   []byte
 }
 
+func (mr *GpuMiner) stopAll() {
+	if mr.miningPrevId > 0 {
+		// 清空待执行队列
+		mr.stopMarkCh <- mr.miningPrevId // 投喂线程
+
+		for range mr.executeQueueChList {
+			mr.stopMarkCh <- mr.miningPrevId // 执行线程
+		}
+	}
+}
+
 func (mr *GpuMiner) ReStartMiner(blockHeight uint32, blkstuff [89]byte, target [32]byte,
 	blockCoinbaseMsg [16]byte, blockCoinbaseAddr [21]byte,
 ) *minerDeviceExecute {
 	// 写入停止标记，重新开始下一轮挖矿
-	mr.stopMark[mr.miningPrevId] = true
+
+	mr.stopAll()
+
+	for i := range mr.executeQueueChList {
+		for {
+			select {
+			case <-mr.executeQueueChList[i]:
+			default:
+				goto CLEAR_EXE_QUEUE_ONE
+			}
+		}
+	CLEAR_EXE_QUEUE_ONE:
+	}
+
 	mid := rand.Uint32()
 	mr.miningPrevId = mid
-	// 清空待执行队列
-	for {
-		select {
-		case <-mr.executeQueueCh:
-		default:
-			goto MINERSTART
-		}
-	}
-MINERSTART:
+	mr.autoidx = 1
 
 	fmt.Printf("\n\ndo miner height<%d>, target<%s>, block<%s>\n", blockHeight, hex.EncodeToString(target[:]), hex.EncodeToString(blkstuff[:]))
 
 	// 队列是否空了
-	miningRetCh := make(chan *minerDeviceExecute)
+	miningRetCh := make(chan *minerDeviceExecute, mr.executeSize+1)
 
 	// 投喂
 	go func(mid uint32, height uint32) {
 		for i := 0; ; i++ {
+			select {
+			case <-mr.stopMarkCh:
+				fmt.Print(" , stop miner for height: ", height)
+				return // 投喂结束
+			default:
+			}
 			onmax := uint64(i)*uint64(mr.groupSize) > 4294967290
-			if o1, o2 := mr.stopMark[mid]; o1 && o2 || onmax {
-				fmt.Println("\nstop miner height", height)
-				break // 投喂结束
+			if onmax {
+				// 等待停止
+				time.Sleep(time.Second * 3)
+				fmt.Print(" , retry reset coinbase to be new block stuff")
+				go func() {
+					mr.stopAll()
+					mr.miningPrevId = 0 // 防止死锁
+					retry := &minerDeviceExecute{}
+					retry.retry = true
+					miningRetCh <- retry // 返回并重新挖矿
+				}()
+				continue
+				//<- mr.stopMarkCh
+				//return
 			}
 			// 创建执行单例
 			deviceIndex := i % len(mr.devices)
 			device := mr.devices[deviceIndex]
+			//queue := mr.queues[deviceIndex]
 			mr.autoidx += 1
+			chindex := (mr.exeWide * deviceIndex) + int(mr.autoidx%uint64(mr.exeWide))
 			exe := &minerDeviceExecute{
 				mr.autoidx,
 				uint32(deviceIndex),
 				device,
+				//mr.kernel,
+				//queue,
 				blkstuff,
 				target,
 				uint32(i) * uint32(mr.groupSize),
@@ -121,33 +166,61 @@ MINERSTART:
 				false,
 				nil,
 			}
-			// fmt.Println(" <<<<<<<<<<<<< mr.executeQueueCh <- exe ", exe.baseStart)
-			mr.executeQueueCh <- exe
+			//fmt.Println(" <<<<<<<<<<<<< mr.executeQueueCh <- exe ", exe.baseStart)
+			select {
+			case <-mr.stopMarkCh:
+				fmt.Print(" , stop miner for height: ", height)
+				return // 投喂结束
+			case mr.executeQueueChList[chindex] <- exe:
+			}
+
 		}
 	}(mid, blockHeight)
 
 	// 执行挖矿
 	for i := 0; i < mr.executeSize; i++ {
 		go func(mid uint32, i int) {
+			iii1 := make([]byte, 32)
+			copy(iii1, target[:])
+			iii2 := make([]byte, 89)
+			copy(iii2, blkstuff[:])
+			// |cl.MemCopyHostPtr
+			input_target, _ := mr.context.CreateBuffer(cl.MemReadOnly|cl.MemCopyHostPtr, iii1)
+			//defer k
+			input_stuff, _ := mr.context.CreateBuffer(cl.MemReadOnly|cl.MemCopyHostPtr, iii2)
+			defer input_target.Release()
+			defer input_stuff.Release()
+
+			kernel, ke1 := mr.program.CreateKernel("miner_do_hash_x16rs_v1")
+			if ke1 != nil {
+				panic(ke1)
+			}
+			defer kernel.Release()
+
+			device := mr.devices[i/mr.exeWide]
+			queue, qe1 := mr.context.CreateCommandQueue(device, 0)
+			if qe1 != nil {
+				panic(qe1)
+			}
+			defer queue.Release()
+
 			for {
-				if o1, o2 := mr.stopMark[mid]; o1 && o2 {
-					return // 挖矿结束
-				}
 				// 读取一个执行单例
 				select {
-				case exe := <-mr.executeQueueCh:
-					success := mr.executing(exe)
-					// fmt.Println("mr.executing(exe) >>>>>>>>>>>>>>>> ", exe.baseStart, success)
+				case <-mr.stopMarkCh:
+					fmt.Print(" , stop miner queue ", i)
+					return // 挖矿结束
+				case exe := <-mr.executeQueueChList[i]:
+					//fmt.Println("mr.executing(exe) >>>>>>>>>>>>>>>> ", exe.baseStart)
+					success := mr.executing(exe, kernel, queue, input_stuff, input_target)
 					if success {
-						// 成功
-						miningRetCh <- exe // 返回成功
-						return
+						go func() {
+							// 成功
+							mr.stopAll()       // 停止所有挖矿
+							miningRetCh <- exe // 返回成功
+						}()
 					}
-				case <-time.After(time.Second): // 队列空了
-					fmt.Println("  retry reset coinbase to be new block stuff")
-					retry := &minerDeviceExecute{}
-					retry.retry = true
-					miningRetCh <- retry // 返回并重新挖矿
+				case <-time.After(time.Second * 1): // 等待队列
 				}
 			}
 		}(mid, i)
@@ -160,36 +233,7 @@ MINERSTART:
 }
 
 // 执行
-func (mr *GpuMiner) executing(exe *minerDeviceExecute) bool {
-
-	queue, qe1 := mr.context.CreateCommandQueue(exe.device, 0)
-	if qe1 != nil {
-		panic(qe1)
-	}
-	//defer queue.Release() // 释放资源
-
-	kernel, ke1 := mr.program.CreateKernel("miner_do_hash_x16rs_v1")
-	if ke1 != nil {
-		panic(ke1)
-	}
-	defer kernel.Release()
-
-	iii1 := make([]byte, 32)
-	copy(iii1, exe.targetHash[:])
-	iii2 := make([]byte, 89)
-	copy(iii2, exe.blockHeadBytes[:])
-	// fmt.Println(iii1, iii2)
-	input_target, ie1 := mr.context.CreateBuffer(cl.MemReadOnly|cl.MemCopyHostPtr, iii1)
-	if ie1 != nil {
-		panic(ie1)
-	}
-	//defer k
-	input_stuff, ie2 := mr.context.CreateBuffer(cl.MemReadOnly|cl.MemCopyHostPtr, iii2)
-	if ie2 != nil {
-		panic(ie2)
-	}
-	defer input_target.Release()
-	defer input_stuff.Release()
+func (mr *GpuMiner) executing(exe *minerDeviceExecute, kernel *cl.Kernel, queue *cl.CommandQueue, input_stuff *cl.MemObject, input_target *cl.MemObject) bool {
 
 	local, _ := kernel.WorkGroupSize(exe.device)
 	global := int(exe.groupSize)
@@ -198,18 +242,18 @@ func (mr *GpuMiner) executing(exe *minerDeviceExecute) bool {
 		global += local - d
 	}
 
-	if exe.autoidx%20 == 0 {
+	if exe.autoidx%uint64(mr.printNumBase) == 0 {
 		fmt.Printf(",%d-%d", exe.deviceIndex, exe.baseStart)
 	}
-	nonce, reshash, success := mr.doGroupWork(kernel, queue, input_target, input_stuff, global, local, exe.baseStart)
+	nonce, reshash, success := mr.doGroupWork(exe, kernel, queue, input_target, input_stuff, global, local, exe.baseStart)
 
 	if success {
 		noncenum := binary.BigEndian.Uint32(nonce)
 		fmt.Printf("\nheight: %d, nonce: %d<%s>[%d,%d,%d,%d], hash: %s, miner success!\n",
+			exe.blockHeight,
 			noncenum,
 			hex.EncodeToString(nonce),
 			nonce[0], nonce[1], nonce[2], nonce[3],
-			exe.blockHeight,
 			hex.EncodeToString(reshash),
 		)
 		// 挖矿成功并返回
@@ -221,15 +265,57 @@ func (mr *GpuMiner) executing(exe *minerDeviceExecute) bool {
 	return false
 }
 
-func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid int, groupSize int, exeWide int, rebuild bool) error {
+// 启动分组
+func (mr *GpuMiner) doGroupWork(exe *minerDeviceExecute, kernel *cl.Kernel, queue *cl.CommandQueue, input_target *cl.MemObject, input_stuff *cl.MemObject, global int, local int, base_start uint32) ([]byte, []byte, bool) {
+
+	// 参数
+	// |cl.MemAllocHostPtr
+	output_nonce, _ := mr.context.CreateEmptyBuffer(cl.MemReadWrite|cl.MemAllocHostPtr, 4)
+	output_hash, _ := mr.context.CreateEmptyBuffer(cl.MemReadWrite|cl.MemAllocHostPtr, 32)
+	defer output_nonce.Release()
+	defer output_hash.Release()
+
+	queue.EnqueueWriteBufferByte(output_nonce, true, 0, []byte{0, 0, 0, 0}, nil)
+	// set argvs
+	kernel.SetArgs(input_target, input_stuff, uint32(base_start), output_nonce, output_hash)
+	defer kernel.Retain()
+
+	// run
+	queue.EnqueueNDRangeKernel(kernel, nil, []int{global}, []int{local}, nil)
+	queue.Finish()
+
+	result_nonce := bytes.Repeat([]byte{0}, 4)
+	result_hash := make([]byte, 32)
+	// copy get output
+	queue.EnqueueReadBufferByte(output_nonce, true, 0, result_nonce, nil)
+	queue.EnqueueReadBufferByte(output_hash, true, 0, result_hash, nil)
+	queue.Flush()
+	defer queue.Retain()
+	//defer queue.Release()
+
+	//fmt.Println(result_nonce)
+	nonce := binary.BigEndian.Uint32(result_nonce)
+	if nonce > 0 {
+		// check results
+		// fmt.Println("==========================", nonce, result_nonce)
+		// fmt.Println("output_hash", result_hash, hex.EncodeToString(result_hash))
+		// return
+		return result_nonce, result_hash, true
+	}
+	return nil, nil, false
+
+}
+
+func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid int, groupSize int, exeWide int, printNumBase int, rebuild bool) error {
 
 	mr.miningPrevId = 0
-	mr.stopMark = make(map[uint32]bool)
 
 	mr.openclPath = openclPath
 	mr.platName = platName
 	mr.dvid = dvid
 	mr.groupSize = groupSize
+	mr.exeWide = exeWide
+	mr.printNumBase = printNumBase
 	mr.rebuild = rebuild
 
 	var err error
@@ -265,14 +351,20 @@ func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid in
 	mr.devices = devices
 	if dvid > -1 && dvid < len(devices) {
 		mr.devices = []*cl.Device{devices[dvid]}
-		fmt.Printf("current use device: %s\n", devices[dvid].Name())
+		fmt.Printf("current use device %d: %s\n", dvid, devices[dvid].Name())
 	} else {
 		fmt.Printf("current use all %d devices.\n", len(devices))
 	}
 
 	// 队列大小
-	mr.executeSize = len(mr.devices) * exeWide
-	mr.executeQueueCh = make(chan *minerDeviceExecute, mr.executeSize*8)
+	mr.executeSize = len(mr.devices) * mr.exeWide
+	mr.executeQueueChList = make([]chan *minerDeviceExecute, mr.executeSize)
+	for i := 0; i < mr.executeSize; i++ {
+		mr.executeQueueChList[i] = make(chan *minerDeviceExecute, mr.executeSize*8)
+	}
+
+	// 停止标记
+	mr.stopMarkCh = make(chan uint32) // , mr.executeSize + 1
 
 	if mr.context, err = cl.CreateContext(mr.devices); err != nil {
 		panic(err)
@@ -282,7 +374,7 @@ func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid in
 		mr.openclPath = GetCurrentDirectory() + "/opencl"
 	}
 
-	fmt.Println("building opencl program from dir " + mr.openclPath + ", please wait...")
+	fmt.Println("create building opencl program from dir " + mr.openclPath + ", please wait...")
 	//bderr := mr.program.BuildProgram(nil, "-I "+mr.openclPath) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
 	//if bderr != nil {
 	//	panic(bderr)
@@ -290,7 +382,22 @@ func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid in
 
 	mr.program = mr.buildOrLoadProgram()
 
-	fmt.Println("build complete.")
+	fmt.Println("create program complete.")
+	//
+	//kernel, ke1 := mr.program.CreateKernel("miner_do_hash_x16rs_v1")
+	//if ke1 != nil {
+	//	panic(ke1)
+	//}
+	//mr.kernel = kernel
+	//
+	//mr.queues = make([]*cl.CommandQueue, len(mr.devices))
+	//for k, d := range mr.devices {
+	//	queue, qe1 := mr.context.CreateCommandQueue(d, 0)
+	//	if qe1 != nil {
+	//		panic(qe1)
+	//	}
+	//	mr.queues[k] = queue
+	//}
 
 	return nil
 }
@@ -309,6 +416,7 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 		if bderr != nil {
 			panic(bderr)
 		}
+		fmt.Println("build complete get binaries...")
 		//fmt.Println("program.GetBinarySizes_2()")
 		sizes, _ := program.GetBinarySizes_2(1)
 		//fmt.Println(sizes)
@@ -337,6 +445,7 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 			bins[k] = bin
 			sizes[k] = int(binstat.Size())
 		}
+		fmt.Println("create program with binary...")
 		var berr error
 		program, berr = mr.context.CreateProgramWithBinary_2(mr.devices, sizes, bins)
 		if berr != nil {
@@ -431,41 +540,6 @@ func (mr *GpuMiner) DoMiner(blockHeight uint32, blkstuff [89]byte, target [32]by
 }
 
 */
-
-// 启动分组
-func (mr *GpuMiner) doGroupWork(kernel *cl.Kernel, queue *cl.CommandQueue, input_target *cl.MemObject, input_stuff *cl.MemObject, global int, local int, base_start uint32) ([]byte, []byte, bool) {
-
-	output_nonce, _ := mr.context.CreateEmptyBuffer(cl.MemReadWrite|cl.MemAllocHostPtr, 4)
-	output_hash, _ := mr.context.CreateEmptyBuffer(cl.MemReadWrite|cl.MemAllocHostPtr, 32)
-	// 释放资源
-	defer output_hash.Release()
-	defer output_hash.Release()
-
-	queue.EnqueueWriteBufferByte(output_nonce, true, 0, []byte{0, 0, 0, 0}, nil)
-	// set argvs
-	kernel.SetArgs(input_target, input_stuff, uint32(base_start), output_nonce, output_hash)
-
-	// run
-	queue.EnqueueNDRangeKernel(kernel, nil, []int{global}, []int{local}, nil)
-	queue.Finish()
-
-	result_nonce := bytes.Repeat([]byte{0}, 4)
-	result_hash := make([]byte, 32)
-	// copy get output
-	queue.EnqueueReadBufferByte(output_nonce, true, 0, result_nonce, nil)
-	queue.EnqueueReadBufferByte(output_hash, true, 0, result_hash, nil)
-
-	//fmt.Println(result_nonce)
-	nonce := binary.BigEndian.Uint32(result_nonce)
-	if nonce > 0 {
-		// check results
-		// fmt.Println("==========================", nonce, result_nonce)
-		// fmt.Println("output_hash", result_hash, hex.EncodeToString(result_hash))
-		// return
-		return result_nonce, result_hash, true
-	}
-	return nil, nil, false
-}
 
 func GetCurrentDirectory() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0])) //返回绝对路径  filepath.Dir(os.Args[0])去除最后一个元素的路径

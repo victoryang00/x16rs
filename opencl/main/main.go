@@ -7,6 +7,16 @@ import (
 	"os/signal"
 )
 
+/*
+
+
+
+go build -ldflags '-w -s' -o miner_gpu_hacash github.com/hacash/x16rs/opencl/main
+
+
+
+*/
+
 func main() {
 
 	c := make(chan os.Signal, 1)

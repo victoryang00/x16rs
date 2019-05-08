@@ -56,8 +56,6 @@ type minerExecuteWork struct {
 	executeQueueChList []chan *minerDeviceExecute
 	// 等待全部关闭
 	wg sync.WaitGroup
-	// 全部停止标记
-	stopMarkCh chan bool
 }
 
 type GpuMiner struct {
@@ -210,10 +208,9 @@ func (mr *GpuMiner) ReStartMiner(blockHeight uint32, blkstuff [89]byte, target [
 		blockCoinbaseMsg,
 		blockCoinbaseAddr,
 		mr.autoidx,
-		make(chan *minerDeviceExecute, 1),
+		make(chan *minerDeviceExecute, mr.executeSize),
 		executeQueueChList,
 		sync.WaitGroup{},
-		make(chan bool, mr.executeSize+1),
 	}
 
 	// 放入工作池

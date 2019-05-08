@@ -318,7 +318,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 					if work.mid < mr.autoidx {
 						return // 工作过期
 					}
-					time.Sleep(time.Millisecond * 10)
+					// time.Sleep(time.Millisecond * 10)
 					select {
 					case exe := <-work.executeQueueChList[i]:
 						exe.workContext = work_ctx

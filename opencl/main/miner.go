@@ -19,8 +19,8 @@ type minerDeviceExecute struct {
 	autoidx     uint64
 	deviceIndex uint32
 	device      *cl.Device
-	//kernel            *cl.Kernel
-	//queue             *cl.CommandQueue
+	//kernel    *cl.Kernel
+	//queue     *cl.CommandQueue
 	blockHeadBytes    [89]byte
 	targetHash        [32]byte
 	baseStart         uint32
@@ -91,12 +91,13 @@ type GpuMiner struct {
 	platName     string // 平台名称
 	dvid         int    // 设备id
 	groupSize    int    // 组大小
+	loopNum      int    // 循环次数
 	exeWide      int
 	executeSize  int // 执行单例数量
 	printNumBase int
 	rebuild      bool // 强制重新编译
 
-	loopLock sync.Mutex
+	workLoopLock sync.Mutex
 
 	// msg
 	//miningPrevId uint32
@@ -144,8 +145,10 @@ func (mr *GpuMiner) minerWorkLoop() {
 				if work.mid < mr.autoidx {
 					return // 工作过期
 				}
+				baseItemNum := uint32(mr.groupSize * mr.loopNum)
+				baseStart := uint32(i) * baseItemNum
 				// 已尝试全部
-				onmax := uint64(i)*uint64(mr.groupSize) > 4294967290
+				onmax := baseStart+baseItemNum > 4294967290
 				if onmax {
 					// 等待停止
 					fmt.Print(" , #retry reset coinbase to be new block stuff# ")
@@ -171,7 +174,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 					//queue,
 					work.blkstuff,
 					work.target,
-					uint32(i) * uint32(mr.groupSize),
+					baseStart,
 					uint32(mr.groupSize),
 					work.blockHeight,
 					work.blockCoinbaseMsg,
@@ -194,7 +197,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 		for i := 0; i < mr.executeSize; i++ {
 			go func(work *minerExecuteWork, i int) {
 				defer func() {
-					fmt.Printf(" , execute %d-%d quit ", work.mid, i)
+					fmt.Printf(" , item %d-%d quit ", work.mid, i)
 					work.wg.Done()
 				}()
 				// 运行创建执行单元
@@ -230,6 +233,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 					if work.mid < mr.autoidx {
 						return // 工作过期
 					}
+					// time.Sleep(time.Millisecond * 10)
 					select {
 					case exe := <-work.executeQueueChList[i]:
 						//fmt.Println("mr.executing(exe) >>>>>>>>>>>>>>>> ", exe.baseStart)
@@ -238,11 +242,12 @@ func (mr *GpuMiner) minerWorkLoop() {
 							// 成功返回
 							select {
 							case work.resultCh <- exe:
-							case <-time.After(time.Second * 3):
+							case <-time.After(time.Second * 7):
 							}
 							return
 						}
-					case <-time.After(time.Second * 3):
+						//if exe.autoidx > 8 { panic("") }
+					case <-time.After(time.Second * 7):
 						// 等待超时失败
 						return
 
@@ -251,10 +256,10 @@ func (mr *GpuMiner) minerWorkLoop() {
 			}(work, i)
 		}
 		// 等待结束
-		go func(work *minerExecuteWork) {
-			work.wg.Wait()
-			fmt.Printf(" , finish close execute work %d. ", work.mid)
-		}(work)
+		// go func(work *minerExecuteWork) {
+		work.wg.Wait()
+		fmt.Printf(" , finish close execute work <%d>. ", work.mid)
+		// }(work)
 	}
 }
 
@@ -263,7 +268,7 @@ func (mr *GpuMiner) ReStartMiner(blockHeight uint32, blkstuff [89]byte, target [
 	blockCoinbaseMsg [16]byte, blockCoinbaseAddr [21]byte,
 ) *minerDeviceExecute {
 
-	mr.loopLock.Lock()
+	mr.workLoopLock.Lock()
 
 	// 停止之前的工作，启动一个队列任务并等待
 	mr.autoidx += 1
@@ -291,7 +296,7 @@ func (mr *GpuMiner) ReStartMiner(blockHeight uint32, blkstuff [89]byte, target [
 	// 放入工作池
 	mr.minerExecuteWorkListCh <- minerWork
 
-	mr.loopLock.Unlock()
+	mr.workLoopLock.Unlock()
 
 	// 等待执行结果
 	resexe := <-minerWork.resultCh
@@ -446,17 +451,22 @@ func (mr *GpuMiner) ReStartMiner_old(blockHeight uint32, blkstuff [89]byte, targ
 // 执行
 func (mr *GpuMiner) executing(exe *minerDeviceExecute, kernel *cl.Kernel, queue *cl.CommandQueue, input_stuff *cl.MemObject, input_target *cl.MemObject) bool {
 
-	local, _ := kernel.WorkGroupSize(exe.device)
-	global := int(exe.groupSize)
-	d := int(exe.groupSize) % local
-	if d != 0 {
-		global += local - d
-	}
+	//local, _ := kernel.WorkGroupSize(exe.device)
+	//global := int(exe.groupSize)
+	//d := int(exe.groupSize) % local
+	//if d != 0 {
+	//	global += local - d
+	//}
+
+	/////////test/////////
+	//global = mr.groupSize
+	//local = mr.groupSize
+	///////test end///////
 
 	if exe.autoidx%uint64(mr.printNumBase) == 0 {
 		fmt.Printf(",%d-%d", exe.deviceIndex, exe.baseStart)
 	}
-	nonce, reshash, success := mr.doGroupWork(exe, kernel, queue, input_target, input_stuff, global, local, exe.baseStart)
+	nonce, reshash, success := mr.doGroupWork(exe, kernel, queue, input_target, input_stuff, mr.groupSize, mr.groupSize, exe.baseStart)
 
 	if success {
 		noncenum := binary.BigEndian.Uint32(nonce)
@@ -488,7 +498,7 @@ func (mr *GpuMiner) doGroupWork(exe *minerDeviceExecute, kernel *cl.Kernel, queu
 
 	queue.EnqueueWriteBufferByte(output_nonce, true, 0, []byte{0, 0, 0, 0}, nil)
 	// set argvs
-	kernel.SetArgs(input_target, input_stuff, uint32(base_start), output_nonce, output_hash)
+	kernel.SetArgs(input_target, input_stuff, uint32(base_start), uint32(mr.loopNum), output_nonce, output_hash)
 	defer kernel.Retain()
 
 	// run
@@ -517,7 +527,7 @@ func (mr *GpuMiner) doGroupWork(exe *minerDeviceExecute, kernel *cl.Kernel, queu
 
 }
 
-func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid int, groupSize int, exeWide int, printNumBase int, rebuild bool) error {
+func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid int, groupSize int, loopNum int, exeWide int, printNumBase int, rebuild bool) error {
 
 	//mr.miningPrevId = 0
 	mr.autoidx = 0
@@ -526,6 +536,7 @@ func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid in
 	mr.platName = platName
 	mr.dvid = dvid
 	mr.groupSize = groupSize
+	mr.loopNum = loopNum
 	mr.exeWide = exeWide
 	mr.printNumBase = printNumBase
 	mr.rebuild = rebuild
@@ -564,7 +575,7 @@ func (mr *GpuMiner) InitBuildProgram(openclPath string, platName string, dvid in
 	}
 
 	for i, dv := range devices {
-		fmt.Printf("  - device %d: %s\n", i, dv.Name())
+		fmt.Printf("  - device %d: %s, (max_work_group_size: %d)\n", i, dv.Name(), dv.MaxWorkGroupSize())
 	}
 	mr.devices = devices
 	if dvid > -1 && dvid < len(devices) {

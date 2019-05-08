@@ -38,90 +38,113 @@ __kernel void miner_do_hash_x16rs_v1(
    __global unsigned char* target_difficulty_hash_32,
    __global unsigned char* input_stuff_89,
    const unsigned int   base_start,
+   const unsigned int   loop_num, // 循环次数
    __global unsigned char* output_nonce_4,
    __global unsigned char* output_hash_32)
 {
-    unsigned int global_id = get_global_id(0) + 1;
-    unsigned int nonce = base_start + global_id;
+
+    // miner check
+    __local unsigned int success_nonce_value;
+    success_nonce_value = 0;
+
+    // 字段
+    unsigned int global_id = get_global_id(0);
+    unsigned int base_loop = global_id * loop_num;
+    unsigned int nonce = base_start + base_loop;
     unsigned char *nonce_ptr = &nonce;
 
+    // printf("global_id:%d, base_start:%d, base_loop:%d, nonce:%d\n", global_id, base_start, base_loop, nonce);
 
     // stuff
     unsigned char base_stuff[89];
     for(int i=0; i<89; i++){
         base_stuff[i] = input_stuff_89[i];
     }
-    base_stuff[79] = nonce_ptr[0];
-    base_stuff[80] = nonce_ptr[1];
-    base_stuff[81] = nonce_ptr[2];
-    base_stuff[82] = nonce_ptr[3];
 
-    // hash x16rs
-    hash_t hs0;
-    sha3_256_hash(base_stuff, 89, hs0.h1);
+    // 循环计算
+    for(int n=0; n<loop_num; n++){
 
-    hash_x16rs_choice_step(&hs0);
+        nonce += 1;
 
-    // miner check
-    __local unsigned int success_nonce_value;
-    success_nonce_value = 0;
+        base_stuff[79] = nonce_ptr[3];
+        base_stuff[80] = nonce_ptr[2];
+        base_stuff[81] = nonce_ptr[1];
+        base_stuff[82] = nonce_ptr[0];
 
-    // output_nonce_4[0] = 0;
-    // output_nonce_4[1] = 0;
-    // output_nonce_4[2] = 0;
-    // output_nonce_4[3] = 0;
+        // hash x16rs
+        hash_t hs0;
+        sha3_256_hash(base_stuff, 89, hs0.h1);
 
-	// printf("STEP_GLOBAL_LOCAL global_id:[%d] , nonce:[%d] \n", global_id, nonce);
+        hash_x16rs_choice_step(&hs0);
 
-    // 同步
-    barrier(CLK_GLOBAL_MEM_FENCE);
+        // output_nonce_4[0] = 0;
+        // output_nonce_4[1] = 0;
+        // output_nonce_4[2] = 0;
+        // output_nonce_4[3] = 0;
 
-    for(int i=0; i<32; i++){
-        unsigned char a1 = hs0.h1[i];
-        unsigned char a2 = target_difficulty_hash_32[i];
-        if( a1 > a2 ){
-            break;
-        }else if( a1 < a2 ){
-            success_nonce_value = nonce;
-            break;
+        // printf("STEP_GLOBAL_LOCAL global_id:[%d] , nonce:[%d] \n", global_id, nonce);
+
+        // 同步
+        // barrier(CLK_GLOBAL_MEM_FENCE);
+
+        if(success_nonce_value > 0){
+            // printf("nonce_value is be set global_id:%d, base_start:%d, base_loop:%d, loop:%d break\n", global_id, base_start, base_loop, n);
+            break; // 挖矿完成，退出
         }
-    }
-
-    // 同步
-    barrier(CLK_GLOBAL_MEM_FENCE);
-
-    // copy set
-    if(success_nonce_value == nonce){
-
-        
-	    // printf("success_nonce_value == nonce == %d [%d,%d,%d,%d] , global_id = %d\n", 
-        //     success_nonce_value, 
-        //     nonce_ptr[0],
-        //     nonce_ptr[1],
-        //     nonce_ptr[2],
-        //     nonce_ptr[3],
-        //     global_id);
-
-        
-	    // printf("success_output_hash_32 [%d,%d,%d,%d,%d,%d,%d,%d...]\n", 
-        //     hs0.h1[0],
-        //     hs0.h1[1],
-        //     hs0.h1[2],
-        //     hs0.h1[3],
-        //     hs0.h1[4],
-        //     hs0.h1[5],
-        //     hs0.h1[6],
-        //     hs0.h1[7]
-        //     );
-        
-
-        output_nonce_4[0] = nonce_ptr[0];
-        output_nonce_4[1] = nonce_ptr[1];
-        output_nonce_4[2] = nonce_ptr[2];
-        output_nonce_4[3] = nonce_ptr[3];
 
         for(int i=0; i<32; i++){
-            output_hash_32[i] = hs0.h1[i];
+            unsigned char a1 = hs0.h1[i];
+            unsigned char a2 = target_difficulty_hash_32[i];
+            if( a1 > a2 ){
+                break;
+            }else if( a1 < a2 ){
+                success_nonce_value = nonce;
+                break;
+            }
+        }
+
+        // 同步
+        // barrier(CLK_GLOBAL_MEM_FENCE);
+
+        // copy set
+        if(success_nonce_value == nonce){
+
+            
+            // printf("success_nonce_value ==  base_start:%d, base_loop:%d, nonce:%d[%d,%d,%d,%d], global_id:%d\n",
+            //     base_start,
+            //     base_loop,
+            //     success_nonce_value, 
+            //     nonce_ptr[0],
+            //     nonce_ptr[1],
+            //     nonce_ptr[2],
+            //     nonce_ptr[3],
+            //     global_id);
+
+            
+            // printf("success_output_hash_32 [%d,%d,%d,%d,%d,%d,%d,%d...]\n", 
+            //     hs0.h1[0],
+            //     hs0.h1[1],
+            //     hs0.h1[2],
+            //     hs0.h1[3],
+            //     hs0.h1[4],
+            //     hs0.h1[5],
+            //     hs0.h1[6],
+            //     hs0.h1[7]
+            //     );
+            
+
+            output_nonce_4[0] = nonce_ptr[3];
+            output_nonce_4[1] = nonce_ptr[2];
+            output_nonce_4[2] = nonce_ptr[1];
+            output_nonce_4[3] = nonce_ptr[0];
+
+            for(int i=0; i<32; i++){
+                output_hash_32[i] = hs0.h1[i];
+            }
+
+            // 确定完成
+            break;
+
         }
 
     }

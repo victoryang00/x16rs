@@ -11,7 +11,10 @@ import (
 
 
 
-go build -ldflags '-w -s' -o miner_gpu_hacash github.com/hacash/x16rs/opencl/main
+go build -ldflags '-w -s' -o miner_gpu github.com/hacash/x16rs/opencl/main
+
+./miner_gpu -gs 65536 -lp 256 -ew 1 -pb 1
+
 
 
 

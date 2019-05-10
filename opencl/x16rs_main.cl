@@ -11,22 +11,23 @@ void hash_x16rs_choice_step(hash_t* stephash){
     uint8_t algo = stephash->h4[7] % 16;
 
     switch (algo) {
-        case 0 : hash_x16rs_func_0  ( stephash ); break;
-        case 1 : hash_x16rs_func_1  ( stephash ); break;
-        case 2 : hash_x16rs_func_2  ( stephash ); break;
-        case 3 : hash_x16rs_func_3  ( stephash ); break;
-        case 4 : hash_x16rs_func_4  ( stephash ); break;
-        case 5 : hash_x16rs_func_5  ( stephash ); break;
-        case 6 : hash_x16rs_func_6  ( stephash ); break;
-        case 7 : hash_x16rs_func_7  ( stephash ); break;
-        case 8 : hash_x16rs_func_8  ( stephash ); break;
-        case 9 : hash_x16rs_func_9  ( stephash ); break;
-        case 10: hash_x16rs_func_10 ( stephash ); break;
-        case 11: hash_x16rs_func_11 ( stephash ); break;
-        case 12: hash_x16rs_func_12 ( stephash ); break;
-        case 13: hash_x16rs_func_13 ( stephash ); break;
-        case 14: hash_x16rs_func_14 ( stephash ); break;
-        case 15: hash_x16rs_func_15 ( stephash ); break;
+        case 0 : hash_x16rs_func_0 ( stephash ); break;
+        case 1 : hash_x16rs_func_1 ( stephash ); break;
+        case 2 : hash_x16rs_func_2 ( stephash ); break;
+        case 3 : hash_x16rs_func_3 ( stephash ); break;
+        case 4 : hash_x16rs_func_4 ( stephash ); break;
+        case 5 : hash_x16rs_func_5 ( stephash ); break;
+        case 6 : hash_x16rs_func_6 ( stephash ); break;
+        case 7 : hash_x16rs_func_7 ( stephash ); break;
+        case 8 : hash_x16rs_func_8 ( stephash ); break;
+        case 9 : hash_x16rs_func_9 ( stephash ); break;
+        case 10: hash_x16rs_func_10( stephash ); break;
+        case 11: hash_x16rs_func_11( stephash ); break;
+        case 12: hash_x16rs_func_12( stephash ); break;
+        case 13: hash_x16rs_func_13( stephash ); break;
+        case 14: hash_x16rs_func_14( stephash ); break;
+        // case 15: hash_x16rs_func_15( stephash ); break; // BIG BUG (T_T)
+        default: hash_x16rs_func_15( stephash ); break;
     }
     
 
@@ -87,7 +88,7 @@ __kernel void miner_do_hash_x16rs_v1(
         // 同步
         // barrier(CLK_GLOBAL_MEM_FENCE);
 
-        if(success_nonce_value > 0){
+        if(success_nonce_value != 0){
             // printf("nonce_value is be set global_id:%d, base_start:%d, base_loop:%d, loop:%d break\n", global_id, base_start, base_loop, n);
             break; // 挖矿完成，退出
         }

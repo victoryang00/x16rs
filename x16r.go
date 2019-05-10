@@ -1,4 +1,4 @@
-package x16r
+package x16rs
 
 /*
 #cgo LDFLAGS: -L. -lx16rs_hash
@@ -43,29 +43,33 @@ func Sha3_256(data []byte) []byte {
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
-func HashX16RS(data []byte) []byte {
+func HashX16RS(loopnum int, data []byte) []byte {
 	var res [32]C.char
+	var lpnm = C.int(loopnum)
 	var cstr = C.CString(string(data))
 	defer C.free(unsafe.Pointer(cstr))
-	C.x16rs_hash(cstr, &res[0])
-	return []byte(C.GoStringN(&res[0], 32))
-}
-func HashX16RS_Optimize(data []byte) []byte {
-	var res [32]C.char
-	var cstr = C.CString(string(data))
-	defer C.free(unsafe.Pointer(cstr))
-	C.x16rs_hash_optimize(cstr, &res[0])
+	C.x16rs_hash(lpnm, cstr, &res[0])
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
-func MinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
+func HashX16RS_Optimize(loopnum int, data []byte) []byte {
+	var res [32]C.char
+	var lpnm = C.int(loopnum)
+	var cstr = C.CString(string(data))
+	defer C.free(unsafe.Pointer(cstr))
+	C.x16rs_hash_optimize(lpnm, cstr, &res[0])
+	return []byte(C.GoStringN(&res[0], 32))
+}
+
+func MinerNonceHashX16RS(loopnum int, stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
 	var nonce [4]C.char
+	var lpnm = C.int(loopnum)
 	var tarhash = C.CString(string(tarhashvalue))
 	var stuff = C.CString(string(blockheadmeta))
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(stuff))
 	//fmt.Println("C.miner_x16rs_hash_v1")
-	C.miner_x16rs_hash_v1((*C.char)((unsafe.Pointer)(stopmark)), tarhash, stuff, &nonce[0])
+	C.miner_x16rs_hash_v1(lpnm, (*C.char)((unsafe.Pointer)(stopmark)), tarhash, stuff, &nonce[0])
 	//fmt.Println("C.miner_x16rs_hash_v1 finish")
 	return []byte(C.GoStringN(&nonce[0], 4))
 }
@@ -93,7 +97,7 @@ func Diamond(blockhash []byte, nonce []byte, address []byte) string {
 	stuff.Write(address)
 	ssshash := sha3.Sum256(stuff.Bytes())
 	//fmt.Println(ssshash)
-	reshash := HashX16RS(ssshash[:])
+	reshash := HashX16RS(16, ssshash[:])
 	//fmt.Println(reshash)
 	diamond_str := DiamondHash(reshash)
 	return diamond_str

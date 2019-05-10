@@ -1,4 +1,4 @@
-package x16r
+package x16rs
 
 import (
 	"bytes"

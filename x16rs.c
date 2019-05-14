@@ -209,18 +209,23 @@ void x16r_hash(const char* input, char* output)
 }
 
 // input length must more than 32
-void x16rs_hash(int loopnum, const char* input, char* output)
+void x16rs_hash(const int loopnum, const char* input, char* output)
 {
     int insize = 32;
 
     uint8_t in[32];
     uint8_t out[32];
+    memset(in,  0, 32);
+    memset(out, 0, 32);
     memcpy((void*)in,   input, 32); // in
 
     int n;
     for(n=0; n<loopnum; n++){
-        x16rs_hash_sz((char*)in, (char*)out, insize);
-        memcpy((void*)in, out, 32); // output => in
+        memset(out, 0, 32);
+        x16rs_hash_sz((char*)in, (char*)out, insize); // 执行哈希算法
+        if(out[0]*out[1]*out[30]*out[31] != 0){
+            memcpy((void*)in, out, 32); // output => in
+        }
     }
     // return
     memcpy(output, out, 32);
@@ -256,6 +261,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
     sph_sha512_context       ctx_sha512;
 
     uint8_t in[32];
+    memset(in, 0, 32); // 初始化
     memcpy((void*)in,   input, 32); // in
     memcpy((void*)hash, input, 32); // first
 
@@ -418,6 +424,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
         }
 
         // in = (void*) hash;
+        memset(in, 0, 32);
         memcpy((void*)in, hash, 32);
     }
 
@@ -426,6 +433,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
     // print_byte_list("x16rs_hash_sz output", (void*)output, 32, 0);
 
     uint8_t results[32];
+    memset(results, 0, 32); // 初始化
     memcpy((void*)results,  hash, 32);
     memcpy(output, results, 32);
 }
@@ -433,7 +441,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
 // input length must more than 32
 static const size_t x16rs_hash_insize = 32;
-void x16rs_hash_optimize(int loopnum, const char* input_hash, char* output_hash)
+void x16rs_hash_testdev(const int loopnum, const char* input_hash, char* output_hash)
 {
     // uint32_t input[64/4];
     uint32_t inputoutput[64/4];
@@ -602,7 +610,7 @@ void diamond_hash(const char* hash32, char* output16)
 
 
 // input length must be 32
-void miner_diamond_hash(const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
+void miner_diamond_hash(const int loopnum, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
 
     // 停止标记
@@ -632,7 +640,8 @@ void miner_diamond_hash(const char* stop_mark1, const char* input32, const char*
 
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
-            x16rs_hash(1, (char*)sha3res, (char*)hashnew);
+            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            // x16rs_hash_testdev(loopnum, (char*)sha3res, (char*)hashnew);
             diamond_hash((char*)hashnew, (char*)diamond);
             /*
             printf("hash: ");
@@ -773,7 +782,7 @@ void miner_diamond_hash(const char* stop_mark1, const char* input32, const char*
 
 
 // 挖矿算法
-void miner_x16rs_hash_v1(int loopnum, const char* stop_mark1, const char* target_difficulty_hash32, const char* input_stuff89, char* nonce4)
+void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* target_difficulty_hash32, const char* input_stuff89, char* nonce4)
 {
 //    printf("miner_x16rs_hash_v1()\n");
     // 签名信息
@@ -819,7 +828,7 @@ void miner_x16rs_hash_v1(int loopnum, const char* stop_mark1, const char* target
             printf("\n");
         */
         x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
-        // x16rs_hash_optimize_loop1(((void*)sha3res), ((void*)hashnew));
+        // x16rs_hash_testdev(loopnum, ((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;

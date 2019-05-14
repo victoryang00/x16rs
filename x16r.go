@@ -90,17 +90,21 @@ func DiamondHash(reshash []byte) string {
 	return string(diamond_str)
 }
 
-func Diamond(blockhash []byte, nonce []byte, address []byte) string {
+func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte) ([]byte, string) {
+	loopnum := diamondNumber/2048 + 1 // 每 2048颗钻石调整一下难度
+	if loopnum > 16 {
+		loopnum = 16 // 最高16次 x16rs 哈希
+	}
 	stuff := new(bytes.Buffer)
 	stuff.Write(blockhash)
 	stuff.Write(nonce)
 	stuff.Write(address)
 	ssshash := sha3.Sum256(stuff.Bytes())
 	//fmt.Println(ssshash)
-	reshash := HashX16RS(16, ssshash[:])
+	reshash := HashX16RS_Optimize(int(loopnum), ssshash[:])
 	//fmt.Println(reshash)
 	diamond_str := DiamondHash(reshash)
-	return diamond_str
+	return reshash, diamond_str
 }
 
 // 判断是否为钻石
@@ -123,6 +127,27 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 	}
 	// 检查成功
 	return string(diamond_value), true
+}
+
+// 检查钻石难度值，是否满足要求
+func CheckDiamondDifficulty(dNumber uint32, dBytes []byte) bool {
+	diffnum := dNumber / 2048 // 每 2048颗钻石调整一下难度
+	for _, bt := range dBytes {
+		if diffnum < 256 {
+			if uint32(bt)+diffnum > 255 {
+				return false // 难度检查失败
+			} else {
+				return true
+			}
+		} else if diffnum >= 256 {
+			if uint8(bt) != 0 {
+				return false // 难度检查失败
+			}
+			// 下一轮检查
+			diffnum -= 256
+		}
+	}
+	return false
 }
 
 func MinerHacashDiamond(stopmark *byte, blockhash []byte, address []byte) ([]byte, string) {
@@ -167,7 +192,7 @@ func main() {
 	nonce, diamond := MinerHacashDiamond(stopmark, blockhash, address)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 	// 验证钻石算法是否正确
-	diamond_str := Diamond(blockhash, nonce, address)
+	_, diamond_str := Diamond(1, blockhash, nonce, address)
 	fmt.Println("diamond_str is", diamond_str)
 
 }

@@ -43,10 +43,8 @@ func TestX16RS(t *testing.T) {
 	//fmt.Println(res)
 	//fmt.Println(hex.EncodeToString(res))
 
-	sha3results := sha3.Sum256(bytes.Repeat([]byte{1,2,3,4}, 8))
+	sha3results := sha3.Sum256(bytes.Repeat([]byte{1, 2, 3, 4}, 8))
 	fmt.Println("sha3results", sha3results)
-
-
 
 	if !bytes.Equal(res1, hash) {
 		t.Error("hash", hex.EncodeToString(res1))
@@ -56,7 +54,7 @@ func TestX16RS(t *testing.T) {
 
 func TestX16RS_LOOP(t *testing.T) {
 
-	data1 := bytes.Repeat([]byte{1,2,3,4,5,6,7,8}, 4)
+	data1 := bytes.Repeat([]byte{1, 2, 3, 4, 5, 6, 7, 8}, 4)
 	for i := 0; i < 10000*450; i++ { // 0000*450
 		//fmt.Println(token)
 		data1[4] = uint8(i % 255)
@@ -136,7 +134,7 @@ func Test_diamond_miner_do(t *testing.T) {
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 
 	// 验证钻石算法是否正确
-	diamond_str := Diamond(blockhash, nonce, address)
+	_, diamond_str := Diamond(1, blockhash, nonce, address)
 	fmt.Println("diamond_str is", diamond_str)
 
 	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {
@@ -145,21 +143,20 @@ func Test_diamond_miner_do(t *testing.T) {
 
 }
 
-func Test_print_x16rs(t *testing.T)  {
+func Test_print_x16rs(t *testing.T) {
 
-	data := bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241}, 1)
+	data := bytes.Repeat([]byte{12, 52, 5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241}, 1)
 	fmt.Println(data)
 	resultBytes := TestPrintX16RS(data)
-	for i:=0; i<16; i++ {
+	for i := 0; i < 16; i++ {
 		fmt.Println(i, resultBytes[i])
 	}
 
 }
 
-
 func Test_print_testX16RS(t *testing.T) {
 
-	data := bytes.Repeat([]byte{12,52,5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1)
+	data := bytes.Repeat([]byte{12, 52, 5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1)
 	fmt.Println(data)
 	resultBytes := HashX16RS(data)
 	fmt.Println(resultBytes)
@@ -174,8 +171,8 @@ func Test_print_testX16RS(t *testing.T) {
 // 108 220 63 239 43 104 233 103 219 79 119 139 26 152 146 61 47 77 229 77 11 14 13 202 42 188 120 72 225 240 38 167
 
 //按字节读取，将整个文件读取到缓冲区buffer
-func ReadFileBytes( filename string ) []byte {
-	file,err := os.Open(filename)
+func ReadFileBytes(filename string) []byte {
+	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -194,8 +191,6 @@ func ReadFileBytes( filename string ) []byte {
 	//fmt.Println("bytestream to string:", string(buffer))
 	return buffer
 }
-
-
 
 func Test_OpenCL(t *testing.T) {
 
@@ -223,8 +218,8 @@ func Test_OpenCL(t *testing.T) {
 	// copy set input
 	blockbytes, _ := hex.DecodeString("010000000000005c57b08c0000000000000000000000000000000000000000000000000000000000000000ad557702fc70afaf70a855e7b8a4400159643cb5a7fc8a89ba2bce6f818a9b0100000001098b344500000000000000000c1aaa4e6007cc58cfb932052ac0ec25ca356183f80101686172646572746f646f62657474657200")
 	input_stuff := blockbytes[0:89]
-	fmt.Println( Sha3_256(input_stuff) )
-	fmt.Println( sha3.Sum256(input_stuff) )
+	fmt.Println(Sha3_256(input_stuff))
+	fmt.Println(sha3.Sum256(input_stuff))
 	queue.EnqueueWriteBufferByte(input, true, 0, input_stuff, nil)
 	// set argvs
 	kernel.SetArgs(input, uint32(89), output)
@@ -251,17 +246,11 @@ func Test_OpenCL(t *testing.T) {
 
 	fmt.Println("==========================")
 
-
 }
-
-
-
-
 
 func Test_OpenCL_2(t *testing.T) {
 
 	// source
 	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
-
 
 }

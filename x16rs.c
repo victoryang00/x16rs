@@ -610,7 +610,7 @@ void diamond_hash(const char* hash32, char* output16)
 
 
 // input length must be 32
-void miner_diamond_hash(const int loopnum, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
+void miner_diamond_hash(const int diamondnumber, const int loopnum, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
 
     // 停止标记
@@ -684,13 +684,41 @@ void miner_diamond_hash(const int loopnum, const char* stop_mark1, const char* i
 
             // 挖出钻石
             if( success == 1 ) {
-                uint32_t nonce[2] = {0, 0};
-                nonce[0] = noncenum1;
-                nonce[1] = noncenum2;
-                memcpy( (char*)nonce8, (char*)nonce, 8);
-                memcpy( (char*)diamond16, (char*)diamond, 16);
-                // printf("\n%s\n", diamond); fflush(stdout);
-                return; // 拷贝值，返回成功
+                // 检查难度
+                uint8_t diffok = 0;
+                int diffnum = diamondnumber / 2048; // 每 2048颗钻石调整一下难度
+                int n;
+                for( n=0; n<32; n++ ) {
+                    int bt = hashnew[n];
+                    if(diffnum < 256){
+                        if( bt + diffnum > 255) {
+                            diffok = 0;
+                            break; // 难度检查失败
+                        } else {
+                            diffok = 1;
+                            break; // success
+                        }
+                    } else if(diffnum >= 256) {
+                        if(bt != 0) {
+                            diffok = 0;
+                            break; // 难度检查失败
+                        }
+                        // 下一轮检查
+                        diffnum -= 256;
+                    }
+                }
+                // 难度满足要求
+                if( diffok == 1 ) {
+                    uint32_t nonce[2] = {0, 0};
+                    nonce[0] = noncenum1;
+                    nonce[1] = noncenum2;
+                    memcpy( (char*)nonce8, (char*)nonce, 8);
+                    memcpy( (char*)diamond16, (char*)diamond, 16);
+                    // printf("\n%s\n", diamond); fflush(stdout);
+                    return; // 拷贝值，返回成功
+                }
+
+                // 下一轮挖掘
             }
 
 

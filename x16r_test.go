@@ -137,7 +137,7 @@ func Test_diamond_miner_do(t *testing.T) {
 		//*stopmark = 1
 	}()
 
-	nonce, diamond := MinerHacashDiamond(1, stopmark, blockhash, *address)
+	nonce, diamond := MinerHacashDiamond(1, 1, stopmark, blockhash, *address)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
 	// 验证钻石算法是否正确

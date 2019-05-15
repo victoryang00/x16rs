@@ -441,7 +441,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
 // input length must more than 32
 static const size_t x16rs_hash_insize = 32;
-void x16rs_hash_testdev(const int loopnum, const char* input_hash, char* output_hash)
+void x16rs_hash__development(const int loopnum, const char* input_hash, char* output_hash)
 {
     // uint32_t input[64/4];
     uint32_t inputoutput[64/4];
@@ -610,8 +610,12 @@ void diamond_hash(const char* hash32, char* output16)
 
 
 // input length must be 32
-void miner_diamond_hash(const int diamondnumber, const int loopnum, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
+void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
+    int loopnum = diamondnumber / 2048 + 1; // 
+    if( loopnum > 16 ){
+        loopnum = 16; // 最多16次
+    }
 
     // 停止标记
     uint8_t *is_stop = (uint8_t*)stop_mark1;
@@ -651,8 +655,8 @@ void miner_diamond_hash(const int diamondnumber, const int loopnum, const char* 
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
             // print_byte_list("2: ", (void*)sha3res, 32, 0);
-            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            x16rs_hash_testdev(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            // x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
             // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
             // print_byte_list("4: ", (void*)diamond, 16, 0);
@@ -777,7 +781,7 @@ void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* 
             printf("\n");
         */
         x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
-        // x16rs_hash_testdev(loopnum, ((void*)sha3res), ((void*)hashnew));
+        // x16rs_hash__development(loopnum, ((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;

@@ -57,7 +57,7 @@ func HashX16RS_Optimize(loopnum int, data []byte) []byte {
 	var lpnm = C.int(loopnum)
 	var cstr = C.CString(string(data))
 	defer C.free(unsafe.Pointer(cstr))
-	C.x16rs_hash_optimize(lpnm, cstr, &res[0])
+	C.x16rs_hash_testdev(lpnm, cstr, &res[0])
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
@@ -99,11 +99,13 @@ func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byt
 	stuff.Write(blockhash)
 	stuff.Write(nonce)
 	stuff.Write(address)
+	//fmt.Println(stuff.Bytes())
 	ssshash := sha3.Sum256(stuff.Bytes())
 	//fmt.Println(ssshash)
 	reshash := HashX16RS_Optimize(int(loopnum), ssshash[:])
 	//fmt.Println(reshash)
 	diamond_str := DiamondHash(reshash)
+	//fmt.Println(diamond_str)
 	return reshash, diamond_str
 }
 
@@ -112,11 +114,12 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 	if len(diamondStr) != 16 {
 		return "", false
 	}
-	diamond_prefixs := []byte(diamondStr)[0:10]
-	if bytes.Compare(diamond_prefixs, bytes.Repeat(diamond_hash_base_stuff[0:1], 10)) != 0 {
+	prefixlen := 10 // 前导0的数量
+	diamond_prefixs := []byte(diamondStr)[0:prefixlen]
+	if bytes.Compare(diamond_prefixs, bytes.Repeat(diamond_hash_base_stuff[0:1], prefixlen)) != 0 {
 		return "", false
 	}
-	diamond_value := []byte(diamondStr)[10:]
+	diamond_value := []byte(diamondStr)[prefixlen:]
 	for _, a := range diamond_value {
 		if a == diamond_hash_base_stuff[0] {
 			return "", false
@@ -150,14 +153,15 @@ func CheckDiamondDifficulty(dNumber uint32, dBytes []byte) bool {
 	return false
 }
 
-func MinerHacashDiamond(stopmark *byte, blockhash []byte, address []byte) ([]byte, string) {
+func MinerHacashDiamond(loopnum int, stopmark *byte, blockhash []byte, address []byte) ([]byte, string) {
 	var nonce [8]C.char
 	var diamond [16]C.char
+	var lpnm = C.int(loopnum)
 	var tarhash = C.CString(string(blockhash))
 	var taraddr = C.CString(string(address))
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(taraddr))
-	C.miner_diamond_hash((*C.char)((unsafe.Pointer)(stopmark)), tarhash, taraddr, &nonce[0], &diamond[0])
+	C.miner_diamond_hash(lpnm, (*C.char)((unsafe.Pointer)(stopmark)), tarhash, taraddr, &nonce[0], &diamond[0])
 	return []byte(C.GoStringN(&nonce[0], 8)), C.GoStringN(&diamond[0], 16)
 }
 
@@ -189,7 +193,7 @@ func main() {
 
 	var stopmark *byte = new(byte)
 	*stopmark = 0
-	nonce, diamond := MinerHacashDiamond(stopmark, blockhash, address)
+	nonce, diamond := MinerHacashDiamond(1, stopmark, blockhash, address)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 	// 验证钻石算法是否正确
 	_, diamond_str := Diamond(1, blockhash, nonce, address)

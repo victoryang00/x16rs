@@ -633,16 +633,29 @@ void miner_diamond_hash(const int loopnum, const char* stop_mark1, const char* i
 
             // 停止
             if( noncenum2%1000==0 && is_stop[0] != 0 ) {
+
                 uint8_t noncenum_empty[8] = {0,0,0,0,0,0,0,0};
                 memcpy( nonce8, noncenum_empty, 8);
+
+                //////// TEST START ////////
+                // uint32_t nonce[2] = {0, 0};
+                // nonce[0] = noncenum1;
+                // nonce[1] = noncenum2-1;
+                // memcpy( (char*)nonce8, (char*)nonce, 8);
+                // memcpy( (char*)diamond16, (char*)diamond, 16); 
+                //////// TEST END //////// 
+
                 return; // 返回空
             }
-
+            // print_byte_list("1: ", (void*)basestuff, 61, 0);
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
-            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            // x16rs_hash_testdev(loopnum, (char*)sha3res, (char*)hashnew);
+            // print_byte_list("2: ", (void*)sha3res, 32, 0);
+            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash_testdev(loopnum, (char*)sha3res, (char*)hashnew);
+            // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
+            // print_byte_list("4: ", (void*)diamond, 16, 0);
             /*
             printf("hash: ");
             uint8_t *input32p = (uint8_t*)hashnew;
@@ -676,109 +689,17 @@ void miner_diamond_hash(const int loopnum, const char* stop_mark1, const char* i
                 nonce[1] = noncenum2;
                 memcpy( (char*)nonce8, (char*)nonce, 8);
                 memcpy( (char*)diamond16, (char*)diamond, 16);
+                // printf("\n%s\n", diamond); fflush(stdout);
                 return; // 拷贝值，返回成功
             }
+
+
         }
+
     }
-
-
-
-
-
-    /*
-
-    int zerofront = 8;
-
-    uint8_t diamond[16];
-
-    uint8_t noncenum[8] = {0,0,0,0,0,0,0,0};
-    uint8_t i0;
-    for(i0=0; i0<255; i0++){
-    noncenum[0] = i0;
-    uint8_t i1;
-    for(i1=0; i1<255; i1++){
-    noncenum[1] = i1;
-    uint8_t i2;
-    for(i2=0; i2<255; i2++){
-    noncenum[2] = i2;
-    uint8_t i3;
-    for(i3=0; i3<255; i3++){
-    noncenum[3] = i3;
-    uint8_t i4;
-    for(i4=0; i4<255; i4++){
-    noncenum[4] = i4;
-    uint8_t i5;
-    for(i5=0; i5<255; i5++){
-    noncenum[5] = i5;
-    uint8_t i6;
-    for(i6=0; i6<255; i6++){
-    noncenum[6] = i6;
-    uint8_t i7;
-    for(i7=0; i7<255; i7++){
-    noncenum[7] = i7;
-
-
-        diamond_hash(input32, addr21, noncenum, diamond);
-        uint8_t isok = 1;
-        uint8_t isnchar = 0;
-        int k;
-        for( k=0; k<16; k++ ) {
-            if( k<zerofront && diamond[k] != 48 ){
-                isok = 0;
-                break;
-            }
-            if( k>=zerofront ) {
-                if( diamond[k] == 48 ){
-                    if( isnchar == 1 ){
-                        isok = 0;
-                        break;
-                    }
-                }else{
-                    isnchar = 1;
-                }
-            }
-        }
-
-
-        if(isok == 1){
-
-
-            memcpy(nonce8, noncenum, 8);
-            memcpy(output16, diamond, 16);
-
-            int i;
-
-            printf("hash: ");
-            uint8_t *input32p = (uint8_t*)input32;
-            for(i=0; i<32; i++){
-                printf("%u,", input32p[i]);
-            }
-            printf("  addr: ");
-            uint8_t *addr21p = (uint8_t*)addr21;
-            for(i=0; i<21; i++){
-                printf("%u,", addr21p[i]);
-            }
-            printf("  nonce: ");
-            for(i=0; i<8; i++){
-                printf("%u,", noncenum[i]);
-            }
-            uint8_t noncenum_swap[8];
-            for(i=0; i<8; i++){ noncenum_swap[i] = noncenum[7-i]; }
-            uint64_t *nnum = (uint64_t*)noncenum;
-            uint64_t *nnum_swap = (uint64_t*)noncenum_swap;
-            printf("  diamond nonce = %ld/%ld, value = %16.16s \n", *nnum_swap, *nnum, diamond);
-
-
-        }
-
-
-    }}}}}}}}
-
-
-    */
-
-
 }
+
+
 
 
 // 挖矿算法

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"github.com/hacash/blockmint/block/fields"
 	"github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
 	"log"
@@ -28,15 +29,15 @@ func TestX16RS(t *testing.T) {
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")
 	hash, _ := hex.DecodeString("57cef097f9a7cc0c45bcac6325b5b6e58199c8197763734cac6664e8d2b8e63e")
 	for i := 0; i < 1; i++ {
-		res1 := HashX16RS(data)
+		res1 := HashX16RS(1, data)
 		fmt.Println(hex.EncodeToString(res1))
-		res2 := HashX16RS_Optimize(data)
+		res2 := HashX16RS_Optimize(1, data)
 		fmt.Println(hex.EncodeToString(res2))
 		//time.Sleep(time.Duration(100) * time.Millisecond)
 	}
-	res1 := HashX16RS(data)
+	res1 := HashX16RS(1, data)
 	fmt.Println(hex.EncodeToString(res1))
-	res2 := HashX16RS_Optimize(data)
+	res2 := HashX16RS_Optimize(1, data)
 	fmt.Println(hex.EncodeToString(res2))
 	//fmt.Println(data)
 	//fmt.Println(hash)
@@ -58,8 +59,8 @@ func TestX16RS_LOOP(t *testing.T) {
 	for i := 0; i < 10000*450; i++ { // 0000*450
 		//fmt.Println(token)
 		data1[4] = uint8(i % 255)
-		HashX16RS_Optimize(data1)
-		HashX16RS_Optimize(data1)
+		HashX16RS_Optimize(1, data1)
+		HashX16RS_Optimize(1, data1)
 		//res := data
 		//if bytes.Compare(res1, res2) != 0 {
 		//	t.Error("hash1", hex.EncodeToString(res1), "hash2", hex.EncodeToString(res2))
@@ -79,7 +80,7 @@ func TestX16RS_miner(t *testing.T) {
 		fmt.Println("set stop mark !")
 		*stopmark = 1 // 通知停止
 	}()
-	nonce := MinerNonceHashX16RS(stopmark, tarhash, signstuff)
+	nonce := MinerNonceHashX16RS(1, stopmark, tarhash, signstuff)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
 }
@@ -96,7 +97,7 @@ func TestX16RS_miner_do(t *testing.T) {
 	var stopmark *byte = new(byte)
 	*stopmark = 0
 
-	nonce := MinerNonceHashX16RS(stopmark, targetdiffhash, blockheadmeta)
+	nonce := MinerNonceHashX16RS(1, stopmark, targetdiffhash, blockheadmeta)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
 }
@@ -122,7 +123,8 @@ func Test_diamond_miner_do(t *testing.T) {
 	//blkbts, _ := hex.DecodeString("010000003f37005c90a5b80000000d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87aadd0ada0615668c7bf3658efeab80ef2a6be1e884a2844d52afdb88fa82f5c6000000010070db79e48fffa400000000ff89de02003bea1b64e8d5659d314c078ad37551f801012020202020202020202020202020202000")
 	//blockheadmeta := blkbts[0:89]
 	blockhash, _ := hex.DecodeString("000000077790ba2fcdeaef4a4299d9b667135bac577ce204dee8388f1b97f7e6")
-	address, _ := hex.DecodeString("000c1aaa4e6007cc58cfb932052ac0ec25ca356183") // 1271438866CSDpJUqrnchoJAiGGBFSQhjd
+	//address, _ := hex.DecodeString("000c1aaa4e6007cc58cfb932052ac0ec25ca356183") // 1271438866CSDpJUqrnchoJAiGGBFSQhjd
+	address, _ := fields.CheckReadableAddress("1MzNY1oA3kfgYi75zquj3SRUPYztzXHzK9")
 
 	//fmt.Println(blockheadmeta)
 	//fmt.Println(len(targetdiffhash))
@@ -130,11 +132,16 @@ func Test_diamond_miner_do(t *testing.T) {
 	var stopmark *byte = new(byte)
 	*stopmark = 0
 
-	nonce, diamond := MinerHacashDiamond(stopmark, blockhash, address)
-	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
+	go func() {
+		time.Sleep(time.Second)
+		//*stopmark = 1
+	}()
+
+	nonce, diamond := MinerHacashDiamond(1, stopmark, blockhash, *address)
+	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
 	// 验证钻石算法是否正确
-	_, diamond_str := Diamond(1, blockhash, nonce, address)
+	_, diamond_str := Diamond(1, blockhash, nonce, *address)
 	fmt.Println("diamond_str is", diamond_str)
 
 	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {
@@ -158,7 +165,7 @@ func Test_print_testX16RS(t *testing.T) {
 
 	data := bytes.Repeat([]byte{12, 52, 5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1)
 	fmt.Println(data)
-	resultBytes := HashX16RS(data)
+	resultBytes := HashX16RS(1, data)
 	fmt.Println(resultBytes)
 
 }

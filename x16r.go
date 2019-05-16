@@ -91,7 +91,7 @@ func DiamondHash(reshash []byte) string {
 }
 
 func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte) ([]byte, string) {
-	loopnum := diamondNumber/2048 + 1 // 每 2048颗钻石调整一下难度
+	loopnum := diamondNumber / 8192 + 1 // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
 	if loopnum > 16 {
 		loopnum = 16 // 最高16次 x16rs 哈希
 	}

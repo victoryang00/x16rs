@@ -612,7 +612,7 @@ void diamond_hash(const char* hash32, char* output16)
 // input length must be 32
 void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
-    int loopnum = diamondnumber / 2048 + 1; // 
+    int loopnum = diamondnumber / 8192 + 1; // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
     if( loopnum > 16 ){
         loopnum = 16; // 最多16次
     }

@@ -266,7 +266,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 				baseItemNum := uint32(mr.groupSize * mr.loopNum)
 				baseStart := uint32(i) * baseItemNum
 				// 已尝试全部
-				onmax := baseStart+baseItemNum > 4294967290
+				onmax := uint64(baseStart) + uint64(baseItemNum) > 4294967290
 				if onmax {
 					// 等待停止
 					fmt.Printf(", ## retry reset coinbase to be new block stuff ## ")
@@ -315,6 +315,14 @@ func (mr *GpuMiner) minerWorkLoop() {
 			go func(work *minerExecuteWork, i int) {
 				defer func() {
 					fmt.Printf(", item <%d>%d quit ", work.mid, i)
+					for { // 清空所有残余的数据
+						select {
+						case <-work.executeQueueChList[i]:
+						default:
+							goto CLEAREQCL
+						}
+					}
+					CLEAREQCL:
 					work.wg.Done()
 				}()
 				// 载入环境

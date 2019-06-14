@@ -214,16 +214,24 @@ void x16rs_hash(const int loopnum, const char* input, char* output)
     int insize = 32;
 
     uint8_t in[32];
+    uint8_t in_step[32];
     uint8_t out[32];
     memset(in,  0, 32);
+    memset(in_step,  0, 32);
     memset(out, 0, 32);
-    memcpy((void*)in,   input, 32); // in
+    memcpy((void*)in,      input, 32); // in
+    memcpy((void*)in_step, input, 32); // in_step
+    // in[0] = 1; // 测试正确性
 
+    int k;
+    for(k=0; k<4*loopnum; k++){
+        x16rs_hash_sz((char*)in_step, (char*)in_step, insize); // 执行哈希算法 第一步
+    }
     int n;
     for(n=0; n<loopnum; n++){
         memset(out, 0, 32);
-        x16rs_hash_sz((char*)in, (char*)out, insize); // 执行哈希算法
-        if(out[0]*out[1]*out[30]*out[31] != 0){
+        x16rs_hash_sz((char*)in, (char*)out, insize); // 执行哈希算法 第二步
+        if(out[0]+out[1]+out[30]+out[31] != 0){
             memcpy((void*)in, out, 32); // output => in
         }
     }

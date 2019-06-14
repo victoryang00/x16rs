@@ -26,18 +26,20 @@ func TestX16R(t *testing.T) {
 
 func TestX16RS(t *testing.T) {
 
+	loopnum := 1
+
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")
 	hash, _ := hex.DecodeString("57cef097f9a7cc0c45bcac6325b5b6e58199c8197763734cac6664e8d2b8e63e")
 	for i := 0; i < 1; i++ {
-		res1 := HashX16RS(1, data)
+		res1 := HashX16RS(loopnum, data)
 		fmt.Println(hex.EncodeToString(res1))
-		res2 := HashX16RS_Optimize(1, data)
+		res2 := HashX16RS_Optimize(loopnum, data)
 		fmt.Println(hex.EncodeToString(res2))
 		//time.Sleep(time.Duration(100) * time.Millisecond)
 	}
-	res1 := HashX16RS(1, data)
+	res1 := HashX16RS(loopnum, data)
 	fmt.Println(hex.EncodeToString(res1))
-	res2 := HashX16RS_Optimize(1, data)
+	res2 := HashX16RS_Optimize(loopnum, data)
 	fmt.Println(hex.EncodeToString(res2))
 	//fmt.Println(data)
 	//fmt.Println(hash)
@@ -117,6 +119,21 @@ func TestSha3_256(t *testing.T) {
 		t.Error("hash", hex.EncodeToString(result))
 	}
 }
+
+
+func TestX16RS_num(t *testing.T) {
+	data, _ := hex.DecodeString("f3bfada6cf5bb8c898fe81e37195287520b1ee08d97672b821bbe6f1ba4492ce")
+	hash1 := HashX16RS_Optimize(1, data)
+	fmt.Println(hash1)
+	hash2 := HashX16RS_Optimize(2, data)
+	fmt.Println(hash2)
+	hash3 := HashX16RS_Optimize(3, data)
+	fmt.Println(hash3)
+
+
+
+}
+
 
 func Test_diamond_miner_do(t *testing.T) {
 

@@ -224,7 +224,7 @@ void x16rs_hash(const int loopnum, const char* input, char* output)
     // in[0] = 1; // 测试正确性
 
     int k;
-    for(k=0; k<4*loopnum; k++){
+    for(k=0; k<2*loopnum; k++){
         x16rs_hash_sz((char*)in_step, (char*)in_step, insize); // 执行哈希算法 第一步
     }
     int n;
@@ -663,8 +663,8 @@ void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const c
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
             // print_byte_list("2: ", (void*)sha3res, 32, 0);
-            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            // x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
+            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
             // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
             // print_byte_list("4: ", (void*)diamond, 16, 0);
@@ -743,7 +743,7 @@ void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const c
 
 
 // 挖矿算法
-void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* target_difficulty_hash32, const char* input_stuff89, char* nonce4)
+void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* target_difficulty_hash32, const char* input_stuff89, char* success1, char* nonce4)
 {
 //    printf("miner_x16rs_hash_v1()\n");
     // 签名信息
@@ -773,6 +773,8 @@ void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* 
         // 停止标记检测
         if( noncenum%10000==0 &&  is_stop[0] != 0 )
         {
+            success1[0] = 0; // 失败
+            memcpy(nonce4, &noncenum, 4);
             return;
         }
         // 重置nonce
@@ -788,8 +790,8 @@ void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* 
             }
             printf("\n");
         */
-        x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
-        // x16rs_hash__development(loopnum, ((void*)sha3res), ((void*)hashnew));
+        // x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
+        x16rs_hash__development(loopnum, ((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;
@@ -821,6 +823,7 @@ void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* 
             printf("\n");
         */
             // 返回 copy to out
+            success1[0] = 1; // 成功的标记
             memcpy(nonce4, &noncenum, 4);
             return; // success
         }
@@ -828,7 +831,7 @@ void miner_x16rs_hash_v1(const int loopnum, const char* stop_mark1, const char* 
     }
 
     // 循环完毕，失败
-    noncenum = 0;
+    success1[0] = 0;
     memcpy(nonce4, &noncenum, 4);
     return;
 

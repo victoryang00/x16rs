@@ -618,7 +618,7 @@ void diamond_hash(const char* hash32, char* output16)
 
 
 // input length must be 32
-void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
+void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int diamondnumber, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
     int loopnum = diamondnumber / 8192 + 1; // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
     if( loopnum > 16 ){
@@ -638,7 +638,7 @@ void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const c
 
     uint32_t noncenum1;
     uint32_t noncenum2;
-    for(noncenum1=1; noncenum1<4294967294; noncenum1++){
+    for(noncenum1 = hsstart; noncenum1 < hsend; noncenum1++){
         basestuff[8] = noncenum1;
         for(noncenum2=1; noncenum2<4294967294; noncenum2++){
             basestuff[9] = noncenum2;
@@ -663,8 +663,8 @@ void miner_diamond_hash(const int diamondnumber, const char* stop_mark1, const c
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
             // print_byte_list("2: ", (void*)sha3res, 32, 0);
-            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            // x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
+            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
             // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
             // print_byte_list("4: ", (void*)diamond, 16, 0);

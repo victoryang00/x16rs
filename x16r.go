@@ -61,19 +61,27 @@ func HashX16RS_Optimize(loopnum int, data []byte) []byte {
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
-func MinerNonceHashX16RS(loopnum int, stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) (bool, []byte) {
+func MinerNonceHashX16RS(loopnum int, retmaxhash bool, stopmark *byte, hashstart uint32, hashend uint32, tarhashvalue []byte, blockheadmeta []byte) (bool, []byte, []byte) {
+	var retmaxhashsig int = 0
+	if retmaxhash {
+		retmaxhashsig = 1
+	}
 	var success [1]C.char
 	var nonce [4]C.char
-	var lpnm = C.int(loopnum)
+	var reshash [32]C.char
+	var hsstart = C.uint(hashstart) // uint32(1)
+	var hsend = C.uint(hashend)     // uint32(4294967294)
 	var tarhash = C.CString(string(tarhashvalue))
 	var stuff = C.CString(string(blockheadmeta))
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(stuff))
-	//fmt.Println("C.miner_x16rs_hash_v1")
-	C.miner_x16rs_hash(lpnm, (*C.char)((unsafe.Pointer)(stopmark)), tarhash, stuff, &success[0], &nonce[0])
+	//fmt.Println("C.miner_x16rs_hash_v1") //
+	C.miner_x16rs_hash(C.int(loopnum), C.int(retmaxhashsig), (*C.char)((unsafe.Pointer)(stopmark)), hsstart, hsend, tarhash, stuff, &success[0], &nonce[0], &reshash[0])
 	//fmt.Println("C.miner_x16rs_hash_v1 finish")
-	return success[0] == 1, []byte(C.GoStringN(&nonce[0], 4))
+	return success[0] == 1, []byte(C.GoStringN(&nonce[0], 4)), []byte(C.GoStringN(&reshash[0], 32))
 }
+
+/////////////////////////////////////////////////////////
 
 var diamond_hash_base_stuff = []byte("0WTYUIAHXVMEKBSZN")
 

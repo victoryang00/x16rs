@@ -663,8 +663,8 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
             // print_byte_list("2: ", (void*)sha3res, 32, 0);
-            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            // x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
             // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
             // print_byte_list("4: ", (void*)diamond, 16, 0);
@@ -743,7 +743,7 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
 
 
 // 挖矿算法
-void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* target_difficulty_hash32, const char* input_stuff89, char* success1, char* nonce4)
+void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_mark1, const uint32_t hsstart, const uint32_t hsend, const char* target_difficulty_hash32, const char* input_stuff89, char* success1, char* nonce4, char* reshash32)
 {
 //    printf("miner_x16rs_hash_v1()\n");
     // 签名信息
@@ -757,11 +757,16 @@ void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* tar
 
     // x16rs hash的结果
     uint8_t hashnew[32];
+    uint8_t hashmaxpower[32];
+    hashmaxpower[0] = 255; // 初始化
+    uint8_t noncemaxpower[4];
 
     // 判断哈希是否满足要求
     uint8_t iscalcok = 0;
+    uint8_t ispowerok = 0;
 
     // 检查结果的for循环值
+    uint8_t pk = 0;
     uint8_t pi = 0;
 
     // 停止标记
@@ -769,12 +774,18 @@ void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* tar
 
     // nonce值
     uint32_t noncenum;
-    for(noncenum=1; noncenum<4294967294; noncenum++){
+    for(noncenum = hsstart; noncenum < hsend; noncenum++){
         // 停止标记检测
-        if( noncenum%10000==0 &&  is_stop[0] != 0 )
+        if( noncenum%10000==0 && is_stop[0] != 0 )
         {
             success1[0] = 0; // 失败
-            memcpy(nonce4, &noncenum, 4);
+            if(retmaxhash == 1){
+                memcpy(nonce4, &noncemaxpower, 4);
+                memcpy(reshash32, &hashmaxpower, 32);
+            }else{
+                memcpy(nonce4, &noncenum, 4);
+                memcpy(reshash32, &hashnew, 32);
+            }
             return;
         }
         // 重置nonce
@@ -800,6 +811,28 @@ void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* tar
             }
             printf("\n");
         */
+
+        if(retmaxhash == 1){
+            ispowerok = 0;
+            for(pk=0; pk<32; pk++){
+                uint8_t o1 = hashmaxpower[pk];
+                uint8_t o2 = hashnew[pk];
+                if(o2>o1){
+                    break;
+                }
+                if(o2<o1){
+                    ispowerok = 1;
+                    break;
+                }
+            }
+            if(ispowerok==1){
+                memcpy(&noncemaxpower, &noncenum, 4);
+                memcpy(&hashmaxpower, &hashnew, 32);
+            }else{
+                continue;
+            }
+        }
+
         iscalcok = 0;
         for(pi=0; pi<32; pi++){
             uint8_t o1 = target_difficulty_hash32[pi];
@@ -824,7 +857,13 @@ void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* tar
         */
             // 返回 copy to out
             success1[0] = 1; // 成功的标记
-            memcpy(nonce4, &noncenum, 4);
+            if(retmaxhash == 1){
+                memcpy(nonce4, &noncemaxpower, 4);
+                memcpy(reshash32, &hashmaxpower, 32);
+            }else{
+                memcpy(nonce4, &noncenum, 4);
+                memcpy(reshash32, &hashnew, 32);
+            }
             return; // success
         }
         // 继续下一次计算
@@ -832,7 +871,13 @@ void miner_x16rs_hash(const int loopnum, const char* stop_mark1, const char* tar
 
     // 循环完毕，失败
     success1[0] = 0;
-    memcpy(nonce4, &noncenum, 4);
+    if(retmaxhash == 1){
+        memcpy(nonce4, &noncemaxpower, 4);
+        memcpy(reshash32, &hashmaxpower, 32);
+    }else{
+        memcpy(nonce4, &noncenum, 4);
+        memcpy(reshash32, &hashnew, 32);
+    }
     return;
 
 }

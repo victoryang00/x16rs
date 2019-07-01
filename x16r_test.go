@@ -82,7 +82,7 @@ func TestX16RS_miner(t *testing.T) {
 		fmt.Println("set stop mark !")
 		*stopmark = 1 // 通知停止
 	}()
-	nonce := MinerNonceHashX16RS(1, stopmark, tarhash, signstuff)
+	_, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, tarhash, signstuff)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
 }
@@ -99,7 +99,7 @@ func TestX16RS_miner_do(t *testing.T) {
 	var stopmark *byte = new(byte)
 	*stopmark = 0
 
-	nonce := MinerNonceHashX16RS(1, stopmark, targetdiffhash, blockheadmeta)
+	_, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, targetdiffhash, blockheadmeta)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
 }
@@ -120,7 +120,6 @@ func TestSha3_256(t *testing.T) {
 	}
 }
 
-
 func TestX16RS_num(t *testing.T) {
 	data, _ := hex.DecodeString("f3bfada6cf5bb8c898fe81e37195287520b1ee08d97672b821bbe6f1ba4492ce")
 	hash1 := HashX16RS_Optimize(1, data)
@@ -130,10 +129,7 @@ func TestX16RS_num(t *testing.T) {
 	hash3 := HashX16RS_Optimize(3, data)
 	fmt.Println(hash3)
 
-
-
 }
-
 
 func Test_diamond_miner_do(t *testing.T) {
 
@@ -154,7 +150,7 @@ func Test_diamond_miner_do(t *testing.T) {
 		//*stopmark = 1
 	}()
 
-	nonce, diamond := MinerHacashDiamond(1, 4200008888,1, stopmark, blockhash, *address)
+	nonce, diamond := MinerHacashDiamond(1, 4200008888, 1, stopmark, blockhash, *address)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
 	// 验证钻石算法是否正确

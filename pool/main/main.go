@@ -33,7 +33,7 @@ func main() {
 
 // 读取并解析配置文件
 func ReadParseConfig() *Config {
-	file, err := os.Open("./config.yml")
+	file, err := os.Open("./poolworker.config.yml")
 	if err != nil {
 		panic("cannot find the config file './config.yml'")
 	}

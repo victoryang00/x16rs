@@ -1,5 +1,12 @@
 package x16rs
 
+/**
+
+go build -o poolworker github.com/hacash/x16rs/pool/main/ && ./poolworker
+
+
+**/
+
 import (
 	"bufio"
 	"bytes"

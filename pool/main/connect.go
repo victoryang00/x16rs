@@ -15,6 +15,7 @@ import (
 var prevStopCh chan bool = nil
 
 var connectStatus bool = false
+var connectObj net.Conn = nil
 
 // 矿池
 
@@ -34,6 +35,17 @@ func StartPoolWorker(conf *Config) {
 		}
 	}()
 
+	// 定时发送心跳活跃消息
+	go func() {
+		for {
+			time.Sleep(time.Minute * 5)
+			if connectObj != nil && connectStatus {
+				// type=11 心跳包
+				x16rs.MiningPoolWriteTcpMsgBytes(connectObj, 11, []byte{})
+			}
+		}
+	}()
+
 }
 
 func connect(conf *Config) {
@@ -42,18 +54,23 @@ func connect(conf *Config) {
 	tcpAddr, _ = net.ResolveTCPAddr("tcp", conf.Pool) // "127.0.0.1:3339"
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	connectObj = conn
 
 	if err != nil {
 		fmt.Println("client connect error ! " + err.Error())
 		return
 	}
 
-	defer conn.Close()
+	defer func() {
+		conn.Close()
+		connectObj = nil
+	}()
 
 	fmt.Printf("connected pool: %s, cpu superneve: %d, reward address: %s\n", conf.Pool, conf.Supervene, conf.Reward)
 	fmt.Println(conn.LocalAddr().String() + " : client connected !")
 
 	onMessageReceived(conn, conf)
+
 }
 
 func onMessageReceived(conn *net.TCPConn, conf *Config) {

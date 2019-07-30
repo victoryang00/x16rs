@@ -25,6 +25,7 @@ func StartPoolWorker(conf *Config) {
 
 	// 重连
 	go func() {
+		time.Sleep(time.Second * 11)
 		for {
 			time.Sleep(time.Second * 7)
 			if connectStatus == false {
@@ -89,11 +90,12 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 		msgbytes, err := x16rs.MiningPoolReadTcpMsgBytes(reader)
 		//fmt.Println("ReadString")
 		//fmt.Println([]byte(msgbytes))
-
-		if err != nil || err == io.EOF {
-			fmt.Println(err)
-			connectStatus = false
-			return // 连接失败
+		if err != nil {
+			fmt.Println("reader message error:", err)
+			if err != nil || err == io.EOF {
+				connectStatus = false
+				return // 连接失败
+			}
 		}
 
 		// 连接状态
@@ -101,7 +103,7 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 
 		//fmt.Println(len(msgbytes), msgbytes)
 
-		// time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 1100)
 
 		// 错误消息
 		if msgbytes[0] == 255 { // type=255
@@ -123,10 +125,10 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 				superneve := conf.Supervene // 多线程
 
 				fmt.Printf("mining block height: %d, ", stuff.BlockHeight)
-				mlok, successNonce, _, allPowerNonces, oneHash, totalPower := startMining(stuff, &stopCh, superneve)
+				mlok, successNonce, _, mostPowerNonce, mostPowerHash, totalPower, isbreak := startMining(stuff, &stopCh, superneve)
 				fmt.Printf("work %d result last hash: %s, total power: %s \n",
 					stuff.BlockHeight,
-					hex.EncodeToString(oneHash[0:16])+"...",
+					hex.EncodeToString(mostPowerHash[0:16])+"...",
 					totalPower.String())
 
 				if mlok == true {
@@ -158,14 +160,23 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 
 					// 传递算力统计
 					buf := bytes.NewBuffer([]byte{stuff.Loopnum})
-					buf.Write(stuff.BlockHeadMeta)
+					buf.Write(mostPowerNonce)
+					if isbreak {
+						buf.Write([]byte{0})
+					} else {
+						buf.Write([]byte{1}) // 遍历完所有数字，请求下一次挖矿
+					}
+
+					//buf.Write(stuff.BlockHeadMeta)
 					//bhm[79] = mostPowerNonce[0]
 					//bhm[80] = mostPowerNonce[1]
 					//bhm[81] = mostPowerNonce[2]
 					//bhm[82] = mostPowerNonce[3]
-					for i := 0; i < len(allPowerNonces); i++ {
-						buf.Write(allPowerNonces[i])
-					}
+					//for i := 0; i < len(allPowerNonces); i++ {
+					//	for k:=0; k<1; k++ {
+					//		buf.Write(allPowerNonces[i])
+					//	}
+					//}
 					//fmt.Println("stuff.BlockHeadMeta", stuff.BlockHeadMeta)
 					//hashbase := sha3.Sum256(stuff.BlockHeadMeta)
 					//reshash := x16rs.HashX16RS_Optimize(int(stuff.Loopnum), hashbase[:])

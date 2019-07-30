@@ -9,7 +9,7 @@ import (
 
 // 开始挖矿
 
-func startMining(stuff x16rs.MiningPoolStuff, stopCh *chan bool, superneve uint32) (bool, []byte, uint64, [][]byte, []byte, *big.Int) {
+func startMining(stuff x16rs.MiningPoolStuff, stopCh *chan bool, superneve uint32) (bool, []byte, uint64, []byte, []byte, *big.Int, bool) {
 
 	segsize := 4294967294 / superneve
 
@@ -17,11 +17,11 @@ func startMining(stuff x16rs.MiningPoolStuff, stopCh *chan bool, superneve uint3
 	*stopsign = 0
 
 	var successNonce []byte = nil
-	var allNonces [][]byte = make([][]byte, 0)
 	var totalPower = new(big.Int)
-	var someOneHash = []byte{}
-	//var mostPowerHash []byte = nil
-	//var mostPowerNonce []byte = nil
+	//var allNonces [][]byte = make([][]byte, 0)
+	//var someOneHash = []byte{}
+	var mostPowerHash []byte = nil
+	var mostPowerNonce []byte = nil
 
 	var group sync.WaitGroup
 	group.Add(int(superneve))
@@ -38,24 +38,24 @@ func startMining(stuff x16rs.MiningPoolStuff, stopCh *chan bool, superneve uint3
 				successNonce = nonce
 				*stopCh <- true // 写入停止
 			}
-			allNonces = append(allNonces, nonce)
+			//allNonces = append(allNonces, nonce)
 			totalPower = totalPower.Add(totalPower, x16rs.CalculateHashPowerValue(reshash))
-			someOneHash = reshash
+			//someOneHash = reshash
 			// 判断最大的hash
-			//if mostPowerHash == nil {
-			//	mostPowerHash = reshash
-			//	mostPowerNonce = nonce
-			//}else{
-			//	for i:=0; i<32; i++ {
-			//		if reshash[i] > mostPowerHash[i] {
-			//			break
-			//		}else if reshash[i] < mostPowerHash[i] {
-			//			mostPowerHash = reshash // 更大
-			//			mostPowerNonce = nonce
-			//			break
-			//		}
-			//	}
-			//}
+			if mostPowerHash == nil {
+				mostPowerHash = reshash
+				mostPowerNonce = nonce
+			} else {
+				for i := 0; i < 32; i++ {
+					if reshash[i] > mostPowerHash[i] {
+						break
+					} else if reshash[i] < mostPowerHash[i] {
+						mostPowerHash = reshash // 更大
+						mostPowerNonce = nonce
+						break
+					}
+				}
+			}
 			group.Done()
 		}(i)
 	}
@@ -69,6 +69,6 @@ func startMining(stuff x16rs.MiningPoolStuff, stopCh *chan bool, superneve uint3
 	group.Wait()
 
 	// 返回数据
-	return successNonce != nil, successNonce, stuff.MiningIndex, allNonces, someOneHash, totalPower
+	return successNonce != nil, successNonce, stuff.MiningIndex, mostPowerNonce, mostPowerHash, totalPower, *stopsign == 1
 
 }

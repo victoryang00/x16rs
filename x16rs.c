@@ -663,8 +663,8 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             // 哈希计算
             sha3_256((char*)basestuff, 61, (char*)sha3res);
             // print_byte_list("2: ", (void*)sha3res, 32, 0);
-            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            // x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
+            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
             // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
             // print_byte_list("4: ", (void*)diamond, 16, 0);
@@ -801,8 +801,8 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
             }
             printf("\n");
         */
-        x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
-        // x16rs_hash__development(loopnum, ((void*)sha3res), ((void*)hashnew));
+        // x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
+        x16rs_hash__development(loopnum, ((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;

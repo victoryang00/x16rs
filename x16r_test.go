@@ -274,3 +274,13 @@ func Test_OpenCL_2(t *testing.T) {
 	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
 
 }
+
+// 检查钻石难度值
+func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
+
+	fmt.Println(CheckDiamondDifficulty(2048*700+3, []byte{0, 0, 67, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+
+	// source
+	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
+
+}

@@ -7,6 +7,9 @@ ar rcs libx16rs_hash.a x16rs.o blake.o bmw.o groestl.o jh.o keccak.o skein.o cub
 
 
 
+go build -ldflags '-w -s' -o miner_pool_worker_2019_07_24.exe  github.com/hacash/x16rs/pool/main/
+
+
 
 
 

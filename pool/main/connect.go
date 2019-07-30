@@ -102,8 +102,7 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 		connectStatus = true
 
 		//fmt.Println(len(msgbytes), msgbytes)
-
-		time.Sleep(time.Millisecond * 1100)
+		//time.Sleep(time.Millisecond * 1100)
 
 		// 错误消息
 		if msgbytes[0] == 255 { // type=255

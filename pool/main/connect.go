@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var prevStopCh chan bool = nil
+var prevStopCh chan int = nil
 
 var connectStatus bool = false
 var connectObj net.Conn = nil
@@ -113,9 +113,9 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 		if msgbytes[0] == 1 { // type=1
 			// 单次挖矿停止
 			if prevStopCh != nil {
-				prevStopCh <- true // 停止上一次挖矿
+				prevStopCh <- 1 // 停止上一次挖矿
 			}
-			var stopCh chan bool = make(chan bool, 2)
+			var stopCh chan int = make(chan int, 2)
 			prevStopCh = stopCh
 			go func() {
 				var stuff x16rs.MiningPoolStuff

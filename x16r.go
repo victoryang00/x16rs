@@ -143,20 +143,22 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 
 // 检查钻石难度值，是否满足要求
 func CheckDiamondDifficulty(dNumber uint32, dBytes []byte) bool {
-	diffnum := dNumber / 2048 // 每 2048颗钻石调整一下难度
+	// 每 3277 颗钻石调整一下难度 3277 = 16^6 / 256 / 20
+	// 难度最高时hash前20位为0，而不是32位都为0。
+	diffnum := dNumber / 3277
 	for _, bt := range dBytes {
-		if diffnum < 256 {
+		if diffnum < 255 {
 			if uint32(bt)+diffnum > 255 {
 				return false // 难度检查失败
 			} else {
 				return true
 			}
-		} else if diffnum >= 256 {
+		} else if diffnum >= 255 {
 			if uint8(bt) != 0 {
 				return false // 难度检查失败
 			}
 			// 下一轮检查
-			diffnum -= 256
+			diffnum -= 255
 		}
 	}
 	return false

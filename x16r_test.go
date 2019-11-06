@@ -2,6 +2,7 @@ package x16rs
 
 import (
 	"bytes"
+	bmr "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -278,9 +279,52 @@ func Test_OpenCL_2(t *testing.T) {
 // 检查钻石难度值
 func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
 
-	fmt.Println(CheckDiamondDifficulty(2048*700+3, []byte{0, 0, 67, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	// fmt.Println(CheckDiamondDifficulty(3277*700+3, []byte{0, 0, 69, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+
+	//
+	//for c:=0; c<=32*256; c++ {
+	//	tarhx := getdiffhashtarget(c)
+	//	fmt.Println(c, tarhx)
+	//}
+
+	// 循环计算出难度目标
+	for dn := uint32(1); dn < 2000000; dn += 3277 {
+		for c := 0; c <= 32*256; c++ {
+			tarhx := getdiffhashtarget(c)
+			if CheckDiamondDifficulty(dn, tarhx) {
+				fmt.Println(dn, tarhx)
+				break
+			}
+		}
+	}
 
 	// source
 	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
 
+}
+
+func getdiffhashtarget(subnum int) []byte {
+	tarhash := bytes.Repeat([]byte{255}, 32)
+	for i := 0; i < 32; i++ {
+		if subnum < 255 {
+			tarhash[i] -= uint8(subnum)
+			break
+		} else {
+			tarhash[i] = 0
+			subnum -= 255
+		}
+	}
+	return tarhash
+}
+
+// 检查钻石哈希分布
+func Test_Diamond_HashMap(t *testing.T) {
+
+	bts := bytes.Repeat([]byte{0}, 32)
+
+	for i := uint64(0); i < 30000; i++ {
+		bmr.Read(bts)
+		diamond := DiamondHash(bts)
+		fmt.Print(diamond, " ")
+	}
 }

@@ -698,7 +698,7 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             if( success == 1 ) {
                 // 检查难度
                 uint8_t diffok = 0;
-                int diffnum = diamondnumber / 2048; // 每 2048颗钻石调整一下难度
+                int diffnum = diamondnumber / 3277; // 每 3277 颗钻石调整一下难度
                 int n;
                 for( n=0; n<32; n++ ) {
                     int bt = hashnew[n];

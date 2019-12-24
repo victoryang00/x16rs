@@ -621,8 +621,8 @@ void diamond_hash(const char* hash32, char* output16)
 void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int diamondnumber, const char* stop_mark1, const char* input32, const char* addr21, char* nonce8, char* diamond16)
 {
     int loopnum = diamondnumber / 8192 + 1; // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
-    if( loopnum > 16 ){
-        loopnum = 16; // 最多16次
+    if( loopnum > 64 ){
+        loopnum = 64; // 最多64次
     }
 
     // 停止标记
@@ -697,12 +697,14 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             // 挖出钻石
             if( success == 1 ) {
                 // 检查难度
+                // 每 3277 颗钻石调整一下难度 3277 = 16^6 / 256 / 20
+                // 难度最高时hash前20位为0，而不是32位都为0。
                 uint8_t diffok = 0;
                 int diffnum = diamondnumber / 3277; // 每 3277 颗钻石调整一下难度
                 int n;
                 for( n=0; n<32; n++ ) {
                     int bt = hashnew[n];
-                    if(diffnum < 256){
+                    if(diffnum < 255){
                         if( bt + diffnum > 255) {
                             diffok = 0;
                             break; // 难度检查失败
@@ -710,13 +712,13 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                             diffok = 1;
                             break; // success
                         }
-                    } else if(diffnum >= 256) {
+                    } else if(diffnum >= 255) {
                         if(bt != 0) {
                             diffok = 0;
                             break; // 难度检查失败
                         }
                         // 下一轮检查
-                        diffnum -= 256;
+                        diffnum -= 255;
                     }
                 }
                 // 难度满足要求
@@ -737,6 +739,11 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
         }
 
     }
+
+    // 循环完成，返回空，失败
+    uint8_t noncenum_empty[8] = {0,0,0,0,0,0,0,0};
+    memcpy( nonce8, noncenum_empty, 8);
+
 }
 
 

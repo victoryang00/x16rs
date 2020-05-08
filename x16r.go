@@ -151,7 +151,7 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 		}
 	}
 	// 检查成功
-	return string(diamond_value), true
+	return string(diamond_value[10-prefixlen:]), true
 }
 
 // 检查钻石难度值，是否满足要求

@@ -12,7 +12,8 @@ import (
 	"time"
 )
 
-var prevStopCh chan int = nil
+// var prevStopCh chan int = nil
+var prevStopChs = map[uint32]chan int{}
 
 var connectStatus bool = false
 var connectObj net.Conn = nil
@@ -111,15 +112,21 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 
 		// 开始挖矿消息
 		if msgbytes[0] == 1 { // type=1
-			// 单次挖矿停止
-			if prevStopCh != nil {
+			// 上次挖矿停止
+			for _, prevStopCh := range prevStopChs {
 				prevStopCh <- 1 // 停止上一次挖矿
 			}
-			var stopCh chan int = make(chan int, 2)
-			prevStopCh = stopCh
+			/*if prevStopCh != nil {
+				prevStopCh <- 1 // 停止上一次挖矿
+			}*/
 			go func() {
+
 				var stuff x16rs.MiningPoolStuff
 				stuff.Parse(msgbytes, 1)
+
+				var mining_id = rand.Uint32()
+				var stopCh chan int = make(chan int, 2)
+				prevStopChs[mining_id] = stopCh
 
 				superneve := conf.Supervene // 多线程
 
@@ -183,6 +190,9 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 					// type=3
 					x16rs.MiningPoolWriteTcpMsgBytes(conn, 3, buf.Bytes())
 				}
+
+				// delete key
+				delete(prevStopChs, mining_id)
 			}()
 		}
 

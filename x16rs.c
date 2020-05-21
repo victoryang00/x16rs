@@ -750,7 +750,7 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
 
 
 // 挖矿算法
-void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_mark1, const uint32_t hsstart, const uint32_t hsend, const char* target_difficulty_hash32, const char* input_stuff89, char* success1, char* nonce4, char* reshash32)
+void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_mark1, const uint32_t hsstart, const uint32_t hsend, const char* target_difficulty_hash32, const char* input_stuff89, char* stopkind1, char* success1, char* nonce4, char* reshash32)
 {
 //    printf("miner_x16rs_hash_v1()\n");
     // 签名信息
@@ -783,9 +783,10 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
     uint32_t noncenum;
     for(noncenum = hsstart; noncenum < hsend; noncenum++){
         // 停止标记检测
-        if( noncenum%10000==0 && is_stop[0] != 0 )
+        if( noncenum%5000==0 && is_stop[0] != 0 )
         {
             success1[0] = 0; // 失败
+            stopkind1[0] = 1; // 外部信号强制停止
             if(retmaxhash == 1){
                 memcpy(nonce4, &noncemaxpower, 4);
                 memcpy(reshash32, &hashmaxpower, 32);
@@ -864,6 +865,7 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
         */
             // 返回 copy to out
             success1[0] = 1; // 成功的标记
+            stopkind1[0] = 2; // 非强制停止，挖出成功后停止
             if(retmaxhash == 1){
                 memcpy(nonce4, &noncemaxpower, 4);
                 memcpy(reshash32, &hashmaxpower, 32);
@@ -878,6 +880,7 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
 
     // 循环完毕，失败
     success1[0] = 0;
+    stopkind1[0] = 0; // 非强制停止，自然循环完毕停止
     if(retmaxhash == 1){
         memcpy(nonce4, &noncemaxpower, 4);
         memcpy(reshash32, &hashmaxpower, 32);

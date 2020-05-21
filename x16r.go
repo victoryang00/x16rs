@@ -70,7 +70,8 @@ func CalculateBlockHash(blockHeight uint64, stuff []byte) []byte {
 	return HashX16RS_Optimize(loopnum, hashbase[:])
 }
 
-func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, hashstart uint32, hashend uint32, tarhashvalue []byte, blockheadmeta []byte) (bool, []byte, []byte) {
+// stopkind:  0.自然循环完毕后停止   1.外部信号强制停止   2.挖出成功停止
+func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, hashstart uint32, hashend uint32, tarhashvalue []byte, blockheadmeta []byte) (byte, bool, []byte, []byte) {
 	loopnum := int(blockHeight/50000 + 1)
 	if loopnum > 16 {
 		loopnum = 16 // 8年时间上升到16次
@@ -79,6 +80,7 @@ func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, ha
 	if retmaxhash {
 		retmaxhashsig = 1
 	}
+	var stopkind [1]C.char
 	var success [1]C.char
 	var nonce [4]C.char
 	var reshash [32]C.char
@@ -89,9 +91,9 @@ func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, ha
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(stuff))
 	//fmt.Println("C.miner_x16rs_hash_v1") //
-	C.miner_x16rs_hash(C.int(loopnum), C.int(retmaxhashsig), (*C.char)((unsafe.Pointer)(stopmark)), hsstart, hsend, tarhash, stuff, &success[0], &nonce[0], &reshash[0])
+	C.miner_x16rs_hash(C.int(loopnum), C.int(retmaxhashsig), (*C.char)((unsafe.Pointer)(stopmark)), hsstart, hsend, tarhash, stuff, &stopkind[0], &success[0], &nonce[0], &reshash[0])
 	//fmt.Println("C.miner_x16rs_hash_v1 finish")
-	return success[0] == 1, []byte(C.GoStringN(&nonce[0], 4)), []byte(C.GoStringN(&reshash[0], 32))
+	return byte(stopkind[0]), success[0] == 1, []byte(C.GoStringN(&nonce[0], 4)), []byte(C.GoStringN(&reshash[0], 32))
 }
 
 /////////////////////////////////////////////////////////

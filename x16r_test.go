@@ -83,7 +83,7 @@ func TestX16RS_miner(t *testing.T) {
 		fmt.Println("set stop mark !")
 		*stopmark = 1 // 通知停止
 	}()
-	_, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, tarhash, signstuff)
+	_, _, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, tarhash, signstuff)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
 }
@@ -100,7 +100,7 @@ func TestX16RS_miner_do(t *testing.T) {
 	var stopmark *byte = new(byte)
 	*stopmark = 0
 
-	_, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, targetdiffhash, blockheadmeta)
+	_, _, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, targetdiffhash, blockheadmeta)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
 
 }

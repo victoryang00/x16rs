@@ -33,7 +33,7 @@ func startMining(stuff x16rs.MiningPoolStuff, stopCh *chan int, superneve uint32
 			segstart := segsize * i
 			segend := segstart + segsize
 			// 启动挖矿
-			success, nonce, reshash := x16rs.MinerNonceHashX16RS(stuff.BlockHeight, true, stopsign, segstart, segend, stuff.TargetHash, stuff.BlockHeadMeta)
+			_, success, nonce, reshash := x16rs.MinerNonceHashX16RS(stuff.BlockHeight, true, stopsign, segstart, segend, stuff.TargetHash, stuff.BlockHeadMeta)
 			// 成功
 			if success && successNonce == nil {
 				fmt.Printf("⬤  h:%d, mining successfully and got rewords! \n", stuff.BlockHeight)

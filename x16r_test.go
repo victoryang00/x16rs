@@ -17,6 +17,7 @@ import (
 )
 
 func TestX16R(t *testing.T) {
+	// name+year+name+year+10001
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")
 	hash, _ := hex.DecodeString("f3bfada6cf5bb8c898fe81e37195287520b1ee08d97672b821bbe6f1ba4492ce")
 	res := Sum(data)

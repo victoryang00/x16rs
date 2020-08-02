@@ -114,15 +114,16 @@ func DiamondHash(reshash []byte) string {
 	return string(diamond_str)
 }
 
-func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte) ([]byte, string) {
+func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte, extendMessage []byte) ([]byte, string) {
 	loopnum := diamondNumber/8192 + 1 // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
-	if loopnum > 64 {
-		loopnum = 64 // 最高64次 x16rs 哈希
+	if loopnum > 16 {
+		loopnum = 16 // 最高16次 x16rs 哈希
 	}
 	stuff := new(bytes.Buffer)
 	stuff.Write(blockhash)
 	stuff.Write(nonce)
 	stuff.Write(address)
+	stuff.Write(extendMessage)
 	//fmt.Println(stuff.Bytes())
 	ssshash := sha3.Sum256(stuff.Bytes())
 	//fmt.Println(ssshash)
@@ -225,7 +226,7 @@ func main() {
 	nonce, diamond := MinerHacashDiamond(1, 4200009999, 1, stopmark, blockhash, address)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 	// 验证钻石算法是否正确
-	_, diamond_str := Diamond(1, blockhash, nonce, address)
+	_, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
 }

@@ -156,7 +156,7 @@ func Test_diamond_miner_do(t *testing.T) {
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
 	// 验证钻石算法是否正确
-	_, diamond_str := Diamond(1, blockhash, nonce, *address)
+	_, diamond_str := Diamond(1, blockhash, nonce, *address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
 	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {

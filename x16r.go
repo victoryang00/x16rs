@@ -181,7 +181,7 @@ func CheckDiamondDifficulty(dNumber uint32, dBytes []byte) bool {
 }
 
 // 钻石挖矿
-func MinerHacashDiamond(hash_start uint32, hash_end uint32, diamondnumber int, stopmark *byte, blockhash []byte, address []byte) ([]byte, string) {
+func MinerHacashDiamond(hash_start uint32, hash_end uint32, diamondnumber int, stopmark *byte, blockhash []byte, address []byte, extendmsg []byte) ([]byte, string) {
 	var nonce [8]C.char
 	var diamond [16]C.char
 	var hsstart = C.uint(hash_start)
@@ -189,9 +189,11 @@ func MinerHacashDiamond(hash_start uint32, hash_end uint32, diamondnumber int, s
 	var dmnb = C.int(diamondnumber)
 	var tarhash = C.CString(string(blockhash))
 	var taraddr = C.CString(string(address))
+	var tarextmsg = C.CString(string(extendmsg))
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(taraddr))
-	C.miner_diamond_hash(hsstart, hsend, dmnb, (*C.char)((unsafe.Pointer)(stopmark)), tarhash, taraddr, &nonce[0], &diamond[0])
+	defer C.free(unsafe.Pointer(tarextmsg))
+	C.miner_diamond_hash(hsstart, hsend, dmnb, (*C.char)((unsafe.Pointer)(stopmark)), tarhash, taraddr, tarextmsg, &nonce[0], &diamond[0])
 	return []byte(C.GoStringN(&nonce[0], 8)), C.GoStringN(&diamond[0], 16)
 }
 
@@ -223,7 +225,7 @@ func main() {
 
 	var stopmark *byte = new(byte)
 	*stopmark = 0
-	nonce, diamond := MinerHacashDiamond(1, 4200009999, 1, stopmark, blockhash, address)
+	nonce, diamond := MinerHacashDiamond(1, 4200009999, 1, stopmark, blockhash, address, []byte{})
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 	// 验证钻石算法是否正确
 	_, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})

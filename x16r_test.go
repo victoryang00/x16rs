@@ -16,6 +16,20 @@ import (
 	"time"
 )
 
+func TestNewDiamond(t *testing.T) {
+	prevhash, _ := hex.DecodeString("000000000ae89f8a1c93fbffe9baad198fda287f13e39c37294eb7a7b617bd70")
+	extmsg, _ := hex.DecodeString("7d8367f6e46e9ffee311b9f3a38519d674b52407fd0aa287442715fe2f0c4db0")
+	nonce, _ := hex.DecodeString("00000000c9babb01")
+	addr, _ := fields.CheckReadableAddress("1KcXiRhMgGcvgxZGLBkLvogKLNKNXfKjEr")
+
+	dmdhash, dmastr := Diamond(20001, prevhash, nonce, *addr, extmsg)
+
+	fmt.Println(dmdhash, dmastr)
+
+	fmt.Println(Diamond(20001, prevhash, nonce, *addr, []byte{}))
+
+}
+
 func TestX16R(t *testing.T) {
 	// name+year+name+year+10001
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")

@@ -145,16 +145,27 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 		return "", false
 	}
 	diamond_value := []byte(diamondStr)[prefixlen:]
-	for _, a := range diamond_value {
-		if a == diamond_hash_base_stuff[0] {
-			return "", false
-		}
-		if bytes.IndexByte(diamond_hash_base_stuff, a) == -1 {
-			return "", false
-		}
+	isdmd := IsDiamondValueString(string(diamond_value))
+	if !isdmd {
+		return "", false
 	}
 	// 检查成功
 	return string(diamond_value[10-prefixlen:]), true
+}
+
+// 判断是否为钻石
+func IsDiamondValueString(diamondStr string) bool {
+	if len(diamondStr) != 6 {
+		return false
+	}
+	for _, a := range diamondStr {
+		// drop 0
+		if bytes.IndexByte(diamond_hash_base_stuff[1:], byte(a)) == -1 {
+			return false
+		}
+	}
+	// 检查成功
+	return true
 }
 
 // 检查钻石难度值，是否满足要求

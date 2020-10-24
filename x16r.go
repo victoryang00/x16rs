@@ -61,21 +61,23 @@ func HashX16RS_Optimize(loopnum int, data []byte) []byte {
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
-func CalculateBlockHash(blockHeight uint64, stuff []byte) []byte {
-	loopnum := int(blockHeight/50000 + 1)
-	if loopnum > 16 {
-		loopnum = 16 // 8年时间上升到16次
+func HashRepeatForBlockHeight(blockHeight uint64) int {
+	repeat := int(blockHeight/50000 + 1)
+	if repeat > 16 {
+		repeat = 16 // 8年时间上升到16次
 	}
+	return repeat
+}
+
+func CalculateBlockHash(blockHeight uint64, stuff []byte) []byte {
+	repeat := HashRepeatForBlockHeight(blockHeight)
 	hashbase := sha3.Sum256(stuff)
-	return HashX16RS_Optimize(loopnum, hashbase[:])
+	return HashX16RS_Optimize(repeat, hashbase[:])
 }
 
 // stopkind:  0.自然循环完毕后停止   1.外部信号强制停止   2.挖出成功停止
 func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, hashstart uint32, hashend uint32, tarhashvalue []byte, blockheadmeta []byte) (byte, bool, []byte, []byte) {
-	loopnum := int(blockHeight/50000 + 1)
-	if loopnum > 16 {
-		loopnum = 16 // 8年时间上升到16次
-	}
+	repeat := HashRepeatForBlockHeight(blockHeight)
 	var retmaxhashsig int = 0
 	if retmaxhash {
 		retmaxhashsig = 1
@@ -91,7 +93,7 @@ func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, ha
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(stuff))
 	//fmt.Println("C.miner_x16rs_hash_v1") //
-	C.miner_x16rs_hash(C.int(loopnum), C.int(retmaxhashsig), (*C.char)((unsafe.Pointer)(stopmark)), hsstart, hsend, tarhash, stuff, &stopkind[0], &success[0], &nonce[0], &reshash[0])
+	C.miner_x16rs_hash(C.int(repeat), C.int(retmaxhashsig), (*C.char)((unsafe.Pointer)(stopmark)), hsstart, hsend, tarhash, stuff, &stopkind[0], &success[0], &nonce[0], &reshash[0])
 	//fmt.Println("C.miner_x16rs_hash_v1 finish")
 	return byte(stopkind[0]), success[0] == 1, []byte(C.GoStringN(&nonce[0], 4)), []byte(C.GoStringN(&reshash[0], 32))
 }
@@ -114,11 +116,16 @@ func DiamondHash(reshash []byte) string {
 	return string(diamond_str)
 }
 
-func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte, extendMessage []byte) ([]byte, string) {
-	loopnum := diamondNumber/8192 + 1 // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
-	if loopnum > 16 {
-		loopnum = 16 // 最高16次 x16rs 哈希
+func HashRepeatForDiamondNumber(diamondNumber uint32) int {
+	repeat := int(diamondNumber/8192 + 1) // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
+	if repeat > 16 {
+		repeat = 16 // 最高16次 x16rs 哈希
 	}
+	return repeat
+}
+
+func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte, extendMessage []byte) ([]byte, string) {
+	repeat := HashRepeatForDiamondNumber(diamondNumber)
 	stuff := new(bytes.Buffer)
 	stuff.Write(blockhash)
 	stuff.Write(nonce)
@@ -127,7 +134,7 @@ func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byt
 	//fmt.Println(stuff.Bytes())
 	ssshash := sha3.Sum256(stuff.Bytes())
 	//fmt.Println(ssshash)
-	reshash := HashX16RS_Optimize(int(loopnum), ssshash[:])
+	reshash := HashX16RS_Optimize(repeat, ssshash[:])
 	//fmt.Println(reshash)
 	diamond_str := DiamondHash(reshash)
 	//fmt.Println(diamond_str)

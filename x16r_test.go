@@ -16,6 +16,18 @@ import (
 	"time"
 )
 
+func TestNewDiamondDiff(t *testing.T) {
+
+	//prevhash, _ := hex.DecodeString("00000000000000000000000009baad198fda287f13e39c37294eb7a7b617bd70")
+	prevhash, _ := hex.DecodeString("f9ff9f3a38519d674b59f3a385baad198fda287f13e39c37294eb7a7b617bd70")
+	dia := DiamondHash(prevhash)
+
+	diffok := CheckDiamondDifficulty(22806, prevhash)
+
+	fmt.Println(dia, diffok)
+
+}
+
 func TestNewDiamond(t *testing.T) {
 	prevhash, _ := hex.DecodeString("000000000ae89f8a1c93fbffe9baad198fda287f13e39c37294eb7a7b617bd70")
 	extmsg, _ := hex.DecodeString("7d8367f6e46e9ffee311b9f3a38519d674b52407fd0aa287442715fe2f0c4db0")

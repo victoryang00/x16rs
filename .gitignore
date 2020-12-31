@@ -19,4 +19,6 @@
 
 build/
 
+*local_test.go
+
 # main/

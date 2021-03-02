@@ -15,9 +15,10 @@
 .git/
 .idea/
 .DS_Store
-.objcache
 
 build/
+
+*.objcache
 
 *local_test.go
 

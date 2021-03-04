@@ -33,6 +33,87 @@ void hash_x16rs_choice_step(hash_t* stephash){
 
 }
 
+// x16rs hash miner 算法 V2
+__kernel void miner_do_hash_x16rs_v2(
+   __global unsigned char* target_difficulty_hash_32,
+   __global unsigned char* input_stuff_89,
+   const unsigned int   x16rs_repeat, // x16rs根据区块高度执行的次数
+   const unsigned int   nonce_start, // nonce开始值
+   __global unsigned char* output_nonce_4,
+   __global unsigned char* output_hash_32)
+{
+
+
+// miner check
+__local unsigned int global_barrier_success_nonce_value;
+global_barrier_success_nonce_value = 0;
+
+
+    // nonce值
+    unsigned int global_id = get_global_id(0);
+    unsigned int nonce = nonce_start + global_id;
+    unsigned char *nonce_ptr = &nonce;
+
+    // stuff
+    unsigned char base_stuff[89];
+    for(int i=0; i<89; i++){
+        base_stuff[i] = input_stuff_89[i];
+    }
+
+    base_stuff[79] = nonce_ptr[3];
+    base_stuff[80] = nonce_ptr[2];
+    base_stuff[81] = nonce_ptr[1];
+    base_stuff[82] = nonce_ptr[0];
+
+    // hash x16rs
+    hash_t hs0;
+    sha3_256_hash(base_stuff, 89, hs0.h1);
+
+    // x16rs根据区块高度执行的次数
+    for(int xr=0; xr < x16rs_repeat; xr++){
+        hash_x16rs_choice_step(&hs0);
+    }
+    // miner check
+    unsigned int success;
+    success = 0;
+
+    // 判断是否挖矿成功
+    for(int i=0; i<32; i++){
+        unsigned char a1 = hs0.h1[i];
+        unsigned char a2 = target_difficulty_hash_32[i];
+        if( a1 > a2 ){ // 失败
+            break;
+        }else if( a1 < a2 ){ // 成功
+            success = 1;
+            break;
+        }
+    }
+
+    // 全局线程同步
+    barrier(CLK_GLOBAL_MEM_FENCE);
+
+    // 挖矿成功，写入返回值数据
+    if(success == 1){
+        global_barrier_success_nonce_value = nonce; // 标记
+    }
+
+    // 全局线程同步
+    barrier(CLK_GLOBAL_MEM_FENCE);
+
+    // 成功的线程写入返回值，写入返回值数据
+    if(global_barrier_success_nonce_value == nonce){
+        output_nonce_4[0] = nonce_ptr[3];
+        output_nonce_4[1] = nonce_ptr[2];
+        output_nonce_4[2] = nonce_ptr[1];
+        output_nonce_4[3] = nonce_ptr[0];
+        for(int i=0; i<32; i++){
+            output_hash_32[i] = hs0.h1[i];
+        }
+    }
+
+
+}
+
 
 // x16rs hash miner 算法
 __kernel void miner_do_hash_x16rs_v1(

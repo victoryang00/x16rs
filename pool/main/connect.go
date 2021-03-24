@@ -9,10 +9,12 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"sync"
 	"time"
 )
 
 // var prevStopCh chan int = nil
+var prevStopChsLocker sync.Mutex
 var prevStopChs = map[uint32]chan int{}
 
 var connectStatus bool = false
@@ -113,9 +115,11 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 		// 开始挖矿消息
 		if msgbytes[0] == 1 { // type=1
 			// 上次挖矿停止
+			prevStopChsLocker.Lock()
 			for _, prevStopCh := range prevStopChs {
 				prevStopCh <- 1 // 停止上一次挖矿
 			}
+			prevStopChsLocker.Unlock()
 			/*if prevStopCh != nil {
 				prevStopCh <- 1 // 停止上一次挖矿
 			}*/
@@ -126,7 +130,10 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 
 				var mining_id = rand.Uint32()
 				var stopCh chan int = make(chan int, 2)
+
+				prevStopChsLocker.Lock()
 				prevStopChs[mining_id] = stopCh
+				prevStopChsLocker.Unlock()
 
 				superneve := conf.Supervene // 多线程
 
@@ -192,7 +199,9 @@ func onMessageReceived(conn *net.TCPConn, conf *Config) {
 				}
 
 				// delete key
+				prevStopChsLocker.Lock()
 				delete(prevStopChs, mining_id)
+				prevStopChsLocker.Unlock()
 			}()
 		}
 

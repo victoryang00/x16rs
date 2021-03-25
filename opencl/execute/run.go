@@ -1,15 +1,21 @@
 package execute
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // 开始采矿
-func (mr *GpuMiner) DoMining(blockHeight uint64, stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) (byte, bool, []byte, []byte) {
+func (g *GpuMiner) DoMining(blockHeight uint64, stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) (byte, bool, []byte, []byte) {
 
-	deviceNum := len(mr.devices)
+	deviceNum := len(g.devices)
 	groupsize := 256
 	overallstep := groupsize * deviceNum
+	fmt.Println(overallstep)
 
 	var syncWait = sync.WaitGroup{}
 	syncWait.Add(deviceNum)
+
+	return 0, false, nil, nil
 
 }

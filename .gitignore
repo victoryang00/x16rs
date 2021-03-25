@@ -22,4 +22,6 @@ build/
 
 *local_test.go
 
+pkgcls.go
+
 # main/

@@ -3,6 +3,7 @@ package execute
 import (
 	"fmt"
 	"github.com/xfong/go2opencl/cl"
+	"os"
 	"strings"
 )
 
@@ -43,8 +44,18 @@ func (mr *GpuMiner) Init() error {
 		return e
 	}
 
+	// opencl 文件准备
 	if strings.Compare(mr.openclPath, "") == 0 {
-		mr.openclPath = GetCurrentDirectory() + "/opencl"
+		tardir := GetCurrentDirectory() + "/opencl/"
+		if _, err := os.Stat(tardir); err != nil {
+			files := getRenderCreateAllOpenclFiles() // 输出所有文件
+			os.MkdirAll(tardir, os.ModeDir)
+			for name, content := range files {
+				f, _ := os.OpenFile(tardir+name, os.O_RDWR, 0777)
+				f.Write([]byte(content))
+			}
+		}
+		mr.openclPath = tardir
 	}
 
 	// 初始化成功

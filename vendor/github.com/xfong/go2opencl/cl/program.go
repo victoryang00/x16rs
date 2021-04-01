@@ -621,6 +621,7 @@ func (p *Program) GetBinarySizes_2(size int) ([]int, error) {
 	var val C.size_t
 	var arr = make([]C.size_t, size)
 	if err := C.clGetProgramInfo(p.clProgram, C.CL_PROGRAM_BINARY_SIZES, C.size_t(unsafe.Sizeof(val)), (unsafe.Pointer)(&arr[0]), &val); err != C.CL_SUCCESS {
+		fmt.Println("err_code:", err)
 		panic("Should never fail")
 		return nil, toError(err)
 	}
@@ -643,6 +644,7 @@ func (p *Program) GetBinaries_2( sizes []int ) ([][]byte, error) {
 		defer C.free(unsafe.Pointer(arr[i]))
 	}
 	if err := C.clGetProgramInfo(p.clProgram, C.CL_PROGRAM_BINARIES, C.size_t(unsafe.Sizeof(item)), unsafe.Pointer(&arr[0]), &val); err != C.CL_SUCCESS {
+		fmt.Println("err_code:", err)
 		panic("Should never fail")
 		return nil, toError(err)
 	}

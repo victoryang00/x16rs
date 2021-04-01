@@ -55,7 +55,7 @@ type minerExecuteWork struct {
 	// 执行队列
 	executeQueueChList []chan *minerDeviceExecute
 	// 等待全部关闭
-	wg sync.WaitGroup
+	wg         sync.WaitGroup
 	stopMarkCh chan bool
 }
 
@@ -74,7 +74,7 @@ type GpuMiner struct {
 
 	// 任务列表
 	minerExecuteWorkListCh chan *minerExecuteWork
-	currentDoingWork *minerExecuteWork // 当前正在执行的任务
+	currentDoingWork       *minerExecuteWork // 当前正在执行的任务
 
 	workContexts []*WorkContext
 
@@ -266,7 +266,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 				baseItemNum := uint32(mr.groupSize * mr.loopNum)
 				baseStart := uint32(i) * baseItemNum
 				// 已尝试全部
-				onmax := uint64(baseStart) + uint64(baseItemNum) > 4294967290
+				onmax := uint64(baseStart)+uint64(baseItemNum) > 4294967290
 				if onmax {
 					// 等待停止
 					fmt.Printf(", ## retry reset coinbase to be new block stuff ## ")
@@ -302,7 +302,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 				}
 				//fmt.Println("<<<<<<<<<<<<<<<< ")
 				select {
-				case <- work.stopMarkCh:
+				case <-work.stopMarkCh:
 					return // 停止并退出
 				case work.executeQueueChList[chindex] <- exe:
 				}
@@ -322,7 +322,7 @@ func (mr *GpuMiner) minerWorkLoop() {
 							goto CLEAREQCL
 						}
 					}
-					CLEAREQCL:
+				CLEAREQCL:
 					work.wg.Done()
 				}()
 				// 载入环境
@@ -546,11 +546,12 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 		}
 		fmt.Println("build complete get binaries...")
 		//fmt.Println("program.GetBinarySizes_2()")
-		sizes, _ := program.GetBinarySizes_2(1)
+		size := len(mr.devices)
+		sizes, _ := program.GetBinarySizes_2(size)
 		//fmt.Println(sizes)
 		//fmt.Println(sizes[0])
 		//fmt.Println("program.GetBinaries_2()")
-		bins, _ := program.GetBinaries_2([]int{sizes[0]})
+		bins, _ := program.GetBinaries_2(sizes)
 		//fmt.Println(bins[0])
 		f, e := os.OpenFile(binfilepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 		if e != nil {

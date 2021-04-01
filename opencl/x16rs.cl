@@ -512,48 +512,8 @@ void hash_x16rs_func_2(hash_t* hash)
 
 }
 
-// skein
-void hash_x16rs_func_3(hash_t* hash)
-{
-    // skein
-    sph_u64 h0 = SPH_C64(0x4903ADFF749C51CE), h1 = SPH_C64(0x0D95DE399746DF03), 
-    h2 = SPH_C64(0x8FD1934127C79BCE), h3 = SPH_C64(0x9A255629FF352CB1), 
-    h4 = SPH_C64(0x5DB62599DF6CA7B0), h5 = SPH_C64(0xEABE394CA9D5C3F4), 
-    h6 = SPH_C64(0x991112C71A75B523), h7 = SPH_C64(0xAE18A40B660FCC33);
-    sph_u64 m0, m1, m2, m3, m4, m5, m6, m7;
-    sph_u64 bcount = 0;
-
-
-    m0 = hash->h8[0];
-    m1 = hash->h8[1];
-    m2 = hash->h8[2];
-    m3 = hash->h8[3];
-    m4 = 0;
-    m5 = 0;
-    m6 = 0;
-    m7 = 0;
-
-    UBI_BIG(480, 32); // 64 => 43
-
-    bcount = 0;
-    m0 = m1 = m2 = m3 = m4 = m5 = m6 = m7 = 0;
-
-    UBI_BIG(510, 8);
-
-    hash->h8[0] = h0;
-    hash->h8[1] = h1;
-    hash->h8[2] = h2;
-    hash->h8[3] = h3;
-    hash->h8[4] = h4;
-    hash->h8[5] = h5;
-    hash->h8[6] = h6;
-    hash->h8[7] = h7;
-
-    // barrier(CLK_GLOBAL_MEM_FENCE);
-}
-
 // jh
-void hash_x16rs_func_4(hash_t* hash)
+void hash_x16rs_func_3(hash_t* hash)
 {
     // jh
     sph_u64 h0h = C64e(0x6fd14b963e00aa17), h0l = C64e(0x636a2e057a15d543), h1h = C64e(0x8a225e8d0c97ef0b), h1l = C64e(0xe9341259f2b3c361), h2h = C64e(0x891da0c1536f801e), h2l = C64e(0x2aa9056bea2b6d80), h3h = C64e(0x588eccdb2075baa6), h3l = C64e(0xa90f3a76baf83bf7);
@@ -629,7 +589,7 @@ void hash_x16rs_func_4(hash_t* hash)
 }
 
 // keccak
-void hash_x16rs_func_5(hash_t* hash)
+void hash_x16rs_func_4(hash_t* hash)
 {
     // keccak
     sph_u64 a00 = 0, a01 = 0, a02 = 0, a03 = 0, a04 = 0;
@@ -672,6 +632,46 @@ void hash_x16rs_func_5(hash_t* hash)
 
     // barrier(CLK_GLOBAL_MEM_FENCE);
 
+}
+
+// skein
+void hash_x16rs_func_5(hash_t* hash)
+{
+    // skein
+    sph_u64 h0 = SPH_C64(0x4903ADFF749C51CE), h1 = SPH_C64(0x0D95DE399746DF03), 
+    h2 = SPH_C64(0x8FD1934127C79BCE), h3 = SPH_C64(0x9A255629FF352CB1), 
+    h4 = SPH_C64(0x5DB62599DF6CA7B0), h5 = SPH_C64(0xEABE394CA9D5C3F4), 
+    h6 = SPH_C64(0x991112C71A75B523), h7 = SPH_C64(0xAE18A40B660FCC33);
+    sph_u64 m0, m1, m2, m3, m4, m5, m6, m7;
+    sph_u64 bcount = 0;
+
+
+    m0 = hash->h8[0];
+    m1 = hash->h8[1];
+    m2 = hash->h8[2];
+    m3 = hash->h8[3];
+    m4 = 0;
+    m5 = 0;
+    m6 = 0;
+    m7 = 0;
+
+    UBI_BIG(480, 32); // 64 => 43
+
+    bcount = 0;
+    m0 = m1 = m2 = m3 = m4 = m5 = m6 = m7 = 0;
+
+    UBI_BIG(510, 8);
+
+    hash->h8[0] = h0;
+    hash->h8[1] = h1;
+    hash->h8[2] = h2;
+    hash->h8[3] = h3;
+    hash->h8[4] = h4;
+    hash->h8[5] = h5;
+    hash->h8[6] = h6;
+    hash->h8[7] = h7;
+
+    // barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 // luffa
@@ -894,7 +894,6 @@ void hash_x16rs_func_8(hash_t* hash)
     //   barrier(CLK_GLOBAL_MEM_FENCE);
 
 }
-
 
 // simd
 void hash_x16rs_func_9(hash_t* hash)

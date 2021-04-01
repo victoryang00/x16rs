@@ -1,9 +1,12 @@
-package execute
+package worker
 
-import "github.com/xfong/go2opencl/cl"
+import (
+	"github.com/xfong/go2opencl/cl"
+)
 
 // 单个设备执行环境
-type GpuMinerDeviceWorker struct {
+type GpuMinerDeviceWorkerContext struct {
+	context      *cl.Context
 	device       *cl.Device
 	kernel       *cl.Kernel
 	queue        *cl.CommandQueue
@@ -13,7 +16,7 @@ type GpuMinerDeviceWorker struct {
 	output_hash  *cl.MemObject
 }
 
-func (w *GpuMinerDeviceWorker) Retain() {
+func (w *GpuMinerDeviceWorkerContext) Retain() {
 	w.kernel.Retain()
 	w.queue.Retain()
 	w.input_stuff.Retain()
@@ -22,20 +25,14 @@ func (w *GpuMinerDeviceWorker) Retain() {
 	w.output_hash.Retain()
 }
 
-func (w *GpuMinerDeviceWorker) ReInit(stuff_buf []byte, target_buf []byte) {
+func (w *GpuMinerDeviceWorkerContext) ReInit(stuff_buf []byte, target_buf []byte) {
+	// set
 	w.queue.EnqueueWriteBufferByte(w.input_stuff, true, 0, stuff_buf, nil)
 	w.queue.EnqueueWriteBufferByte(w.input_target, true, 0, target_buf, nil)
-
-}
-
-func (mr *GpuMiner) ReInitWorkContext(stuff_buf []byte, target_buf []byte) {
-	for _, ctx := range mr.deviceworkers {
-		ctx.ReInit(stuff_buf, target_buf)
-	}
 }
 
 // chua
-func (mr *GpuMiner) createWorkContext(devidx int) *GpuMinerDeviceWorker {
+func (mr *GpuMiner) createWorkContext(devidx int) *GpuMinerDeviceWorkerContext {
 
 	// 运行创建执行单元
 	//input_target_buf := make([]byte, 32)
@@ -59,6 +56,7 @@ func (mr *GpuMiner) createWorkContext(devidx int) *GpuMinerDeviceWorker {
 	if ke1 != nil {
 		panic(ke1)
 	}
+	//fmt.Println("mr.program.CreateKernel SUCCESS")
 	//defer kernel.Release()
 
 	device := mr.devices[devidx]
@@ -68,7 +66,8 @@ func (mr *GpuMiner) createWorkContext(devidx int) *GpuMinerDeviceWorker {
 	}
 	//defer queue.Release()
 
-	return &GpuMinerDeviceWorker{
+	ctx := &GpuMinerDeviceWorkerContext{
+		mr.context,
 		device,
 		kernel,
 		queue,
@@ -77,5 +76,11 @@ func (mr *GpuMiner) createWorkContext(devidx int) *GpuMinerDeviceWorker {
 		output_nonce,
 		output_hash,
 	}
+
+	// 复用
+	ctx.Retain()
+
+	// 返回
+	return ctx
 
 }

@@ -5,7 +5,7 @@ typedef unsigned long uint64_t;
 
 
 #define SHA3_FINALIZED 0x80000000
-#define I64(x) x##ULL
+#define I64(x) x##UL
 #define le2me_64(x) (x)
 #define ROTL64(qword, n) ((qword) << (n) ^ ((qword) >> (64 - (n))))
 #define IS_ALIGNED_64(p) (0 == (7 & ((const char*)(p) - (const char*)0)))
@@ -40,7 +40,7 @@ typedef struct sha3_ctx
 
 
 // Keccak pi() transformation
-static void keccak_pi(uint64_t *A)
+static void keccak_pi(uint64_t A[])
 {
 	uint64_t A1;
 	A1 = A[1];
@@ -81,7 +81,7 @@ static void keccak_pi(uint64_t *A)
 	A[4 + (i)] ^= ~A0 & A1 \
 
 // Keccak chi() transformation
-static void keccak_chi(uint64_t *A)
+static void keccak_chi(uint64_t A[])
 {
 	uint64_t A0, A1;
 	CHI_STEP(0);
@@ -103,7 +103,7 @@ static void keccak_chi(uint64_t *A)
 
 
 // Keccak theta() transformation
-static void keccak_theta(uint64_t *A)
+static void keccak_theta(uint64_t A[])
 {
 	uint64_t D[5];
 	D[0] = ROTL64(XORED_A(1), 1) ^ XORED_A(4);
@@ -120,7 +120,7 @@ static void keccak_theta(uint64_t *A)
 
 
 
-static void rhash_sha3_permutation(uint64_t *state)
+static void rhash_sha3_permutation(uint64_t state[])
 {
 	int round;
 	for (round = 0; round < NumberOfRounds; round++)

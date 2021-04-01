@@ -25,10 +25,11 @@ const allfiles = [
 	"whirlpool.cl",
 	"x16rs.cl",
 	"x16rs_main.cl",
+	"x16rs_main_empty_test.cl",
 	];
 
 let gopkgfilecon = `
-package execute
+package worker
 // 输出所有 opencl 文件
 func getRenderCreateAllOpenclFiles() map[string]string {
 	files := map[string]string{}
@@ -51,7 +52,7 @@ gopkgfilecon += `
 `;
 
 // 写入文件
-fs.writeFileSync("./execute/pkgcls.go", gopkgfilecon)
+fs.writeFileSync("./worker/pkgcls.go", gopkgfilecon)
 
 
 

@@ -1,8 +1,10 @@
-package execute
+package worker
 
 import (
 	"fmt"
 	"github.com/xfong/go2opencl/cl"
+	"io/ioutil"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -28,33 +30,59 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 				fmt.Print(".")
 			}
 		}()
-		program, _ = mr.context.CreateProgramWithSource([]string{` #include "x16rs_main.cl" `})
-		bderr := program.BuildProgram(nil, "-I "+mr.openclPath) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
+		emptyFuncTest := ""
+		if mr.emptyFuncTest {
+			emptyFuncTest = `_empty_test` // 空函数快速编译测试
+		}
+		codeString := ` #include "x16rs_main` + emptyFuncTest + `.cl" `
+		codeString += fmt.Sprintf("\n#define updateforbuild %d", rand.Uint64()) // 避免某些平台编译缓存
+		program, _ = mr.context.CreateProgramWithSource([]string{codeString})
+		bderr := program.BuildProgram(mr.devices, "-I "+mr.openclPath) // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
 		if bderr != nil {
 			panic(bderr)
 		}
 		buildok = true // build 完成
 		fmt.Println("\nBuild complete get binaries...")
 		//fmt.Println("program.GetBinarySizes_2()")
-		sizes, _ := program.GetBinarySizes_2(1)
+		size := len(mr.devices)
+		sizes, _ := program.GetBinarySizes_2(size)
 		//fmt.Println(sizes)
-		//fmt.Println(sizes[0])
+		//fmt.Println("GetBinarySizes_2", sizes[0])
 		//fmt.Println("program.GetBinaries_2()")
-		bins, _ := program.GetBinaries_2([]int{sizes[0]})
-		//fmt.Println(bins[0])
+		bins, _ := program.GetBinaries_2(sizes)
+		//fmt.Println("bins[0].size", len(bins[0]))
 		f, e := os.OpenFile(binfilepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 		if e != nil {
 			panic(e)
 		}
 		//fmt.Println("f.Write(wbin) "+binfilepath, sizes[0])
-		f.Write(bins[0])
+		var berr error
+		_, berr = f.Write(bins[0])
+		if berr != nil {
+			panic(berr)
+		}
+		berr = f.Close()
+		if berr != nil {
+			panic(berr)
+		}
 
 	} else {
 		fmt.Printf("Load binary program file from \"%s\"\n", binfilepath)
-		file, _ := os.OpenFile(binfilepath, os.O_RDWR, 0777)
-		bin := make([]byte, binstat.Size())
+		file, _ := os.OpenFile(binfilepath, os.O_RDONLY, 0777)
+		bin := make([]byte, 0)
 		//fmt.Println("file.Read(bin) size", binstat.Size())
-		file.Read(bin)
+		var berr error
+		bin, berr = ioutil.ReadAll(file)
+		if berr != nil {
+			panic(berr)
+		}
+		if int64(len(bin)) != binstat.Size() {
+			panic("int64(len(bin)) != binstat.Size()")
+		}
+		berr = file.Close()
+		if berr != nil {
+			panic(berr)
+		}
 		//fmt.Println(bin)
 		// 仅仅支持同一个平台的同一种设备
 		bins := make([][]byte, len(mr.devices))
@@ -64,12 +92,14 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 			sizes[k] = int(binstat.Size())
 		}
 		fmt.Println("Create program with binary...")
-		var berr error
 		program, berr = mr.context.CreateProgramWithBinary_2(mr.devices, sizes, bins)
 		if berr != nil {
 			panic(berr)
 		}
-		program.BuildProgram(mr.devices, "")
+		err := program.BuildProgram(mr.devices, "")
+		if err != nil {
+			panic(berr)
+		}
 		//fmt.Println("context.CreateProgramWithBinary")
 	}
 	fmt.Println("GPU miner program create complete successfully.")

@@ -1,7 +1,6 @@
 #ifndef X16RX_MAIN_CL
 #define X16RX_MAIN_CL
 
-
 #include "sha3_256.cl"
 #include "x16rs.cl"
 
@@ -33,25 +32,76 @@ void hash_x16rs_choice_step(hash_t* stephash){
 
 }
 
+
+// x16rs 检查
+__kernel void check_x16rs_prehash(
+    __global unsigned char* input_stuff_89,
+    __global unsigned char* output_hash_32)
+{
+
+    // stuff
+    unsigned char base_stuff[89];
+    for(int i=0; i<89; i++){
+        base_stuff[i] = input_stuff_89[i];
+    }
+
+    // hash x16rs
+    hash_t hs0;
+    sha3_256_hash(base_stuff, 89, hs0.h1);
+
+    // return
+    for(int i=0; i<32; i++){
+        output_hash_32[i] = hs0.h1[i];
+    }
+
+}
+
+
+// x16rs 检查
+__kernel void check_x16rs_step(
+   const unsigned int   x16rs_repeat, // x16rs根据区块高度执行的次数
+    __global unsigned char* input_hash_32,
+    __global unsigned char* output_hash_32)
+{
+    hash_t hs0;
+
+    for(int i=0; i<32; i++){
+        hs0.h1[i] = input_hash_32[i];
+    }
+
+    // x16rs根据区块高度执行的次数
+    for(int xr=0; xr < x16rs_repeat; xr++){
+        hash_x16rs_choice_step(&hs0);
+    }
+
+    // return
+    for(int i=0; i<32; i++){
+        output_hash_32[i] = hs0.h1[i];
+    }
+}
+
+
+
 // x16rs hash miner 算法 V2
 __kernel void miner_do_hash_x16rs_v2(
    __global unsigned char* target_difficulty_hash_32,
    __global unsigned char* input_stuff_89,
    const unsigned int   x16rs_repeat, // x16rs根据区块高度执行的次数
    const unsigned int   nonce_start, // nonce开始值
+   const unsigned int   item_loop, // 单次执行循环次数，建议 20 ～ 100
    __global unsigned char* output_nonce_4,
    __global unsigned char* output_hash_32)
 {
 
 
-// miner check
-__local unsigned int global_barrier_success_nonce_value;
-global_barrier_success_nonce_value = 0;
+    // miner check
+    __local unsigned int global_barrier_success_nonce_value;
+    global_barrier_success_nonce_value = 0;
 
 
     // nonce值
     unsigned int global_id = get_global_id(0);
-    unsigned int nonce = nonce_start + global_id;
+    unsigned int nonce = nonce_start + (global_id * item_loop);
     unsigned char *nonce_ptr = &nonce;
 
     // stuff
@@ -60,41 +110,50 @@ global_barrier_success_nonce_value = 0;
         base_stuff[i] = input_stuff_89[i];
     }
 
-    base_stuff[79] = nonce_ptr[3];
-    base_stuff[80] = nonce_ptr[2];
-    base_stuff[81] = nonce_ptr[1];
-    base_stuff[82] = nonce_ptr[0];
-
-    // hash x16rs
+    // 哈希计算中间值
     hash_t hs0;
-    sha3_256_hash(base_stuff, 89, hs0.h1);
 
-    // x16rs根据区块高度执行的次数
-    for(int xr=0; xr < x16rs_repeat; xr++){
-        hash_x16rs_choice_step(&hs0);
-    }
-    // miner check
-    unsigned int success;
-    success = 0;
+    for(int k=0; k<item_loop; k++){
 
-    // 判断是否挖矿成功
-    for(int i=0; i<32; i++){
-        unsigned char a1 = hs0.h1[i];
-        unsigned char a2 = target_difficulty_hash_32[i];
-        if( a1 > a2 ){ // 失败
-            break;
-        }else if( a1 < a2 ){ // 成功
-            success = 1;
-            break;
+        nonce = nonce + k;
+
+        // 替换 nonce
+        base_stuff[79] = nonce_ptr[3];
+        base_stuff[80] = nonce_ptr[2];
+        base_stuff[81] = nonce_ptr[1];
+        base_stuff[82] = nonce_ptr[0];
+
+        // hash x16rs
+        sha3_256_hash(base_stuff, 89, hs0.h1);
+
+        // x16rs根据区块高度执行的次数
+        for(int xr=0; xr < x16rs_repeat; xr++){
+            hash_x16rs_choice_step(&hs0);
         }
-    }
+        // miner check
+        unsigned int success;
+        success = 0;
 
-    // 全局线程同步
-    barrier(CLK_GLOBAL_MEM_FENCE);
+        // 判断是否挖矿成功
+        for(int i=0; i<32; i++){
+            unsigned char a1 = hs0.h1[i];
+            unsigned char a2 = target_difficulty_hash_32[i];
+            if( a1 > a2 ){ // 失败
+                break;
+            }else if( a1 < a2 ){ // 成功
+                success = 1;
+                break;
+            }
+        }
 
-    // 挖矿成功，写入返回值数据
-    if(success == 1){
-        global_barrier_success_nonce_value = nonce; // 标记
+        // 挖矿成功，写入返回值数据
+        if(success == 1){
+            global_barrier_success_nonce_value = nonce; // 标记
+            break; // 挖矿成功 弹出
+        }
+
+        // 继续下一轮挖矿
+
     }
 
     // 全局线程同步

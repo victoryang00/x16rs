@@ -58,25 +58,10 @@ func (mr *GpuMiner) Init() error {
 		if _, err := os.Stat(tardir); err != nil {
 			fmt.Println("Create opencl dir and render files...")
 			files := getRenderCreateAllOpenclFiles() // 输出所有文件
-			os.MkdirAll(tardir, os.ModeDir)
-			for name, content := range files {
-				fmt.Print(name + " ")
-				f, e := os.OpenFile(tardir+name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
-				if e != nil {
-					fmt.Println(e)
-					os.Exit(0)
-				}
-				//fmt.Println(e)
-				_, e = f.Write([]byte(content))
-				if e != nil {
-					fmt.Println(e)
-					os.Exit(0)
-				}
-				e = f.Close()
-				if e != nil {
-					fmt.Println(e)
-					os.Exit(0)
-				}
+			err := writeClFiles(tardir, files)
+			if err != nil {
+				fmt.Println(e)
+				os.Exit(0) // 致命错误
 			}
 			fmt.Println("all file ok.")
 		} else {
@@ -96,5 +81,32 @@ func (mr *GpuMiner) Init() error {
 	}
 
 	// 初始化成功
+	return nil
+}
+
+// 写入 opencl 文件
+func writeClFiles(tardir string, files map[string]string) error {
+
+	e := os.MkdirAll(tardir, os.ModePerm)
+	if e != nil {
+		return e
+	}
+	for name, content := range files {
+		fmt.Print(name + " ")
+		f, e := os.OpenFile(tardir+name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
+		if e != nil {
+			return e
+		}
+		//fmt.Println(e)
+		_, e = f.Write([]byte(content))
+		if e != nil {
+			return e
+		}
+		e = f.Close()
+		if e != nil {
+			return e
+		}
+	}
+	// 成功
 	return nil
 }

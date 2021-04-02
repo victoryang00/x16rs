@@ -16,7 +16,7 @@ func (c *CPUMining) Init() error {
 }
 
 // 关闭算力统计
-func (c *CPUMining) CloseUploadPower() {
+func (c *CPUMining) CloseUploadHashrate() {
 
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 // 执行一次挖矿
-func (c *CPUMining) DoMining(blockHeight uint64, uploadpower bool, stopmark *byte, tarhashvalue []byte, blockheadmeta_list [][]byte) (bool, int, []byte, []byte) {
+func (c *CPUMining) DoMining(blockHeight uint64, reporthashrate bool, stopmark *byte, tarhashvalue []byte, blockheadmeta_list [][]byte) (bool, int, []byte, []byte) {
 
 	startNonce := uint32(0)
 	endNonce := uint32(4294967295)
@@ -39,7 +39,7 @@ func (c *CPUMining) DoMining(blockHeight uint64, uploadpower bool, stopmark *byt
 			}()
 			blockheadmeta := blockheadmeta_list[i]
 			// 开始挖款
-			_, success, nonce, endhash := x16rs.MinerNonceHashX16RS(blockHeight, uploadpower, stopmark, startNonce, endNonce, tarhashvalue, blockheadmeta)
+			_, success, nonce, endhash := x16rs.MinerNonceHashX16RS(blockHeight, reporthashrate, stopmark, startNonce, endNonce, tarhashvalue, blockheadmeta)
 			checkLock.Lock() // 串行锁
 			if success && atomic.CompareAndSwapUint32(successMiningMark, 0, 1) {
 				*nextstop = 1 // 停止所有挖矿
@@ -47,7 +47,7 @@ func (c *CPUMining) DoMining(blockHeight uint64, uploadpower bool, stopmark *byt
 				rBlkhmi = i
 				rNonce = nonce
 				rPowerHash = endhash
-			} else if uploadpower {
+			} else if reporthashrate {
 				// 比较算力大小
 				if rPowerHash == nil || difficulty.CheckHashDifficultySatisfy(endhash, rPowerHash) {
 					rBlkhmi = i

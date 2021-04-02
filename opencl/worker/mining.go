@@ -12,7 +12,7 @@ import (
 )
 
 // 关闭算力统计
-func (g *GpuMiner) CloseUploadPower() {
+func (g *GpuMiner) CloseUploadHashrate() {
 }
 
 // 开始采矿
@@ -21,7 +21,7 @@ func (g *GpuMiner) GetSuperveneWide() int {
 }
 
 // 开始采矿
-func (g *GpuMiner) DoMining(blockHeight uint64, uploadpower bool, stopmark *byte, tarhashvalue []byte, blockheadmeta [][]byte) (bool, int, []byte, []byte) {
+func (g *GpuMiner) DoMining(blockHeight uint64, reporthashrate bool, stopmark *byte, tarhashvalue []byte, blockheadmeta [][]byte) (bool, int, []byte, []byte) {
 
 	deviceNum := len(g.devices)
 	//fmt.Print(overallstep)

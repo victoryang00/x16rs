@@ -315,11 +315,11 @@ func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
 	//}
 
 	// 循环计算出难度目标
-	for dn := uint32(1); dn < 2000000; dn += 3277 {
+	for dn := uint32(1); dn < 16770000; dn += 3277 * 128 {
 		for c := 0; c <= 32*256; c++ {
 			tarhx := getdiffhashtarget(c)
 			if CheckDiamondDifficulty(dn, tarhx) {
-				fmt.Println(dn, tarhx)
+				fmt.Println(dn, hex.EncodeToString(tarhx))
 				break
 			}
 		}

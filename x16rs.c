@@ -209,7 +209,7 @@ void x16r_hash(const char* input, char* output)
 }
 
 // input length must more than 32
-void x16rs_hash(const int loopnum, const char* input, char* output)
+void x16rs_hash_old(const int loopnum, const char* input, char* output)
 {
     int insize = 32;
 
@@ -449,7 +449,7 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 
 // input length must more than 32
 static const size_t x16rs_hash_insize = 32;
-void x16rs_hash__development(const int loopnum, const char* input_hash, char* output_hash)
+void x16rs_hash(const int loopnum, const char* input_hash, char* output_hash)
 {
     // uint32_t input[64/4];
     uint32_t inputoutput[64/4];
@@ -672,7 +672,7 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             sha3_256((char*)basestuff, basestufftargetsize, (char*)sha3res);
             // print_byte_list("2: ", (void*)sha3res, 32, 0);
             // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            x16rs_hash__development(loopnum, (char*)sha3res, (char*)hashnew);
+            x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
             // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
             // print_byte_list("4: ", (void*)diamond, 16, 0);
@@ -818,7 +818,7 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
             printf("\n");
         */
         // x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
-        x16rs_hash__development(loopnum, ((void*)sha3res), ((void*)hashnew));
+        x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
         /*
             printf("  hash: ");
             uint8_t i;

@@ -52,12 +52,12 @@ func HashX16RS_Old(loopnum int, data []byte) []byte {
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
-func HashX16RS_Optimize(loopnum int, data []byte) []byte {
+func HashX16RS(loopnum int, data []byte) []byte {
 	var res [32]C.char
 	var lpnm = C.int(loopnum)
 	var cstr = C.CString(string(data))
 	defer C.free(unsafe.Pointer(cstr))
-	C.x16rs_hash__development(lpnm, cstr, &res[0])
+	C.x16rs_hash(lpnm, cstr, &res[0])
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
@@ -72,7 +72,7 @@ func HashRepeatForBlockHeight(blockHeight uint64) int {
 func CalculateBlockHash(blockHeight uint64, stuff []byte) []byte {
 	repeat := HashRepeatForBlockHeight(blockHeight)
 	hashbase := sha3.Sum256(stuff)
-	return HashX16RS_Optimize(repeat, hashbase[:])
+	return HashX16RS(repeat, hashbase[:])
 }
 
 // stopkind:  0.自然循环完毕后停止   1.外部信号强制停止   2.挖出成功停止
@@ -134,7 +134,7 @@ func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byt
 	//fmt.Println(stuff.Bytes())
 	ssshash := sha3.Sum256(stuff.Bytes())
 	//fmt.Println(ssshash)
-	reshash := HashX16RS_Optimize(repeat, ssshash[:])
+	reshash := HashX16RS(repeat, ssshash[:])
 	//fmt.Println(reshash)
 	diamond_str := DiamondHash(reshash)
 	//fmt.Println(diamond_str)

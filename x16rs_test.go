@@ -59,15 +59,15 @@ func TestX16RS(t *testing.T) {
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")
 	hash, _ := hex.DecodeString("57cef097f9a7cc0c45bcac6325b5b6e58199c8197763734cac6664e8d2b8e63e")
 	for i := 0; i < 1; i++ {
-		res1 := HashX16RS_Optimize(loopnum, data)
+		res1 := HashX16RS(loopnum, data)
 		fmt.Println(hex.EncodeToString(res1))
-		res2 := HashX16RS_Optimize(loopnum, data)
+		res2 := HashX16RS(loopnum, data)
 		fmt.Println(hex.EncodeToString(res2))
 		//time.Sleep(time.Duration(100) * time.Millisecond)
 	}
-	res1 := HashX16RS_Optimize(loopnum, data)
+	res1 := HashX16RS(loopnum, data)
 	fmt.Println(hex.EncodeToString(res1))
-	res2 := HashX16RS_Optimize(loopnum, data)
+	res2 := HashX16RS(loopnum, data)
 	fmt.Println(hex.EncodeToString(res2))
 	//fmt.Println(data)
 	//fmt.Println(hash)
@@ -89,8 +89,8 @@ func TestX16RS_LOOP(t *testing.T) {
 	for i := 0; i < 10000*450; i++ { // 0000*450
 		//fmt.Println(token)
 		data1[4] = uint8(i % 255)
-		HashX16RS_Optimize(1, data1)
-		HashX16RS_Optimize(1, data1)
+		HashX16RS(1, data1)
+		HashX16RS(1, data1)
 		//res := data
 		//if bytes.Compare(res1, res2) != 0 {
 		//	t.Error("hash1", hex.EncodeToString(res1), "hash2", hex.EncodeToString(res2))
@@ -150,11 +150,11 @@ func TestSha3_256(t *testing.T) {
 
 func TestX16RS_num(t *testing.T) {
 	data, _ := hex.DecodeString("f3bfada6cf5bb8c898fe81e37195287520b1ee08d97672b821bbe6f1ba4492ce")
-	hash1 := HashX16RS_Optimize(1, data)
+	hash1 := HashX16RS(1, data)
 	fmt.Println(hash1)
-	hash2 := HashX16RS_Optimize(2, data)
+	hash2 := HashX16RS(2, data)
 	fmt.Println(hash2)
-	hash3 := HashX16RS_Optimize(3, data)
+	hash3 := HashX16RS(3, data)
 	fmt.Println(hash3)
 
 }
@@ -206,7 +206,7 @@ func Test_print_testX16RS(t *testing.T) {
 
 	data := bytes.Repeat([]byte{12, 52, 5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1)
 	fmt.Println(data)
-	resultBytes := HashX16RS_Optimize(1, data)
+	resultBytes := HashX16RS(1, data)
 	fmt.Println(resultBytes)
 
 }

@@ -125,7 +125,7 @@ func check_step_by_input_hash(x16rsrepeat int, input_hash []byte) []byte {
 	//
 	fmt.Println("check_step_by_input_hash result_hash_1:", hex.EncodeToString(result_hash))
 
-	result_hash_2 := x16rs.HashX16RS_Optimize(x16rsrepeat, input_hash)
+	result_hash_2 := x16rs.HashX16RS(x16rsrepeat, input_hash)
 
 	fmt.Println("check_step_by_input_hash result_hash_2:", hex.EncodeToString(result_hash_2))
 

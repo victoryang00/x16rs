@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/hacash/core/fields"
+	"github.com/hacash/core/account"
 	"github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
 	"log"
@@ -32,13 +32,13 @@ func TestNewDiamond(t *testing.T) {
 	prevhash, _ := hex.DecodeString("000000000ae89f8a1c93fbffe9baad198fda287f13e39c37294eb7a7b617bd70")
 	extmsg, _ := hex.DecodeString("7d8367f6e46e9ffee311b9f3a38519d674b52407fd0aa287442715fe2f0c4db0")
 	nonce, _ := hex.DecodeString("00000000c9babb01")
-	addr, _ := fields.CheckReadableAddress("1KcXiRhMgGcvgxZGLBkLvogKLNKNXfKjEr")
+	addr, _ := account.CheckReadableAddress("1KcXiRhMgGcvgxZGLBkLvogKLNKNXfKjEr")
 
-	dmdhash, dmastr := Diamond(20001, prevhash, nonce, *addr, extmsg)
+	dmdhash, dmastr := Diamond(20001, prevhash, nonce, addr, extmsg)
 
 	fmt.Println(dmdhash, dmastr)
 
-	fmt.Println(Diamond(20001, prevhash, nonce, *addr, []byte{}))
+	fmt.Println(Diamond(20001, prevhash, nonce, addr, []byte{}))
 
 }
 
@@ -165,7 +165,7 @@ func Test_diamond_miner_do(t *testing.T) {
 	//blockheadmeta := blkbts[0:89]
 	blockhash, _ := hex.DecodeString("000000077790ba2fcdeaef4a4299d9b667135bac577ce204dee8388f1b97f7e6")
 	//address, _ := hex.DecodeString("000c1aaa4e6007cc58cfb932052ac0ec25ca356183") // 1271438866CSDpJUqrnchoJAiGGBFSQhjd
-	address, _ := fields.CheckReadableAddress("1MzNY1oA3kfgYi75zquj3SRUPYztzXHzK9")
+	address, _ := account.CheckReadableAddress("1MzNY1oA3kfgYi75zquj3SRUPYztzXHzK9")
 
 	//fmt.Println(blockheadmeta)
 	//fmt.Println(len(targetdiffhash))
@@ -178,11 +178,11 @@ func Test_diamond_miner_do(t *testing.T) {
 		//*stopmark = 1
 	}()
 
-	nonce, diamond := MinerHacashDiamond(1, 4200008888, 1, stopmark, blockhash, *address, []byte{})
+	nonce, diamond := MinerHacashDiamond(1, 4200008888, 1, stopmark, blockhash, address, []byte{})
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
 	// 验证钻石算法是否正确
-	_, diamond_str := Diamond(1, blockhash, nonce, *address, []byte{})
+	_, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
 	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {

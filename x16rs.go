@@ -124,10 +124,10 @@ func HashRepeatForDiamondNumber(diamondNumber uint32) int {
 	return repeat
 }
 
-func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byte, extendMessage []byte) ([]byte, string) {
+func Diamond(diamondNumber uint32, prevblockhash []byte, nonce []byte, address []byte, extendMessage []byte) ([]byte, []byte, string) {
 	repeat := HashRepeatForDiamondNumber(diamondNumber)
 	stuff := new(bytes.Buffer)
-	stuff.Write(blockhash)
+	stuff.Write(prevblockhash)
 	stuff.Write(nonce)
 	stuff.Write(address)
 	stuff.Write(extendMessage)
@@ -138,7 +138,7 @@ func Diamond(diamondNumber uint32, blockhash []byte, nonce []byte, address []byt
 	//fmt.Println(reshash)
 	diamond_str := DiamondHash(reshash)
 	//fmt.Println(diamond_str)
-	return reshash, diamond_str
+	return ssshash[:], reshash, diamond_str
 }
 
 // 判断是否为钻石
@@ -176,8 +176,60 @@ func IsDiamondValueString(diamondStr string) bool {
 }
 
 // 检查钻石难度值，是否满足要求
-func CheckDiamondDifficulty(dNumber uint32, dBytes []byte) bool {
-	// 每 3277 颗钻石调整一下难度 3277 = 16^6 / 256 / 20
+/*
+ 0 128 2.00
+ 1 132 1.94
+ 2 136 1.88
+ 3 140 1.83
+ 4 144 1.78
+ 5 148 1.73
+ 6 152 1.68
+ 7 156 1.64
+ 8 160 1.60
+ 9 164 1.56
+10 168 1.52
+11 172 1.49
+12 176 1.45
+13 180 1.42
+14 184 1.39
+15 188 1.36
+16 192 1.33
+17 196 1.31
+18 200 1.28
+19 204 1.25
+20 208 1.23
+21 212 1.21
+22 216 1.19
+23 220 1.16
+24 224 1.14
+25 228 1.12
+26 232 1.10
+27 236 1.08
+28 240 1.07
+29 244 1.05
+30 248 1.03
+31 252 1.02
+
+[128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252]
+*/
+func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
+	var DiaMooreDiffBits = []byte{ // 难度要求
+		128, 132, 136, 140, 144, 148, 152, 156, // 步进+4
+		160, 164, 168, 172, 176, 180, 184, 188,
+		192, 196, 200, 204, 208, 212, 216, 220,
+		224, 228, 232, 236, 240, 244, 248, 252,
+	}
+	// 借鉴摩尔定律，每 42000 颗钻石约2年挖掘难度上升一倍，难度增量趋于减少，64年减至零
+	shnum := dNumber / 42000
+	if shnum > 32 {
+		shnum = 32 // 最多64年
+	}
+	for i := 0; i < int(shnum); i++ {
+		if sha3hash[i] >= DiaMooreDiffBits[i] {
+			return false // 检查失败，难度值不满足要求
+		}
+	}
+	// 每 3277 颗钻石约56天调整一下难度 3277 = 16^6 / 256 / 20
 	// 难度最高时hash前20位为0，而不是32位都为0。
 	diffnum := dNumber / 3277
 	for _, bt := range dBytes {
@@ -246,7 +298,7 @@ func main() {
 	nonce, diamond := MinerHacashDiamond(1, 4200009999, 1, stopmark, blockhash, address, []byte{})
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 	// 验证钻石算法是否正确
-	_, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
+	_, _, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
 }

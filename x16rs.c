@@ -705,6 +705,29 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             // 挖出钻石
             if( success == 1 ) {
                 // 检查难度
+                // 借鉴摩尔定律，每 42000 颗钻石约2年挖掘难度上升一倍，难度增量趋于减少，64年减至零
+                uint8_t diadiffbits[32] = {
+                    128,132,136,140,144,148,152,156, // 步进+4
+                	160,164,168,172,176,180,184,188,
+                	192,196,200,204,208,212,216,220,
+                	224,228,232,236,240,244,248,252
+                };
+                int shnum = diamondnumber / 42000;
+                if( shnum > 32 ){
+                    shnum = 32; // 最多64年
+                }
+                uint8_t diffyes = 1;
+                int i;
+                for( i=0; i<shnum; i++ ){
+                    if( sha3res[i] >= diadiffbits[i] ){
+                        diffyes = 0; // 检查失败，难度值不满足要求
+                        break;
+                    }
+                }
+                // 难度不满足要求
+                if( diffyes != 1 ) {
+                    continue; // 下一轮挖掘
+                }
                 // 每 3277 颗钻石调整一下难度 3277 = 16^6 / 256 / 20
                 // 难度最高时hash前20位为0，而不是32位都为0。
                 uint8_t diffok = 0;
@@ -729,20 +752,21 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                         diffnum -= 255;
                     }
                 }
-                // 难度满足要求
-                if( diffok == 1 ) {
-                    uint32_t nonce[2] = {0, 0};
-                    nonce[0] = noncenum1;
-                    nonce[1] = noncenum2;
-                    memcpy( (char*)nonce8, (char*)nonce, 8);
-                    memcpy( (char*)diamond16, (char*)diamond, 16);
-                    // printf("\n%s\n", diamond); fflush(stdout);
-                    return; // 拷贝值，返回成功
+                // 难度不满足要求
+                if( diffok != 1 ) {
+                    // 下一轮挖掘
+                    continue;
                 }
 
-                // 下一轮挖掘
+                // 难度检查通过
+                uint32_t nonce[2] = {0, 0};
+                nonce[0] = noncenum1;
+                nonce[1] = noncenum2;
+                memcpy( (char*)nonce8, (char*)nonce, 8);
+                memcpy( (char*)diamond16, (char*)diamond, 16);
+                // printf("\n%s\n", diamond); fflush(stdout);
+                return; // 拷贝值，返回成功
             }
-
 
         }
 

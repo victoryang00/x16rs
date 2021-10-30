@@ -22,7 +22,7 @@ func TestNewDiamondDiff(t *testing.T) {
 	prevhash, _ := hex.DecodeString("f9ff9f3a38519d674b59f3a385baad198fda287f13e39c37294eb7a7b617bd70")
 	dia := DiamondHash(prevhash)
 
-	diffok := CheckDiamondDifficulty(22806, prevhash)
+	diffok := CheckDiamondDifficulty(22806, prevhash, prevhash)
 
 	fmt.Println(dia, diffok)
 
@@ -34,7 +34,7 @@ func TestNewDiamond(t *testing.T) {
 	nonce, _ := hex.DecodeString("00000000c9babb01")
 	addr, _ := account.CheckReadableAddress("1KcXiRhMgGcvgxZGLBkLvogKLNKNXfKjEr")
 
-	dmdhash, dmastr := Diamond(20001, prevhash, nonce, addr, extmsg)
+	_, dmdhash, dmastr := Diamond(20001, prevhash, nonce, addr, extmsg)
 
 	fmt.Println(dmdhash, dmastr)
 
@@ -182,7 +182,7 @@ func Test_diamond_miner_do(t *testing.T) {
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
 	// 验证钻石算法是否正确
-	_, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
+	_, _, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
 	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {
@@ -296,10 +296,36 @@ func Test_OpenCL(t *testing.T) {
 
 }
 
-func Test_OpenCL_2(t *testing.T) {
+func Test_Diamond_diffcultskdjh(t *testing.T) {
 
-	// source
-	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
+	bts := make([]byte, 32)
+	counts := []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	var cutf func(int)
+	cutf = func(i int) {
+		if i >= 32 {
+			return
+		}
+		if bts[i] < 128 {
+			counts[i]++
+			// 地柜
+			cutf(i + 1)
+		}
+	}
+	var ttn = uint64(100000000)
+	for i := uint64(0); i < ttn; i++ {
+		rand.Read(bts)
+		//fmt.Println(hex.EncodeToString(bts), bts)
+		cutf(0)
+	}
+
+	// 算力难度每 42000 枚钻石提升一倍
+
+	// 打印概率
+	fmt.Println("0 0.00 0 100000000 100.00000000%")
+	for i, v := range counts {
+		//fmt.Printf("%d %f %.10f%%\n", i+1, float64(i+1)*2.36, float64(v)/float64(ttn)*100)
+		fmt.Printf("%d %.2f %d %d %.10f%%\n", i+1, float64(i+1)*2, 42000*(i+1), v, float64(v)/float64(ttn)*100)
+	}
 
 }
 
@@ -314,12 +340,22 @@ func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
 	//	fmt.Println(c, tarhx)
 	//}
 
+	var nnn uint8 = 128
+	var dts = make([]byte, 32)
+	var tardts = make([]byte, 32)
+	for i := uint8(0); i < 32; i++ {
+		dts[i] = nnn + (i * 4)
+		tardts[i] = dts[i] - 1
+		fmt.Printf("%d %d %.2f\n", i, dts[i], float64(256)/float64(dts[i]))
+	}
+	fmt.Println(dts)
+
 	// 循环计算出难度目标
-	for dn := uint32(1); dn < 16770000; dn += 3277 * 128 {
+	for dn := uint32(1); dn < 16770000; dn += 3277 * 12 {
 		for c := 0; c <= 32*256; c++ {
 			tarhx := getdiffhashtarget(c)
-			if CheckDiamondDifficulty(dn, tarhx) {
-				fmt.Println(dn, hex.EncodeToString(tarhx))
+			if CheckDiamondDifficulty(dn, tardts, tarhx) {
+				fmt.Println(dn, hex.EncodeToString(tarhx), tarhx)
 				break
 			}
 		}

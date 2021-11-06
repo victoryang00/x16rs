@@ -13,6 +13,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"golang.org/x/crypto/sha3"
+	"strconv"
 	"unsafe"
 )
 
@@ -173,6 +174,18 @@ func IsDiamondValueString(diamondStr string) bool {
 	}
 	// 检查成功
 	return true
+}
+
+// 判断是否为合法的钻石名称或编号
+func IsDiamondNameOrNumber(diamondStr string) bool {
+
+	// 编号
+	if dianum, e := strconv.Atoi(diamondStr); e == nil && dianum > 0 && dianum < 16777216 {
+		return true
+	}
+
+	// 字面值
+	return IsDiamondValueString(diamondStr)
 }
 
 // 检查钻石难度值，是否满足要求

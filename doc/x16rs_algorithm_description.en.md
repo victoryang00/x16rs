@@ -28,5 +28,5 @@ We provide a basic GPU computing code for the OpenCL platform, which is modified
 
 The relevant code has been submitted to Github for open source:
 
--[X16RS OpenCL version source code](https://github.com/hacash/x16rs/tree/master/opencl)
--[GPU_Miner Instance](https://github.com/hacash/x16rs/blob/master/opencl/worker/gpuminer.go)
+- [X16RS OpenCL version source code](https://github.com/hacash/x16rs/tree/master/opencl)
+- [GPU_Miner Instance](https://github.com/hacash/x16rs/blob/master/opencl/worker/gpuminer.go)

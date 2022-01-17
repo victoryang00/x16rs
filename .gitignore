@@ -24,4 +24,7 @@ build/
 
 pkgcls.go
 
+*.a
+*.o
+
 # main/

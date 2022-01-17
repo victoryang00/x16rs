@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#pragma GCC diagnostic ignored "-Wpointer-sign"
+
 void print_byte_list(char* name, void *data, int len, int wide);
 
 #include "sha3/sph_blake.h"

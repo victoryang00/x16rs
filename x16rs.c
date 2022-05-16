@@ -29,30 +29,29 @@ void print_byte_list(char* name, void *data, int len, int wide);
 
 void print_byte_list(char* name, void *data, int len, int wide)
 {
-    if(len > 0){
+    if (len > 0) {
         int i;
         printf("%s: %d", name, ((uint8_t*)data)[0]);
-        for(i=1; i<len; i++){
-            if(wide>0 && i%wide==0) printf("\n");
+        for(i = 1; i < len; i++){
+            if (wide > 0 && i % wide == 0)
+				printf("\n");
             printf(",%d", ((uint8_t*)data)[i]);
         }
     }else{
         printf("%s", name);
     }
+
     printf("\n");
     fflush(stdout);
 }
 
 void sha3_256(const char *input, const int in_size, char *output)
 {
-
     sha3_ctx ctx;
     rhash_sha3_256_init(&ctx);
     rhash_sha3_update(&ctx, input, in_size);
     rhash_sha3_final(&ctx, output);
-
 }
-
 
 enum Algo {
     BLAKE = 0,
@@ -78,6 +77,7 @@ static void getAlgoString(const uint8_t* prevblock, char *output)
 {
     char *sptr = output;
     int j;
+
     for (j = 0; j < HASH_FUNC_COUNT; j++) {
         char b = (15 - j) >> 1; // 16 ascii hex chars, reversed
         uint8_t algoDigit = (j & 1) ? prevblock[b] & 0xF : prevblock[b] >> 4;
@@ -92,7 +92,7 @@ static void getAlgoString(const uint8_t* prevblock, char *output)
 
 void x16r_hash(const char* input, char* output)
 {
-    uint32_t hash[64/4];
+    uint32_t hash[64 / 4];
     char hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
 
     sph_blake512_context     ctx_blake;
@@ -246,12 +246,7 @@ void x16rs_hash_old(const int loopnum, const char* input, char* output)
 // input length must more than 32
 void x16rs_hash_sz(const char* input, char* output, int insize)
 {
-    //    printf("%s\n", input);
-    // print_byte_list("x16rs_hash_sz input", (void*)input, 32, 0);
-
     uint32_t hash[64/4];
-
-    // char hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
 
     sph_blake512_context     ctx_blake;
     sph_bmw512_context       ctx_bmw;
@@ -281,10 +276,6 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
     for(i = 0; i < 1; i++) {
 
         uint8_t algo = hash[7] % 16;
-
-        // print_byte_list("x16rs_hash_sz hash", (void*)hash, 4, 0);
-        // print_byte_list("x16rs_hash_sz hash[7]", (void*)&hash[7], 4, 0);
-        // print_byte_list("x16rs_hash_sz algo", (void*)&algo, 1, 0);
 
         switch (algo) {
             case BLAKE:
@@ -433,14 +424,9 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
             break;
         }
 
-        // in = (void*) hash;
         memset(in, 0, 32);
         memcpy((void*)in, hash, 32);
     }
-
-    // memcpy(output, hash, 32);
-
-    // print_byte_list("x16rs_hash_sz output", (void*)output, 32, 0);
 
     uint8_t results[32];
     memset(results, 0, 32); // 初始化
@@ -453,7 +439,6 @@ void x16rs_hash_sz(const char* input, char* output, int insize)
 static const size_t x16rs_hash_insize = 32;
 void x16rs_hash(const int loopnum, const char* input_hash, char* output_hash)
 {
-    // uint32_t input[64/4];
     uint32_t inputoutput[64/4];
 
     uint32_t *input_hash_ptr32 = (uint32_t *) input_hash;
@@ -465,18 +450,6 @@ void x16rs_hash(const int loopnum, const char* input_hash, char* output_hash)
     inputoutput[5] = input_hash_ptr32[5];
     inputoutput[6] = input_hash_ptr32[6];
     inputoutput[7] = input_hash_ptr32[7];
-
-    // memcpy((void*)inputoutput, input_hash, 32); // first
-
-    // uint32_t hash[64/4];
-    // uint32_t *hash = (uint32_t*) input;
-    // uint8_t algo = hash[7] % 16;
-    // uint32_t algo = ( // 大端模式
-    //     ucharn[28]*256*256*256+
-    //     ucharn[29]*256*256 +
-    //     ucharn[30]*256 +
-    //     ucharn[31] ) % 16;
-
 
     sph_blake512_context     ctx_blake;
     sph_bmw512_context       ctx_bmw;
@@ -585,9 +558,6 @@ void x16rs_hash(const int loopnum, const char* input_hash, char* output_hash)
 
     }
 
-
-    // memcpy((void*)output_hash, output, 32); // first
-
     uint32_t *output_hash_ptr32 = (uint32_t *) output_hash;
     output_hash_ptr32[0] = inputoutput[0];
     output_hash_ptr32[1] = inputoutput[1];
@@ -597,10 +567,7 @@ void x16rs_hash(const int loopnum, const char* input_hash, char* output_hash)
     output_hash_ptr32[5] = inputoutput[5];
     output_hash_ptr32[6] = inputoutput[6];
     output_hash_ptr32[7] = inputoutput[7];
-
 }
-
-
 
 // input length must be 32
 static const uint8_t diamond_hash_base_stuff[17] = "0WTYUIAHXVMEKBSZN";
@@ -617,7 +584,6 @@ void diamond_hash(const char* hash32, char* output16)
         }
     }
 }
-
 
 // input length must be 32
 void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int diamondnumber, const char* stop_mark1, const char* input32, const char* addr21, const char* extmsg32, char* nonce8, char* diamond16)
@@ -669,24 +635,11 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
 
                 return; // 返回空
             }
-            // print_byte_list("1: ", (void*)basestuff, 61, 0);
             // 哈希计算
             sha3_256((char*)basestuff, basestufftargetsize, (char*)sha3res);
-            // print_byte_list("2: ", (void*)sha3res, 32, 0);
-            // x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
             x16rs_hash(loopnum, (char*)sha3res, (char*)hashnew);
-            // print_byte_list("3: ", (void*)hashnew, 32, 0);
             diamond_hash((char*)hashnew, (char*)diamond);
-            // print_byte_list("4: ", (void*)diamond, 16, 0);
-            /*
-            printf("hash: ");
-            uint8_t *input32p = (uint8_t*)hashnew;
-            int j;
-            for(j=0; j<32; j++){
-                printf("%u,", input32p[j]);
-            }
-            printf("\n");
-            */
+
             // 判断结果是否为钻石
             uint8_t success = 1;
             int k;
@@ -780,9 +733,6 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
 
 }
 
-
-
-
 // 挖矿算法
 void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_mark1, const uint32_t hsstart, const uint32_t hsend, const char* target_difficulty_hash32, const char* input_stuff89, char* stopkind1, char* success1, char* nonce4, char* reshash32)
 {
@@ -830,29 +780,11 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
             }
             return;
         }
+
         // 重置nonce
         stuffnew_uint32[20] = noncenum;
-        // memcpy(&stuffnew[79], &noncenum, 4);
-        // 计算 sha3
         sha3_256(stuffnew, 89, sha3res);
-        /*
-            printf("  hash: ");
-            uint8_t i;
-            for(i=0; i<32; i++){
-                printf("%u,", sha3res[i]);
-            }
-            printf("\n");
-        */
-        // x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
         x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
-        /*
-            printf("  hash: ");
-            uint8_t i;
-            for(i=0; i<32; i++){
-                printf("%u,", hashnew[i]);
-            }
-            printf("\n");
-        */
 
         if(retmaxhash == 1){
             ispowerok = 0;
@@ -889,14 +821,6 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
         }
         // 结果判断
         if(iscalcok == 1) {
-        /*
-            printf("finish hash: ");
-            uint8_t i;
-            for(i=0; i<32; i++){
-                printf("%u,", hashnew[i]);
-            }
-            printf("\n");
-        */
             // 返回 copy to out
             success1[0] = 1; // 成功的标记
             stopkind1[0] = 2; // 非强制停止，挖出成功后停止
@@ -923,31 +847,15 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
         memcpy(reshash32, &hashnew, 32);
     }
     return;
-
 }
 
-
-
-
-
-
-
-
-
 ///////////////////// TEST /////////////////////
-
-
-
 void test_print_x16rs(const char* input, char* output32x16)
 {
     int insize = 32;
     int size = insize;
     int i = 0;
-    //    printf("%s\n", input);
-
     uint32_t hash[64/4];
-
-    // char hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
 
     sph_blake512_context     ctx_blake;
     sph_bmw512_context       ctx_bmw;
@@ -968,8 +876,6 @@ void test_print_x16rs(const char* input, char* output32x16)
 
     void *in = (void*) input;
     uint8_t output[32];
-    // memcpy((void*)hash, input, 32); // first
-
     
     sph_blake512_init(&ctx_blake);
     sph_blake512(&ctx_blake, in, size);
@@ -977,14 +883,11 @@ void test_print_x16rs(const char* input, char* output32x16)
     in = (void*) hash;
     memcpy(output32x16 + 32*0, (void*)hash, 32);
     
-    
     sph_bmw512_init(&ctx_bmw);
     sph_bmw512(&ctx_bmw, in, size);
     sph_bmw512_close(&ctx_bmw, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*1, (void*)hash, 32);
-    
-
     
     sph_groestl512_init(&ctx_groestl);
     sph_groestl512(&ctx_groestl, in, size);
@@ -992,24 +895,17 @@ void test_print_x16rs(const char* input, char* output32x16)
     in = (void*) hash;
     memcpy(output32x16 + 32*2, (void*)hash, 32);
     
-    
-    
     sph_skein512_init(&ctx_skein);
     sph_skein512(&ctx_skein, in, size);
     sph_skein512_close(&ctx_skein, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*3, (void*)hash, 32);
     
-    
-    
     sph_jh512_init(&ctx_jh);
     sph_jh512(&ctx_jh, in, size);
     sph_jh512_close(&ctx_jh, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*4, (void*)hash, 32);
-    
-    
-    
 
     sph_keccak512_init(&ctx_keccak);
     sph_keccak512(&ctx_keccak, in, size);
@@ -1017,15 +913,11 @@ void test_print_x16rs(const char* input, char* output32x16)
     in = (void*) hash;
     memcpy(output32x16 + 32*5, (void*)hash, 32);
     
-    
-    
     sph_luffa512_init(&ctx_luffa);
     sph_luffa512(&ctx_luffa, in, size);
     sph_luffa512_close(&ctx_luffa, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*6, (void*)hash, 32);
-    
-    
     
     sph_cubehash512_init(&ctx_cubehash);
     sph_cubehash512(&ctx_cubehash, in, size);
@@ -1033,24 +925,17 @@ void test_print_x16rs(const char* input, char* output32x16)
     in = (void*) hash;
     memcpy(output32x16 + 32*7, (void*)hash, 32);
     
-    
-    
     sph_shavite512_init(&ctx_shavite);
     sph_shavite512(&ctx_shavite, in, size);
     sph_shavite512_close(&ctx_shavite, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*8, (void*)hash, 32);
     
-
-    
-    
     sph_simd512_init(&ctx_simd);
     sph_simd512(&ctx_simd, in, size);
     sph_simd512_close(&ctx_simd, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*9, (void*)hash, 32); 
-
-
  
     sph_echo512_init(&ctx_echo);
     sph_echo512(&ctx_echo, in, size);
@@ -1058,14 +943,11 @@ void test_print_x16rs(const char* input, char* output32x16)
     in = (void*) hash;
     memcpy(output32x16 + 32*10, (void*)hash, 32);
     
-    
-    
     sph_hamsi512_init(&ctx_hamsi);
     sph_hamsi512(&ctx_hamsi, in, size);
     sph_hamsi512_close(&ctx_hamsi, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*11, (void*)hash, 32);  
-
     
     sph_fugue512_init(&ctx_fugue);
     sph_fugue512(&ctx_fugue, in, size);
@@ -1073,23 +955,17 @@ void test_print_x16rs(const char* input, char* output32x16)
     in = (void*) hash;
     memcpy(output32x16 + 32*12, (void*)hash, 32);
     
-
-    
     sph_shabal512_init(&ctx_shabal);
     sph_shabal512(&ctx_shabal, in, size);
     sph_shabal512_close(&ctx_shabal, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*13, (void*)hash, 32);
     
-
-    
     sph_whirlpool_init(&ctx_whirlpool);
     sph_whirlpool(&ctx_whirlpool, in, size);
     sph_whirlpool_close(&ctx_whirlpool, hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*14, (void*)hash, 32);
-    
-
     
     sph_sha512_init(&ctx_sha512);
     sph_sha512(&ctx_sha512,(const void*) in, size);

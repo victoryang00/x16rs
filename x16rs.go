@@ -87,8 +87,8 @@ func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, ha
 	var success [1]C.char
 	var nonce [4]C.char
 	var reshash [32]C.char
-	var hsstart = C.uint(hashstart) // uint32(1)
-	var hsend = C.uint(hashend)     // uint32(4294967294)
+	var hsstart = C.uint32_t(hashstart) // uint32(1)
+	var hsend = C.uint32_t(hashend)     // uint32(4294967294)
 	var tarhash = C.CString(string(tarhashvalue))
 	var stuff = C.CString(string(blockheadmeta))
 	defer C.free(unsafe.Pointer(tarhash))
@@ -267,8 +267,8 @@ func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
 func MinerHacashDiamond(hash_start uint32, hash_end uint32, diamondnumber int, stopmark *byte, blockhash []byte, address []byte, extendmsg []byte) ([]byte, string) {
 	var nonce [8]C.char
 	var diamond [16]C.char
-	var hsstart = C.uint(hash_start)
-	var hsend = C.uint(hash_end)
+	var hsstart = C.uint32_t(hash_start)
+	var hsend = C.uint32_t(hash_end)
 	var dmnb = C.int(diamondnumber)
 	var tarhash = C.CString(string(blockhash))
 	var taraddr = C.CString(string(address))

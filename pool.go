@@ -4,7 +4,6 @@ package x16rs
 
 go build -o poolworker github.com/hacash/x16rs/pool/main/ && ./poolworker
 
-
 **/
 
 import (
@@ -27,21 +26,22 @@ type MiningSuccess struct {
 }
 
 func (mp *MiningSuccess) Parse(stuff []byte, seek int) {
-
-	if len(stuff)-seek < 8+8+4 {
+	if len(stuff) - seek < 8+8+4 {
 		panic("stuff length not enough.")
 	}
-	mp.BlockHeight = binary.BigEndian.Uint64(stuff[seek : seek+8])
+
+	mp.BlockHeight = binary.BigEndian.Uint64(stuff[seek : seek + 8])
 	seek += 8
-	mp.MiningIndex = binary.BigEndian.Uint64(stuff[seek : seek+8])
+	mp.MiningIndex = binary.BigEndian.Uint64(stuff[seek : seek + 8])
 	seek += 8
-	mp.Nonce = stuff[seek : seek+4]
+	mp.Nonce = stuff[seek : seek + 4]
 }
 
 func (mp *MiningSuccess) Serialize() []byte {
 	if len(mp.Nonce) != 4 {
 		panic("stuff length error.")
 	}
+
 	s1 := make([]byte, 8)
 	binary.BigEndian.PutUint64(s1, mp.BlockHeight)
 	s2 := make([]byte, 8)
@@ -49,11 +49,11 @@ func (mp *MiningSuccess) Serialize() []byte {
 	buf := bytes.NewBuffer(s1)
 	buf.Write(s2)
 	buf.Write(mp.Nonce)
+
 	return buf.Bytes()
 }
 
 ////////////////////////////////////////////////
-
 type MiningPoolStuff struct {
 	BlockHeight   uint64
 	MiningIndex   uint64 // 挖矿标号
@@ -63,13 +63,13 @@ type MiningPoolStuff struct {
 }
 
 func (mp *MiningPoolStuff) Parse(stuff []byte, seek int) {
-
-	if len(stuff)-seek < 8+8+1+32+89 {
+	if len(stuff) - seek < 8+8+1+32+89 {
 		panic("stuff length not enough.")
 	}
-	mp.BlockHeight = binary.BigEndian.Uint64(stuff[seek : seek+8])
+
+	mp.BlockHeight = binary.BigEndian.Uint64(stuff[seek : seek + 8])
 	seek += 8
-	mp.MiningIndex = binary.BigEndian.Uint64(stuff[seek : seek+8])
+	mp.MiningIndex = binary.BigEndian.Uint64(stuff[seek : seek + 8])
 	seek += 8
 	mp.Loopnum = stuff[seek]
 	seek += 1
@@ -82,6 +82,7 @@ func (mp *MiningPoolStuff) Serialize() []byte {
 	if len(mp.TargetHash) != 32 || len(mp.BlockHeadMeta) != 89 {
 		panic("stuff length error.")
 	}
+
 	s1 := make([]byte, 8)
 	binary.BigEndian.PutUint64(s1, mp.BlockHeight)
 	s2 := make([]byte, 8)
@@ -91,10 +92,9 @@ func (mp *MiningPoolStuff) Serialize() []byte {
 	buf.Write([]byte{mp.Loopnum})
 	buf.Write(mp.TargetHash)
 	buf.Write(mp.BlockHeadMeta)
+
 	return buf.Bytes()
 }
-
-////////////////////////////////////////
 
 // 发送tcp数据
 func MiningPoolWriteTcpMsgBytes(conn net.Conn, typeid uint8, stuff []byte) error {
@@ -102,18 +102,18 @@ func MiningPoolWriteTcpMsgBytes(conn net.Conn, typeid uint8, stuff []byte) error
 	buf := bytes.NewBuffer([]byte{typeid})
 	buf.Write(stuff)
 	msg := buf.Bytes()
-	//fmt.Println(len(msg), msg)
 	conn.Write([]byte(hex.EncodeToString(msg) + "\n"))
+
 	return nil
 }
 
 // 读取tcp数据
 func MiningPoolReadTcpMsgBytes(reader *bufio.Reader) ([]byte, error) {
-
 	msgstr, err := reader.ReadString('\n')
 	if err != nil {
 		return nil, err
 	}
+
 	msgstr = strings.TrimRight(msgstr, "\n")
 	msgbytes, err2 := hex.DecodeString(msgstr)
 	if err2 != nil {
@@ -121,7 +121,6 @@ func MiningPoolReadTcpMsgBytes(reader *bufio.Reader) ([]byte, error) {
 	}
 
 	return msgbytes, nil
-
 }
 
 // 计算算力分值

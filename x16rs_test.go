@@ -17,15 +17,12 @@ import (
 )
 
 func TestNewDiamondDiff(t *testing.T) {
-
-	//prevhash, _ := hex.DecodeString("00000000000000000000000009baad198fda287f13e39c37294eb7a7b617bd70")
 	prevhash, _ := hex.DecodeString("f9ff9f3a38519d674b59f3a385baad198fda287f13e39c37294eb7a7b617bd70")
 	dia := DiamondHash(prevhash)
 
 	diffok := CheckDiamondDifficulty(22806, prevhash, prevhash)
 
 	fmt.Println(dia, diffok)
-
 }
 
 func TestNewDiamond(t *testing.T) {
@@ -53,7 +50,6 @@ func TestX16R(t *testing.T) {
 }
 
 func TestX16RS(t *testing.T) {
-
 	loopnum := 1
 
 	data, _ := hex.DecodeString("514eb391138bc40330d54c1d8ba0c2bff5b055602ba01fa7f9b3f466a042d08f")
@@ -63,16 +59,11 @@ func TestX16RS(t *testing.T) {
 		fmt.Println(hex.EncodeToString(res1))
 		res2 := HashX16RS(loopnum, data)
 		fmt.Println(hex.EncodeToString(res2))
-		//time.Sleep(time.Duration(100) * time.Millisecond)
 	}
 	res1 := HashX16RS(loopnum, data)
 	fmt.Println(hex.EncodeToString(res1))
 	res2 := HashX16RS(loopnum, data)
 	fmt.Println(hex.EncodeToString(res2))
-	//fmt.Println(data)
-	//fmt.Println(hash)
-	//fmt.Println(res)
-	//fmt.Println(hex.EncodeToString(res))
 
 	sha3results := sha3.Sum256(bytes.Repeat([]byte{1, 2, 3, 4}, 8))
 	fmt.Println("sha3results", sha3results)
@@ -80,23 +71,15 @@ func TestX16RS(t *testing.T) {
 	if !bytes.Equal(res1, hash) {
 		t.Error("hash", hex.EncodeToString(res1))
 	}
-
 }
 
 func TestX16RS_LOOP(t *testing.T) {
-
 	data1 := bytes.Repeat([]byte{1, 2, 3, 4, 5, 6, 7, 8}, 4)
 	for i := 0; i < 10000*450; i++ { // 0000*450
-		//fmt.Println(token)
 		data1[4] = uint8(i % 255)
 		HashX16RS(1, data1)
 		HashX16RS(1, data1)
-		//res := data
-		//if bytes.Compare(res1, res2) != 0 {
-		//	t.Error("hash1", hex.EncodeToString(res1), "hash2", hex.EncodeToString(res2))
-		//}
 	}
-
 }
 
 func TestX16RS_miner(t *testing.T) {
@@ -112,24 +95,18 @@ func TestX16RS_miner(t *testing.T) {
 	}()
 	_, _, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, tarhash, signstuff)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
-
 }
 
 func TestX16RS_miner_do(t *testing.T) {
-
 	blkbts, _ := hex.DecodeString("010000003f37005c90a5b80000000d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87aadd0ada0615668c7bf3658efeab80ef2a6be1e884a2844d52afdb88fa82f5c6000000010070db79e48fffa400000000ff89de02003bea1b64e8d5659d314c078ad37551f801012020202020202020202020202020202000")
 	blockheadmeta := blkbts[0:89]
 	targetdiffhash, _ := hex.DecodeString("000009d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87")
-
-	//fmt.Println(blockheadmeta)
-	//fmt.Println(len(targetdiffhash))
 
 	var stopmark *byte = new(byte)
 	*stopmark = 0
 
 	_, _, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, targetdiffhash, blockheadmeta)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
-
 }
 
 func TestSha3_256(t *testing.T) {
@@ -156,11 +133,9 @@ func TestX16RS_num(t *testing.T) {
 	fmt.Println(hash2)
 	hash3 := HashX16RS(3, data)
 	fmt.Println(hash3)
-
 }
 
 func Test_diamond_miner_do(t *testing.T) {
-
 	//blkbts, _ := hex.DecodeString("010000003f37005c90a5b80000000d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87aadd0ada0615668c7bf3658efeab80ef2a6be1e884a2844d52afdb88fa82f5c6000000010070db79e48fffa400000000ff89de02003bea1b64e8d5659d314c078ad37551f801012020202020202020202020202020202000")
 	//blockheadmeta := blkbts[0:89]
 	blockhash, _ := hex.DecodeString("000000077790ba2fcdeaef4a4299d9b667135bac577ce204dee8388f1b97f7e6")
@@ -188,27 +163,23 @@ func Test_diamond_miner_do(t *testing.T) {
 	if !bytes.Equal([]byte(diamond), []byte(diamond_str)) {
 		t.Error("diamond: ", diamond, "but get", diamond_str)
 	}
-
 }
 
 func Test_print_x16rs(t *testing.T) {
-
 	data := bytes.Repeat([]byte{12, 52, 5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 241}, 1)
 	fmt.Println(data)
 	resultBytes := TestPrintX16RS(data)
+
 	for i := 0; i < 16; i++ {
 		fmt.Println(i, resultBytes[i])
 	}
-
 }
 
 func Test_print_testX16RS(t *testing.T) {
-
 	data := bytes.Repeat([]byte{12, 52, 5, 230, 151, 150, 139, 223, 254, 37, 62, 187, 3, 34, 169, 36, 48, 200, 23, 127, 166, 146, 160, 123, 134, 36, 215, 137, 113, 139, 34, 240}, 1)
 	fmt.Println(data)
 	resultBytes := HashX16RS(1, data)
 	fmt.Println(resultBytes)
-
 }
 
 // 234,214,164,90,45,197,130,255,13,248,176,44,151,46,87,41,204,138,20,15,157,191,112, 255,107,107,118,6,83,243,227,192
@@ -224,24 +195,25 @@ func ReadFileBytes(filename string) []byte {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer file.Close()
 	fileinfo, err := file.Stat()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	fileSize := fileinfo.Size()
 	buffer := make([]byte, fileSize)
 	bytesread, err := file.Read(buffer)
+
 	if err != nil {
 		log.Fatal(err, bytesread)
 	}
-	//fmt.Println("bytes read:", bytesread)
-	//fmt.Println("bytestream to string:", string(buffer))
+
 	return buffer
 }
 
 func Test_OpenCL(t *testing.T) {
-
 	// source
 	kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
 
@@ -250,6 +222,7 @@ func Test_OpenCL(t *testing.T) {
 	for i := 0; i < len(data); i++ {
 		data[i] = rand.Float32()
 	}
+
 	// init
 	platforms, _ := cl.GetPlatforms()
 	platform := platforms[0]
@@ -260,15 +233,18 @@ func Test_OpenCL(t *testing.T) {
 	program, _ := context.CreateProgramWithSource([]string{string(kernelSource)})
 	program.BuildProgram(nil, "-I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
 	kernel, _ := program.CreateKernel("hash_sha3")
+
 	// input and output
 	input, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 89)
 	output, _ := context.CreateEmptyBuffer(cl.MemReadOnly, 32)
+
 	// copy set input
 	blockbytes, _ := hex.DecodeString("010000000000005c57b08c0000000000000000000000000000000000000000000000000000000000000000ad557702fc70afaf70a855e7b8a4400159643cb5a7fc8a89ba2bce6f818a9b0100000001098b344500000000000000000c1aaa4e6007cc58cfb932052ac0ec25ca356183f80101686172646572746f646f62657474657200")
 	input_stuff := blockbytes[0:89]
 	fmt.Println(Sha3_256(input_stuff))
 	fmt.Println(sha3.Sum256(input_stuff))
 	queue.EnqueueWriteBufferByte(input, true, 0, input_stuff, nil)
+
 	// set argvs
 	kernel.SetArgs(input, uint32(89), output)
 
@@ -282,24 +258,24 @@ func Test_OpenCL(t *testing.T) {
 	if d != 0 {
 		global += local - d
 	}
+
 	// run
 	queue.EnqueueNDRangeKernel(kernel, nil, []int{1}, []int{1}, nil)
 	queue.Finish()
 	results := make([]byte, 32)
+
 	// copy get output
 	queue.EnqueueReadBufferByte(output, true, 0, results, nil)
 	fmt.Println(results)
 
 	// check results
-
 	fmt.Println("==========================")
-
 }
 
 func Test_Diamond_diffcultskdjh(t *testing.T) {
-
 	bts := make([]byte, 32)
 	counts := []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
 	var cutf func(int)
 	cutf = func(i int) {
 		if i >= 32 {
@@ -311,6 +287,7 @@ func Test_Diamond_diffcultskdjh(t *testing.T) {
 			cutf(i + 1)
 		}
 	}
+
 	var ttn = uint64(100000000)
 	for i := uint64(0); i < ttn; i++ {
 		rand.Read(bts)
@@ -319,27 +296,16 @@ func Test_Diamond_diffcultskdjh(t *testing.T) {
 	}
 
 	// 算力难度每 42000 枚钻石提升一倍
-
 	// 打印概率
 	fmt.Println("0 0.00 0 100000000 100.00000000%")
 	for i, v := range counts {
 		//fmt.Printf("%d %f %.10f%%\n", i+1, float64(i+1)*2.36, float64(v)/float64(ttn)*100)
 		fmt.Printf("%d %.2f %d %d %.10f%%\n", i+1, float64(i+1)*2, 42000*(i+1), v, float64(v)/float64(ttn)*100)
 	}
-
 }
 
 // 检查钻石难度值
 func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
-
-	// fmt.Println(CheckDiamondDifficulty(3277*700+3, []byte{0, 0, 69, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
-
-	//
-	//for c:=0; c<=32*256; c++ {
-	//	tarhx := getdiffhashtarget(c)
-	//	fmt.Println(c, tarhx)
-	//}
-
 	var nnn uint8 = 128
 	var dts = make([]byte, 32)
 	var tardts = make([]byte, 32)
@@ -360,10 +326,6 @@ func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
 			}
 		}
 	}
-
-	// source
-	//kernelSource := ReadFileBytes("./opencl/x16rs_main.cl")
-
 }
 
 func getdiffhashtarget(subnum int) []byte {

@@ -18,29 +18,28 @@ import (
 )
 
 /*
-
 mkdir -p build && cd build
 rm -f ../libx16rs_hash.a  && rm -rf * && cmake ../ && make && mv -f ./libx16rs_hash.a ../
-
 */
 
-//
 func Sum(data []byte) []byte {
 	var res [32]C.char
 	var cstr = C.CString(string(data))
+
 	defer C.free(unsafe.Pointer(cstr))
 	C.x16r_hash(cstr, &res[0])
+
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
-//
 func Sha3_256(data []byte) []byte {
 	var res [32]C.char
 	var cstr = C.CString(string(data))
 	var cint = C.int(len(data))
-	// fmt.Println(len(data))
+
 	defer C.free(unsafe.Pointer(cstr))
 	C.sha3_256(cstr, cint, &res[0])
+
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
@@ -48,8 +47,10 @@ func HashX16RS_Old(loopnum int, data []byte) []byte {
 	var res [32]C.char
 	var lpnm = C.int(loopnum)
 	var cstr = C.CString(string(data))
+
 	defer C.free(unsafe.Pointer(cstr))
 	C.x16rs_hash(lpnm, cstr, &res[0])
+
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
@@ -57,8 +58,10 @@ func HashX16RS(loopnum int, data []byte) []byte {
 	var res [32]C.char
 	var lpnm = C.int(loopnum)
 	var cstr = C.CString(string(data))
+
 	defer C.free(unsafe.Pointer(cstr))
 	C.x16rs_hash(lpnm, cstr, &res[0])
+
 	return []byte(C.GoStringN(&res[0], 32))
 }
 
@@ -79,10 +82,12 @@ func CalculateBlockHash(blockHeight uint64, stuff []byte) []byte {
 // stopkind:  0.自然循环完毕后停止   1.外部信号强制停止   2.挖出成功停止
 func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, hashstart uint32, hashend uint32, tarhashvalue []byte, blockheadmeta []byte) (byte, bool, []byte, []byte) {
 	repeat := HashRepeatForBlockHeight(blockHeight)
+
 	var retmaxhashsig int = 0
 	if retmaxhash {
 		retmaxhashsig = 1
 	}
+
 	var stopkind [1]C.char
 	var success [1]C.char
 	var nonce [4]C.char
@@ -93,18 +98,17 @@ func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, ha
 	var stuff = C.CString(string(blockheadmeta))
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(stuff))
-	//fmt.Println("C.miner_x16rs_hash_v1") //
+
 	C.miner_x16rs_hash(C.int(repeat), C.int(retmaxhashsig), (*C.char)((unsafe.Pointer)(stopmark)), hsstart, hsend, tarhash, stuff, &stopkind[0], &success[0], &nonce[0], &reshash[0])
-	//fmt.Println("C.miner_x16rs_hash_v1 finish")
+
 	return byte(stopkind[0]), success[0] == 1, []byte(C.GoStringN(&nonce[0], 4)), []byte(C.GoStringN(&reshash[0], 32))
 }
-
-/////////////////////////////////////////////////////////
 
 var diamond_hash_base_stuff = []byte("0WTYUIAHXVMEKBSZN")
 
 func DiamondHash(reshash []byte) string {
 	diamond_str := make([]byte, 16)
+
 	p := 13
 	for i := 0; i < 16; i++ {
 		num := p * int(reshash[i*2]) * int(reshash[i*2+1])
@@ -114,6 +118,7 @@ func DiamondHash(reshash []byte) string {
 			p = 13
 		}
 	}
+
 	return string(diamond_str)
 }
 
@@ -132,13 +137,14 @@ func Diamond(diamondNumber uint32, prevblockhash []byte, nonce []byte, address [
 	stuff.Write(nonce)
 	stuff.Write(address)
 	stuff.Write(extendMessage)
-	//fmt.Println(stuff.Bytes())
+
+	/* get ssshash by sha3 algrotithm */
 	ssshash := sha3.Sum256(stuff.Bytes())
-	//fmt.Println(ssshash)
+	/* get diamond hash value by HashX16RS algorithm */
 	reshash := HashX16RS(repeat, ssshash[:])
-	//fmt.Println(reshash)
+	/* get diamond name by DiamondHash function */
 	diamond_str := DiamondHash(reshash)
-	//fmt.Println(diamond_str)
+
 	return ssshash[:], reshash, diamond_str
 }
 
@@ -147,16 +153,19 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 	if len(diamondStr) != 16 {
 		return "", false
 	}
+
 	prefixlen := 10 // 前导0的数量
 	diamond_prefixs := []byte(diamondStr)[0:prefixlen]
 	if bytes.Compare(diamond_prefixs, bytes.Repeat(diamond_hash_base_stuff[0:1], prefixlen)) != 0 {
 		return "", false
 	}
+
 	diamond_value := []byte(diamondStr)[prefixlen:]
 	isdmd := IsDiamondValueString(string(diamond_value))
 	if !isdmd {
 		return "", false
 	}
+
 	// 检查成功
 	return string(diamond_value[10-prefixlen:]), true
 }
@@ -166,19 +175,20 @@ func IsDiamondValueString(diamondStr string) bool {
 	if len(diamondStr) != 6 {
 		return false
 	}
+
 	for _, a := range diamondStr {
 		// drop 0
 		if bytes.IndexByte(diamond_hash_base_stuff[1:], byte(a)) == -1 {
 			return false
 		}
 	}
+
 	// 检查成功
 	return true
 }
 
 // 判断是否为合法的钻石名称或编号
 func IsDiamondNameOrNumber(diamondStr string) bool {
-
 	// 编号
 	if dianum, e := strconv.Atoi(diamondStr); e == nil && dianum > 0 && dianum < 16777216 {
 		return true
@@ -232,16 +242,19 @@ func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
 		192, 196, 200, 204, 208, 212, 216, 220,
 		224, 228, 232, 236, 240, 244, 248, 252,
 	}
+
 	// 借鉴摩尔定律，每 42000 颗钻石约2年挖掘难度上升一倍，难度增量趋于减少，64年减至零
 	shnum := dNumber / 42000
 	if shnum > 32 {
 		shnum = 32 // 最多64年
 	}
+
 	for i := 0; i < int(shnum); i++ {
 		if sha3hash[i] >= DiaMooreDiffBits[i] {
 			return false // 检查失败，难度值不满足要求
 		}
 	}
+
 	// 每 3277 颗钻石约56天调整一下难度 3277 = 16^6 / 256 / 20
 	// 难度最高时hash前20位为0，而不是32位都为0。
 	diffnum := dNumber / 3277
@@ -260,6 +273,7 @@ func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
 			diffnum -= 255
 		}
 	}
+
 	return false
 }
 
@@ -273,10 +287,12 @@ func MinerHacashDiamond(hash_start uint32, hash_end uint32, diamondnumber int, s
 	var tarhash = C.CString(string(blockhash))
 	var taraddr = C.CString(string(address))
 	var tarextmsg = C.CString(string(extendmsg))
+
 	defer C.free(unsafe.Pointer(tarhash))
 	defer C.free(unsafe.Pointer(taraddr))
 	defer C.free(unsafe.Pointer(tarextmsg))
 	C.miner_diamond_hash(hsstart, hsend, dmnb, (*C.char)((unsafe.Pointer)(stopmark)), tarhash, taraddr, tarextmsg, &nonce[0], &diamond[0])
+
 	return []byte(C.GoStringN(&nonce[0], 8)), C.GoStringN(&diamond[0], 16)
 }
 
@@ -287,9 +303,11 @@ func TestPrintX16RS(stuff32 []byte) [][]byte {
 	C.test_print_x16rs(cstr, &res[0])
 	var bytes = []byte(C.GoStringN(&res[0], 32*16))
 	var resbytes [][]byte
+
 	for i := 0; i < 16; i++ {
 		resbytes = append(resbytes, bytes[32*i:32*i+32])
 	}
+
 	return resbytes
 }
 
@@ -300,9 +318,6 @@ func OpenCLMinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmet
 }
 
 func main() {
-	//fmt.Println(Sum([]byte("test")))
-	//fmt.Println(HashX16RS([]byte("test")))
-
 	blockhash, _ := hex.DecodeString("000009d0d0af1c87d65c581310bd7ae803b23c69754be16df02a7b156c03c87")
 	address, _ := hex.DecodeString("000c1aaa4e6007cc58cfb932052ac0ec25ca356183") // 1271438866CSDpJUqrnchoJAiGGBFSQhjd
 
@@ -310,31 +325,9 @@ func main() {
 	*stopmark = 0
 	nonce, diamond := MinerHacashDiamond(1, 4200009999, 1, stopmark, blockhash, address, []byte{})
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
+
 	// 验证钻石算法是否正确
 	_, _, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
 }
-
-/*
-
-//#include "x16r.h"
-
-//#include "sha3/sph_blake.h"
-//#include "sha3/sph_bmw.h"
-//#include "sha3/sph_groestl.h"
-//#include "sha3/sph_jh.h"
-//#include "sha3/sph_keccak.h"
-//#include "sha3/sph_skein.h"
-//#include "sha3/sph_luffa.h"
-//#include "sha3/sph_cubehash.h"
-//#include "sha3/sph_shavite.h"
-//#include "sha3/sph_simd.h"
-//#include "sha3/sph_echo.h"
-//#include "sha3/sph_hamsi.h"
-//#include "sha3/sph_fugue.h"
-//#include "sha3/sph_shabal.h"
-//#include "sha3/sph_whirlpool.h"
-//#include "sha3/sph_sha2.h"
-
-*/

@@ -469,7 +469,7 @@ void x16rs_hash(const int loopnum, const char* input_hash, char* output_hash)
     sph_sha512_context       ctx_sha512;
 
     int n;
-    for(n=0; n<loopnum; n++){
+    for(n = 0; n < loopnum; n++){
 
         uint8_t algo = inputoutput[7] % 16;
         switch (algo)
@@ -575,7 +575,7 @@ void diamond_hash(const char* hash32, char* output16)
 {
     uint8_t *stuff32 = (uint8_t*)hash32;
     int i, p = 13;
-    for(i=0; i<16; i++){
+    for(i = 0; i < 16; i++){
         int num = p * (int)stuff32[i*2] * (int)stuff32[i*2+1];
         p = num % 17;
         output16[i] = diamond_hash_base_stuff[p];
@@ -616,14 +616,14 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
     uint32_t noncenum2;
     for(noncenum1 = hsstart; noncenum1 < hsend; noncenum1++){
         basestuff[8] = noncenum1;
-        for(noncenum2=1; noncenum2<4294967294; noncenum2++){
+        for(noncenum2 = 1; noncenum2 < 4294967294; noncenum2++){
             basestuff[9] = noncenum2;
 
             // 停止
-            if( noncenum2%1000==0 && is_stop[0] != 0 ) {
+            if(noncenum2 % 1000 == 0 && is_stop[0] != 0) {
 
                 uint8_t noncenum_empty[8] = {0,0,0,0,0,0,0,0};
-                memcpy( nonce8, noncenum_empty, 8);
+                memcpy(nonce8, noncenum_empty, 8);
 
                 //////// TEST START ////////
                 // uint32_t nonce[2] = {0, 0};
@@ -643,14 +643,17 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             // 判断结果是否为钻石
             uint8_t success = 1;
             int k;
-            for( k=0; k<16; k++ ) {
-                if(k<10){
-                    if( diamond[k] != 48 ){
+			// diamond是16位的，这里直接遍历string，判断是否是钻石
+			// 判断的规则是，前10位都必须为0，后6位都不能为0
+            for(k = 0; k < 16; k++) {
+                if(k < 10){
+					// 这里的数字 48，代表ASCII字符'0'
+                    if (diamond[k] != 48) {
                         success = 0;
                         break;
                     }
-                }else{
-                    if( diamond[k] == 48 ){
+                } else {
+                    if (diamond[k] == 48) {
                         success = 0;
                         break;
                     }
@@ -658,7 +661,7 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
             }
 
             // 挖出钻石
-            if( success == 1 ) {
+            if (success == 1) {
                 // 检查难度
                 // 借鉴摩尔定律，每 42000 颗钻石约2年挖掘难度上升一倍，难度增量趋于减少，64年减至零
                 uint8_t diadiffbits[32] = {
@@ -668,19 +671,19 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                 	224,228,232,236,240,244,248,252
                 };
                 int shnum = diamondnumber / 42000;
-                if( shnum > 32 ){
+                if (shnum > 32){
                     shnum = 32; // 最多64年
                 }
                 uint8_t diffyes = 1;
                 int i;
-                for( i=0; i<shnum; i++ ){
-                    if( sha3res[i] >= diadiffbits[i] ){
+                for (i = 0; i < shnum; i++) {
+                    if (sha3res[i] >= diadiffbits[i]) {
                         diffyes = 0; // 检查失败，难度值不满足要求
                         break;
                     }
                 }
                 // 难度不满足要求
-                if( diffyes != 1 ) {
+                if (diffyes != 1) {
                     continue; // 下一轮挖掘
                 }
                 // 每 3277 颗钻石调整一下难度 3277 = 16^6 / 256 / 20
@@ -688,18 +691,18 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                 uint8_t diffok = 0;
                 int diffnum = diamondnumber / 3277; // 每 3277 颗钻石调整一下难度
                 int n;
-                for( n=0; n<32; n++ ) {
+                for (n = 0; n < 32; n++) {
                     int bt = hashnew[n];
-                    if(diffnum < 255){
-                        if( bt + diffnum > 255) {
+                    if (diffnum < 255) {
+                        if (bt + diffnum > 255) {
                             diffok = 0;
                             break; // 难度检查失败
                         } else {
                             diffok = 1;
                             break; // success
                         }
-                    } else if(diffnum >= 255) {
-                        if(bt != 0) {
+                    } else if (diffnum >= 255) {
+                        if (bt != 0) {
                             diffok = 0;
                             break; // 难度检查失败
                         }
@@ -708,7 +711,7 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                     }
                 }
                 // 难度不满足要求
-                if( diffok != 1 ) {
+                if (diffok != 1) {
                     // 下一轮挖掘
                     continue;
                 }
@@ -765,16 +768,16 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
 
     // nonce值
     uint32_t noncenum;
-    for(noncenum = hsstart; noncenum < hsend; noncenum++){
+    for (noncenum = hsstart; noncenum < hsend; noncenum++) {
         // 停止标记检测
-        if( noncenum%5000==0 && is_stop[0] != 0 )
+        if (noncenum%5000==0 && is_stop[0] != 0)
         {
             success1[0] = 0; // 失败
             stopkind1[0] = 1; // 外部信号强制停止
-            if(retmaxhash == 1){
+            if (retmaxhash == 1) {
                 memcpy(nonce4, &noncemaxpower, 4);
                 memcpy(reshash32, &hashmaxpower, 32);
-            }else{
+            } else {
                 memcpy(nonce4, &noncenum, 4);
                 memcpy(reshash32, &hashnew, 32);
             }
@@ -786,48 +789,48 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
         sha3_256(stuffnew, 89, sha3res);
         x16rs_hash(loopnum, ((void*)sha3res), ((void*)hashnew));
 
-        if(retmaxhash == 1){
+        if (retmaxhash == 1) {
             ispowerok = 0;
-            for(pk=0; pk<32; pk++){
+            for (pk = 0; pk < 32; pk++) {
                 uint8_t o1 = hashmaxpower[pk];
                 uint8_t o2 = hashnew[pk];
-                if(o2>o1){
+                if (o2 > o1) {
                     break;
                 }
-                if(o2<o1){
+                if (o2 < o1) {
                     ispowerok = 1;
                     break;
                 }
             }
-            if(ispowerok==1){
+            if (ispowerok == 1) {
                 memcpy(&noncemaxpower, &noncenum, 4);
                 memcpy(&hashmaxpower, &hashnew, 32);
-            }else{
+            } else {
                 continue;
             }
         }
 
         iscalcok = 0;
-        for(pi=0; pi<32; pi++){
+        for (pi = 0; pi < 32; pi++) {
             uint8_t o1 = target_difficulty_hash32[pi];
             uint8_t o2 = hashnew[pi];
-            if(o2>o1){
+            if (o2 > o1) {
                 break;
             }
-            if(o2<o1){
+            if (o2 < o1) {
                 iscalcok = 1;
                 break;
             }
         }
         // 结果判断
-        if(iscalcok == 1) {
+        if (iscalcok == 1) {
             // 返回 copy to out
             success1[0] = 1; // 成功的标记
             stopkind1[0] = 2; // 非强制停止，挖出成功后停止
-            if(retmaxhash == 1){
+            if (retmaxhash == 1) {
                 memcpy(nonce4, &noncemaxpower, 4);
                 memcpy(reshash32, &hashmaxpower, 32);
-            }else{
+            } else {
                 memcpy(nonce4, &noncenum, 4);
                 memcpy(reshash32, &hashnew, 32);
             }
@@ -839,10 +842,10 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
     // 循环完毕，失败
     success1[0] = 0;
     stopkind1[0] = 0; // 非强制停止，自然循环完毕停止
-    if(retmaxhash == 1){
+    if (retmaxhash == 1) {
         memcpy(nonce4, &noncemaxpower, 4);
         memcpy(reshash32, &hashmaxpower, 32);
-    }else{
+    } else {
         memcpy(nonce4, &noncenum, 4);
         memcpy(reshash32, &hashnew, 32);
     }

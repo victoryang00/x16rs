@@ -720,8 +720,8 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                 uint32_t nonce[2] = {0, 0};
                 nonce[0] = noncenum1;
                 nonce[1] = noncenum2;
-                memcpy( (char*)nonce8, (char*)nonce, 8);
-                memcpy( (char*)diamond16, (char*)diamond, 16);
+                memcpy((char*)nonce8, (char*)nonce, 8);
+                memcpy((char*)diamond16, (char*)diamond, 16);
                 // printf("\n%s\n", diamond); fflush(stdout);
                 return; // 拷贝值，返回成功
             }
@@ -742,8 +742,8 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
 //    printf("miner_x16rs_hash_v1()\n");
     // 签名信息
     uint8_t stuffnew_base[90];
-    uint8_t *stuffnew = stuffnew_base+1;
-    memcpy( stuffnew, input_stuff89, 89);
+    uint8_t *stuffnew = stuffnew_base + 1;
+    memcpy(stuffnew, input_stuff89, 89);
     uint32_t *stuffnew_uint32 = (uint32_t*)stuffnew_base;
 
     // 计算 sha3的结果
@@ -770,7 +770,7 @@ void miner_x16rs_hash(const int loopnum, const int retmaxhash, const char* stop_
     uint32_t noncenum;
     for (noncenum = hsstart; noncenum < hsend; noncenum++) {
         // 停止标记检测
-        if (noncenum%5000==0 && is_stop[0] != 0)
+        if (noncenum % 5000 == 0 && is_stop[0] != 0)
         {
             success1[0] = 0; // 失败
             stopkind1[0] = 1; // 外部信号强制停止
@@ -975,5 +975,4 @@ void test_print_x16rs(const char* input, char* output32x16)
     sph_sha512_close(&ctx_sha512,(void*) hash);
     in = (void*) hash;
     memcpy(output32x16 + 32*15, (void*)hash, 32);
-    
 }

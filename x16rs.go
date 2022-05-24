@@ -68,7 +68,7 @@ func HashX16RS(loopnum int, data []byte) []byte {
 func HashRepeatForBlockHeight(blockHeight uint64) int {
 	repeat := int(blockHeight/50000 + 1)
 	if repeat > 16 {
-		repeat = 16 // 8年时间上升到16次
+		repeat = 16 // Up to 16 rounds in 8 years
 	}
 	return repeat
 }
@@ -79,7 +79,7 @@ func CalculateBlockHash(blockHeight uint64, stuff []byte) []byte {
 	return HashX16RS(repeat, hashbase[:])
 }
 
-// stopkind:  0.自然循环完毕后停止   1.外部信号强制停止   2.挖出成功停止
+// stopkind: 0.Stop after natural circulation 1.External signal forced stop 2.Excavation successfully stopped
 func MinerNonceHashX16RS(blockHeight uint64, retmaxhash bool, stopmark *byte, hashstart uint32, hashend uint32, tarhashvalue []byte, blockheadmeta []byte) (byte, bool, []byte, []byte) {
 	repeat := HashRepeatForBlockHeight(blockHeight)
 
@@ -123,9 +123,9 @@ func DiamondHash(reshash []byte) string {
 }
 
 func HashRepeatForDiamondNumber(diamondNumber uint32) int {
-	repeat := int(diamondNumber/8192 + 1) // 每 8192 颗钻石（约140天小半年）调整一下哈希次数
+	repeat := int(diamondNumber/8192 + 1) // Adjust the hashing times every 8192 diamonds (about 140 days and half a year)
 	if repeat > 16 {
-		repeat = 16 // 最高16次 x16rs 哈希
+		repeat = 16 // atmost 16 round due to x16rs algorithm
 	}
 	return repeat
 }
@@ -148,13 +148,13 @@ func Diamond(diamondNumber uint32, prevblockhash []byte, nonce []byte, address [
 	return ssshash[:], reshash, diamond_str
 }
 
-// 判断是否为钻石
+// to check if a string is a valid diamond
 func IsDiamondHashResultString(diamondStr string) (string, bool) {
 	if len(diamondStr) != 16 {
 		return "", false
 	}
 
-	prefixlen := 10 // 前导0的数量
+	prefixlen := 10 // Number of leading zeros
 	diamond_prefixs := []byte(diamondStr)[0:prefixlen]
 	if bytes.Compare(diamond_prefixs, bytes.Repeat(diamond_hash_base_stuff[0:1], prefixlen)) != 0 {
 		return "", false
@@ -166,11 +166,11 @@ func IsDiamondHashResultString(diamondStr string) (string, bool) {
 		return "", false
 	}
 
-	// 检查成功
+	// to check success
 	return string(diamond_value[10-prefixlen:]), true
 }
 
-// 判断是否为钻石
+// to check if a string is a diamond
 func IsDiamondValueString(diamondStr string) bool {
 	if len(diamondStr) != 6 {
 		return false
@@ -183,22 +183,22 @@ func IsDiamondValueString(diamondStr string) bool {
 		}
 	}
 
-	// 检查成功
+	// check success
 	return true
 }
 
-// 判断是否为合法的钻石名称或编号
+// Judge whether it is a legal diamond name or number
 func IsDiamondNameOrNumber(diamondStr string) bool {
-	// 编号
+	// check number is valid or not, diamond number can't more than 16777216
 	if dianum, e := strconv.Atoi(diamondStr); e == nil && dianum > 0 && dianum < 16777216 {
 		return true
 	}
 
-	// 字面值
+	// to check diamondStr is valid diamond or not
 	return IsDiamondValueString(diamondStr)
 }
 
-// 检查钻石难度值，是否满足要求
+// Check whether the diamond difficulty value meets the requirements
 /*
  0 128 2.00
  1 132 1.94
@@ -236,40 +236,41 @@ func IsDiamondNameOrNumber(diamondStr string) bool {
 [128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252]
 */
 func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
-	var DiaMooreDiffBits = []byte{ // 难度要求
-		128, 132, 136, 140, 144, 148, 152, 156, // 步进+4
+	var DiaMooreDiffBits = []byte{ // difficulty requirements
+		128, 132, 136, 140, 144, 148, 152, 156, // step +4
 		160, 164, 168, 172, 176, 180, 184, 188,
 		192, 196, 200, 204, 208, 212, 216, 220,
 		224, 228, 232, 236, 240, 244, 248, 252,
 	}
 
-	// 借鉴摩尔定律，每 42000 颗钻石约2年挖掘难度上升一倍，难度增量趋于减少，64年减至零
+	// Referring to Moore's law, the excavation difficulty of every 42000 diamonds will double in about 2 years,
+	// and the difficulty increment will tend to decrease to zero in 64 years
 	shnum := dNumber / 42000
 	if shnum > 32 {
-		shnum = 32 // 最多64年
+		shnum = 32 // Up to 64 years
 	}
 
 	for i := 0; i < int(shnum); i++ {
 		if sha3hash[i] >= DiaMooreDiffBits[i] {
-			return false // 检查失败，难度值不满足要求
+			return false // Check failed, difficulty value does not meet requirements
 		}
 	}
 
-	// 每 3277 颗钻石约56天调整一下难度 3277 = 16^6 / 256 / 20
-	// 难度最高时hash前20位为0，而不是32位都为0。
+	// Every 3277 diamonds is about 56 days. Adjust the difficulty 3277 = 16 ^ 6 / 256 / 20
+	// When the difficulty is the highest, the first 20 bits of the hash are 0, not all 32 bits are 0.
 	diffnum := dNumber / 3277
 	for _, bt := range dBytes {
 		if diffnum < 255 {
 			if uint32(bt)+diffnum > 255 {
-				return false // 难度检查失败
+				return false // Difficulty check failed
 			} else {
 				return true
 			}
 		} else if diffnum >= 255 {
 			if uint8(bt) != 0 {
-				return false // 难度检查失败
+				return false // Difficulty check failed
 			}
-			// 下一轮检查
+			// to do next round check
 			diffnum -= 255
 		}
 	}
@@ -277,7 +278,7 @@ func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
 	return false
 }
 
-// 钻石挖矿
+// to mint diamond
 func MinerHacashDiamond(hash_start uint32, hash_end uint32, diamondnumber int, stopmark *byte, blockhash []byte, address []byte, extendmsg []byte) ([]byte, string) {
 	var nonce [8]C.char
 	var diamond [16]C.char
@@ -312,7 +313,6 @@ func TestPrintX16RS(stuff32 []byte) [][]byte {
 }
 
 ////////////////////////  GPU OpenCL  ////////////////////////////
-
 func OpenCLMinerNonceHashX16RS(stopmark *byte, tarhashvalue []byte, blockheadmeta []byte) []byte {
 	return nil
 }
@@ -326,8 +326,7 @@ func main() {
 	nonce, diamond := MinerHacashDiamond(1, 4200009999, 1, stopmark, blockhash, address, []byte{})
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "diamond is", diamond)
 
-	// 验证钻石算法是否正确
+	// Verify whether the diamond algorithm is correct
 	_, _, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
-
 }

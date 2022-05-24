@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 )
 
-// 执行一次挖矿
+// execute a mining job
 func (c *CPUMining) DoMining(blockHeight uint64, reporthashrate bool, stopmark *byte, tarhashvalue []byte, blockheadmeta_list [][]byte) (bool, int, []byte, []byte) {
 
 	startNonce := uint32(0)
@@ -15,22 +15,22 @@ func (c *CPUMining) DoMining(blockHeight uint64, reporthashrate bool, stopmark *
 
 	supervene := len(blockheadmeta_list)
 
-	// 成功
+	// success mark
 	var smm uint32 = 0
-	successMiningMark := &smm // 未成功标记
+	successMiningMark := &smm // failed mark
 
-	// 返回值
+	// return value
 	var rSuccess bool = false
 	var rBlkhmi int = 0
 	var rNonce []byte = nil
 	var rPowerHash []byte = nil
 
-	// 并发 group
-	var checkLock sync.Mutex // 同步检查
+	// Concurrent group
+	var checkLock sync.Mutex // Synchronization check
 	var syncWait = sync.WaitGroup{}
 	syncWait.Add(supervene)
 
-	// 挖矿
+	// mining
 	for i := 0; i < supervene; i++ {
 		go func(i int, nextstop *byte) {
 			defer func() {
@@ -38,17 +38,17 @@ func (c *CPUMining) DoMining(blockHeight uint64, reporthashrate bool, stopmark *
 				syncWait.Done()
 			}()
 			blockheadmeta := blockheadmeta_list[i]
-			// 开始挖款
+			// start mining
 			_, success, nonce, endhash := x16rs.MinerNonceHashX16RS(blockHeight, reporthashrate, stopmark, startNonce, endNonce, tarhashvalue, blockheadmeta)
-			checkLock.Lock() // 串行锁
+			checkLock.Lock() // Serial lock
 			if success && atomic.CompareAndSwapUint32(successMiningMark, 0, 1) {
-				*nextstop = 1 // 停止所有挖矿
+				*nextstop = 1 // Stop all mining
 				rSuccess = true
 				rBlkhmi = i
 				rNonce = nonce
 				rPowerHash = endhash
 			} else if reporthashrate {
-				// 比较算力大小
+				// Compare the calculation force
 				if rPowerHash == nil || difficulty.CheckHashDifficultySatisfy(endhash, rPowerHash) {
 					rBlkhmi = i
 					rNonce = nonce
@@ -61,7 +61,7 @@ func (c *CPUMining) DoMining(blockHeight uint64, reporthashrate bool, stopmark *
 
 	syncWait.Wait()
 
-	// 返回
+	// return
 	return rSuccess, rBlkhmi, rNonce, rPowerHash
 
 }

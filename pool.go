@@ -21,7 +21,7 @@ import (
 
 type MiningSuccess struct {
 	BlockHeight uint64
-	MiningIndex uint64 // 挖矿标号
+	MiningIndex uint64 // mining index
 	Nonce       []byte // len:4
 }
 
@@ -56,7 +56,7 @@ func (mp *MiningSuccess) Serialize() []byte {
 ////////////////////////////////////////////////
 type MiningPoolStuff struct {
 	BlockHeight   uint64
-	MiningIndex   uint64 // 挖矿标号
+	MiningIndex   uint64 // mining index
 	Loopnum       uint8
 	TargetHash    []byte // len:32
 	BlockHeadMeta []byte // len:89
@@ -96,9 +96,9 @@ func (mp *MiningPoolStuff) Serialize() []byte {
 	return buf.Bytes()
 }
 
-// 发送tcp数据
+// send tcp data
 func MiningPoolWriteTcpMsgBytes(conn net.Conn, typeid uint8, stuff []byte) error {
-	// 信息发送给客户端
+	// send msg to client
 	buf := bytes.NewBuffer([]byte{typeid})
 	buf.Write(stuff)
 	msg := buf.Bytes()
@@ -107,7 +107,7 @@ func MiningPoolWriteTcpMsgBytes(conn net.Conn, typeid uint8, stuff []byte) error
 	return nil
 }
 
-// 读取tcp数据
+// read tcp data
 func MiningPoolReadTcpMsgBytes(reader *bufio.Reader) ([]byte, error) {
 	msgstr, err := reader.ReadString('\n')
 	if err != nil {
@@ -123,7 +123,7 @@ func MiningPoolReadTcpMsgBytes(reader *bufio.Reader) ([]byte, error) {
 	return msgbytes, nil
 }
 
-// 计算算力分值
+// Calculation force score
 func CalculateHashPowerValue(hash []byte) *big.Int {
 	value := []byte{}
 	for i := 0; i < len(hash); i++ {

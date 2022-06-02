@@ -10,17 +10,17 @@ func NewCPUMining(supervene int) *CPUMining {
 	}
 }
 
-// 初始化
+// init
 func (c *CPUMining) Init() error {
 	return nil
 }
 
-// 关闭算力统计
+// Turn off force statistics
 func (c *CPUMining) CloseUploadHashrate() {
 
 }
 
-// 并发数
+// Concurrent number
 func (c *CPUMining) GetSuperveneWide() int {
 	return c.supervene
 }

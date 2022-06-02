@@ -91,7 +91,7 @@ func TestX16RS_miner(t *testing.T) {
 		fmt.Println("wait to stop (5s)")
 		time.Sleep(time.Second * 5)
 		fmt.Println("set stop mark !")
-		*stopmark = 1 // 通知停止
+		*stopmark = 1 // notify stop mining
 	}()
 	_, _, nonce, _ := MinerNonceHashX16RS(1, false, stopmark, 1, 4294967294, tarhash, signstuff)
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint32(nonce), "bytes", nonce)
@@ -156,7 +156,7 @@ func Test_diamond_miner_do(t *testing.T) {
 	nonce, diamond := MinerHacashDiamond(1, 4200008888, 1, stopmark, blockhash, address, []byte{})
 	fmt.Println("miner finish nonce is", binary.BigEndian.Uint64(nonce), "bytes", nonce, "hex", hex.EncodeToString(nonce), "diamond is", diamond)
 
-	// 验证钻石算法是否正确
+	// Verify whether the diamond algorithm is correct
 	_, _, diamond_str := Diamond(1, blockhash, nonce, address, []byte{})
 	fmt.Println("diamond_str is", diamond_str)
 
@@ -189,7 +189,7 @@ func Test_print_testX16RS(t *testing.T) {
 //////////////////// OpenCL /////////////////////
 // 108 220 63 239 43 104 233 103 219 79 119 139 26 152 146 61 47 77 229 77 11 14 13 202 42 188 120 72 225 240 38 167
 
-//按字节读取，将整个文件读取到缓冲区buffer
+// Read by byte, and read the whole file into the buffer
 func ReadFileBytes(filename string) []byte {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -283,7 +283,7 @@ func Test_Diamond_diffcultskdjh(t *testing.T) {
 		}
 		if bts[i] < 128 {
 			counts[i]++
-			// 地柜
+			// recursion
 			cutf(i + 1)
 		}
 	}
@@ -295,8 +295,8 @@ func Test_Diamond_diffcultskdjh(t *testing.T) {
 		cutf(0)
 	}
 
-	// 算力难度每 42000 枚钻石提升一倍
-	// 打印概率
+	// The difficulty of calculating power is doubled for every 42000 diamonds
+	// Printing probability
 	fmt.Println("0 0.00 0 100000000 100.00000000%")
 	for i, v := range counts {
 		//fmt.Printf("%d %f %.10f%%\n", i+1, float64(i+1)*2.36, float64(v)/float64(ttn)*100)
@@ -304,7 +304,7 @@ func Test_Diamond_diffcultskdjh(t *testing.T) {
 	}
 }
 
-// 检查钻石难度值
+// Check diamond difficulty value
 func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
 	var nnn uint8 = 128
 	var dts = make([]byte, 32)
@@ -316,7 +316,7 @@ func Test_Diamond_CheckDiamondDifficulty(t *testing.T) {
 	}
 	fmt.Println(dts)
 
-	// 循环计算出难度目标
+	// Cycle to calculate the difficulty target
 	for dn := uint32(1); dn < 16770000; dn += 3277 * 12 {
 		for c := 0; c <= 32*256; c++ {
 			tarhx := getdiffhashtarget(c)
@@ -342,7 +342,7 @@ func getdiffhashtarget(subnum int) []byte {
 	return tarhash
 }
 
-// 检查钻石哈希分布
+// Check diamond hash distribution
 func Test_Diamond_HashMap(t *testing.T) {
 
 	bts := bytes.Repeat([]byte{0}, 32)

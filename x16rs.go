@@ -245,13 +245,14 @@ func CheckDiamondDifficulty(dNumber uint32, sha3hash, dBytes []byte) bool {
 
 	// Referring to Moore's law, the excavation difficulty of every 42000 diamonds will double in about 2 years,
 	// and the difficulty increment will tend to decrease to zero in 64 years
-	shnum := dNumber / 42000
-	if shnum > 32 {
-		shnum = 32 // Up to 64 years
-	}
-
-	for i := 0; i < int(shnum); i++ {
-		if sha3hash[i] >= DiaMooreDiffBits[i] {
+	// and increase the difficulty by 32-bit hash every 65536 diamonds
+	shnumlp := dNumber / 42000 // 32step max to 64 years
+	shmaxit := 255 - uint8(dNumber/65536)
+	for i := 0; i < 32; i++ {
+		if i < int(shnumlp) && sha3hash[i] >= DiaMooreDiffBits[i] {
+			return false // Check failed, difficulty value does not meet requirements
+		}
+		if sha3hash[i] > shmaxit {
 			return false // Check failed, difficulty value does not meet requirements
 		}
 	}

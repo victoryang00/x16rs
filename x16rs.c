@@ -675,14 +675,16 @@ void miner_diamond_hash(const uint32_t hsstart, const uint32_t hsend, const int 
                 	192,196,200,204,208,212,216,220,
                 	224,228,232,236,240,244,248,252
                 };
-                int shnum = diamondnumber / 42000;
-                if (shnum > 32){
-                    shnum = 32; // atmost 64 years
-                }
+                int shnum = diamondnumber / 42000; // max 32step atmost 64 years
+                int shmax = 255 - (diamondnumber / 65536);
                 uint8_t diffyes = 1;
                 int i;
-                for (i = 0; i < shnum; i++) {
-                    if (sha3res[i] >= diadiffbits[i]) {
+                for (i = 0; i < 32; i++) {
+                    if (i < shnum && sha3res[i] >= diadiffbits[i]) {
+                        diffyes = 0; // Check failed, difficulty value does not meet requirements
+                        break;
+                    }
+                    if (sha3res[i] > shmax) {
                         diffyes = 0; // Check failed, difficulty value does not meet requirements
                         break;
                     }

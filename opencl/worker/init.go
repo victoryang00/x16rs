@@ -10,6 +10,26 @@ import (
 func (mr *GpuMiner) Init() error {
 
 	var e error = nil
+
+	// opencl file prepare
+	if strings.Compare(mr.openclPath, "") == 0 {
+		tardir := GetCurrentDirectory() + "/opencl/"
+		if _, err := os.Stat(tardir); err != nil {
+			fmt.Println("Create opencl dir and render files...")
+			files := getRenderCreateAllOpenclFiles() // 输出所有文件
+			err := writeClFiles(tardir, files)
+			if err != nil {
+				fmt.Println(e)
+				os.Exit(0) // 致命错误
+			}
+			fmt.Println("all file ok.")
+		} else {
+			fmt.Println("Opencl dir already here.")
+		}
+		mr.openclPath = tardir
+	}
+
+	// start
 	platforms, e := cl.GetPlatforms()
 	if e != nil {
 		return e
@@ -50,24 +70,6 @@ func (mr *GpuMiner) Init() error {
 
 	if mr.context, e = cl.CreateContext(mr.devices); e != nil {
 		return e
-	}
-
-	// opencl 文件准备
-	if strings.Compare(mr.openclPath, "") == 0 {
-		tardir := GetCurrentDirectory() + "/opencl/"
-		if _, err := os.Stat(tardir); err != nil {
-			fmt.Println("Create opencl dir and render files...")
-			files := getRenderCreateAllOpenclFiles() // 输出所有文件
-			err := writeClFiles(tardir, files)
-			if err != nil {
-				fmt.Println(e)
-				os.Exit(0) // 致命错误
-			}
-			fmt.Println("all file ok.")
-		} else {
-			fmt.Println("Opencl dir already here.")
-		}
-		mr.openclPath = tardir
 	}
 
 	// 编译源码

@@ -1,4 +1,4 @@
-Fairness description of HAC and HACD mining
+HAC and HACD mining description of fairness
 ===
 
 This document is not a comprehensive and in-depth detailed explanation of the Hacash mining mechanism, nor is it an operation instruction manual for teaching mining, but an explanation of the fairness design in the mining reward and bidding mechanism of HAC and HACD.

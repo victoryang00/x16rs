@@ -10,6 +10,7 @@ import (
 	"github.com/xfong/go2opencl/cl"
 	"golang.org/x/crypto/sha3"
 	"log"
+	"math/big"
 	"math/rand"
 	"os"
 	"testing"
@@ -352,4 +353,19 @@ func Test_Diamond_HashMap(t *testing.T) {
 		diamond := DiamondHash(bts)
 		fmt.Print(diamond, " ")
 	}
+}
+
+func Test_hashrates(t *testing.T) {
+	var baseThash, _ = hex.DecodeString("00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+
+	diffhash, _ := hex.DecodeString("0000000001385c967fa4035e8cf5060bc57cd52934eb6e76eb4bebcf68f0083e")
+	diffhash = diffhash[0:32]
+
+	var T1 = big.NewFloat(0).SetInt(big.NewInt(0).SetBytes(baseThash))
+	var T = big.NewFloat(0).SetInt(big.NewInt(0).SetBytes(diffhash))
+	var D = big.NewFloat(0).Quo(T1, T)
+	var W = big.NewFloat(0).Mul(D, big.NewFloat(4294967296))
+
+	fmt.Println(W.String()) // 300
+
 }

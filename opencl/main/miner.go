@@ -546,8 +546,8 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 		}
 		fmt.Println("build complete get binaries...")
 		//fmt.Println("program.GetBinarySizes_2()")
-		// size := len(mr.devices)
-		sizes, _ := program.GetBinarySizes()
+		size := len(mr.devices)
+		sizes, _ := program.GetBinarySizes_2(size)
 		//fmt.Println(sizes)
 		//fmt.Println(sizes[0])
 		//fmt.Println("program.GetBinaries_2()")

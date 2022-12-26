@@ -6,15 +6,16 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/hacash/core/account"
-	"github.com/xfong/go2opencl/cl"
-	"golang.org/x/crypto/sha3"
 	"log"
 	"math/big"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/hacash/core/account"
+	"github.com/xfong/go2opencl/cl"
+	"golang.org/x/crypto/sha3"
 )
 
 func TestNewDiamondDiff(t *testing.T) {
@@ -232,7 +233,7 @@ func Test_OpenCL(t *testing.T) {
 	context, _ := cl.CreateContext([]*cl.Device{device})
 	queue, _ := context.CreateCommandQueue(device, 0)
 	program, _ := context.CreateProgramWithSource([]string{string(kernelSource)})
-	program.BuildProgram(nil, "-I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
+	program.BuildProgram(nil, "-I /home/victoryang00/Documents/x16rs/build") // -I /media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl
 	kernel, _ := program.CreateKernel("hash_sha3")
 
 	// input and output

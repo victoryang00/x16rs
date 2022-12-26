@@ -28,3 +28,5 @@ pkgcls.go
 *.o
 
 # main/
+.cache
+vendor/

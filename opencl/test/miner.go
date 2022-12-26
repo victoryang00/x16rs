@@ -17,7 +17,7 @@ func test() {
 	//item_wide := flag.Int("iw", 64, "Number of concurrent processing at a time")
 	//flag.Parse()
 
-	BuildProgram("/media/yangjie/500GB/Hacash/src/github.com/hacash/x16rs/opencl", "", 0, false, "miner_do_hash_x16rs_v1")
+	BuildProgram("/home/victoryang00/Documents/x16rs/opencl", "", 0, false, "miner_do_hash_x16rs_v1")
 
 }
 

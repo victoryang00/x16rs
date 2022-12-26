@@ -102,7 +102,7 @@ func check_step_by_input_hash(x16rsrepeat int, input_hash []byte) []byte {
 
 	//input_hash, _ := hex.DecodeString("4906f613be6708dca0ed8222368acc477036919485059c01a0735092474fe485")
 
-	device, _, kernel, context := buildOrLoadProgram("/media/yangjie/500GB/hacash/go/src/github.com/hacash/x16rs/opencl", 0, 0, false, "check_x16rs_step")
+	device, _, kernel, context := buildOrLoadProgram("/home/victoryang00/Documents/x16rs/opencl", 0, 0, false, "check_x16rs_step")
 
 	queue, _ := context.CreateCommandQueue(device, 0)
 

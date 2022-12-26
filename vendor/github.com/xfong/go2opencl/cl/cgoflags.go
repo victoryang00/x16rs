@@ -21,3 +21,4 @@ package cl
 //#cgo windows LDFLAGS:-LC:/Intel/opencl/lib/x64
 //#cgo windows CFLAGS: -IC:/Intel/opencl/include
 import "C"
+

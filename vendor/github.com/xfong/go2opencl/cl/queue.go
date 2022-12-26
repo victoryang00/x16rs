@@ -21,10 +21,10 @@ const (
 type CommandQueueInfo int
 
 const (
-	CommandQueueContext        CommandQueueInfo = C.CL_QUEUE_CONTEXT
-	CommandQueueDevice         CommandQueueInfo = C.CL_QUEUE_DEVICE
-	CommandQueueReferenceCount CommandQueueInfo = C.CL_QUEUE_REFERENCE_COUNT
-	CommandQueueProperties     CommandQueueInfo = C.CL_QUEUE_PROPERTIES
+	CommandQueueContext		CommandQueueInfo = C.CL_QUEUE_CONTEXT
+	CommandQueueDevice		CommandQueueInfo = C.CL_QUEUE_DEVICE
+	CommandQueueReferenceCount	CommandQueueInfo = C.CL_QUEUE_REFERENCE_COUNT
+	CommandQueueProperties		CommandQueueInfo = C.CL_QUEUE_PROPERTIES
 )
 
 //////////////// Abstract Types ////////////////
@@ -34,13 +34,13 @@ type CommandQueue struct {
 }
 
 //////////////// Golang Types ////////////////
-type CLCommandQueueProperties C.cl_command_queue_properties
+type CLCommandQueueProperties	C.cl_command_queue_properties
 
 //////////////// Basic Functions ////////////////
 func retainCommandQueue(q *CommandQueue) {
-	if q.clQueue != nil {
-		C.clRetainCommandQueue(q.clQueue)
-	}
+        if q.clQueue != nil {
+                C.clRetainCommandQueue(q.clQueue)
+        }
 }
 
 func releaseCommandQueue(q *CommandQueue) {
@@ -53,7 +53,7 @@ func releaseCommandQueue(q *CommandQueue) {
 //////////////// Abstract Functions ////////////////
 // Call clRetainCommandQueue on the CommandQueue.
 func (q *CommandQueue) Retain() {
-	retainCommandQueue(q)
+        retainCommandQueue(q)
 }
 
 // Call clReleaseCommandQueue on the CommandQueue. Using the CommandQueue after Release will cause a panick.
@@ -72,22 +72,22 @@ func (q *CommandQueue) Flush() error {
 }
 
 func (ctx *Context) CreateCommandQueue(device *Device, properties CommandQueueProperty) (*CommandQueue, error) {
-	var err C.cl_int
-	clQueue := C.clCreateCommandQueue(ctx.clContext, device.id, C.cl_command_queue_properties(properties), &err)
-	if err != C.CL_SUCCESS {
-		return nil, toError(err)
-	}
-	if clQueue == nil {
-		return nil, ErrUnknown
-	}
-	commandQueue := &CommandQueue{clQueue: clQueue, device: device}
-	runtime.SetFinalizer(commandQueue, releaseCommandQueue)
-	return commandQueue, nil
+        var err C.cl_int
+        clQueue := C.clCreateCommandQueue(ctx.clContext, device.id, C.cl_command_queue_properties(properties), &err)
+        if err != C.CL_SUCCESS {
+                return nil, toError(err)
+        }
+        if clQueue == nil {
+                return nil, ErrUnknown
+        }
+        commandQueue := &CommandQueue{clQueue: clQueue, device: device}
+        runtime.SetFinalizer(commandQueue, releaseCommandQueue)
+        return commandQueue, nil
 }
 
 func (q *CommandQueue) GetQueueContext() (*Context, error) {
-	if q.clQueue != nil {
-		var outContext C.cl_context
+        if q.clQueue != nil {
+	 	var outContext	C.cl_context
 		err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_CONTEXT, C.size_t(unsafe.Sizeof(outContext)), unsafe.Pointer(&outContext), nil)
 		return &Context{clContext: outContext, devices: nil}, toError(err)
 	}
@@ -95,28 +95,29 @@ func (q *CommandQueue) GetQueueContext() (*Context, error) {
 }
 
 func (q *CommandQueue) GetQueueDevice() (*Device, error) {
-	if q.clQueue != nil {
-		var outDevice C.cl_device_id
-		err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_DEVICE, C.size_t(unsafe.Sizeof(outDevice)), unsafe.Pointer(&outDevice), nil)
-		return &Device{id: outDevice}, toError(err)
-	}
-	return nil, toError(C.CL_INVALID_COMMAND_QUEUE)
+        if q.clQueue != nil {
+ 	        var outDevice	C.cl_device_id
+        	err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_DEVICE, C.size_t(unsafe.Sizeof(outDevice)), unsafe.Pointer(&outDevice), nil)
+	        return &Device{id: outDevice}, toError(err)
+        }
+        return nil, toError(C.CL_INVALID_COMMAND_QUEUE)
 }
 
 func (q *CommandQueue) GetQueueReferenceCount() (CLUint, error) {
-	if q.clQueue != nil {
-		var outCount C.cl_uint
-		err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_REFERENCE_COUNT, C.size_t(unsafe.Sizeof(outCount)), unsafe.Pointer(&outCount), nil)
-		return CLUint(outCount), toError(err)
-	}
-	return 0, toError(C.CL_INVALID_COMMAND_QUEUE)
+        if q.clQueue != nil {
+ 	        var outCount	C.cl_uint
+        	err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_REFERENCE_COUNT, C.size_t(unsafe.Sizeof(outCount)), unsafe.Pointer(&outCount), nil)
+	        return CLUint(outCount), toError(err)
+        }
+        return 0, toError(C.CL_INVALID_COMMAND_QUEUE)
 }
 
 func (q *CommandQueue) GetQueueProperties() (CommandQueueProperty, error) {
-	if q.clQueue != nil {
-		var outVar CommandQueueProperty
-		err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_PROPERTIES, C.size_t(unsafe.Sizeof(outVar)), unsafe.Pointer(&outVar), nil)
-		return outVar, toError(err)
-	}
-	return 0, toError(C.CL_INVALID_COMMAND_QUEUE)
+        if q.clQueue != nil {
+ 	        var outVar    CommandQueueProperty
+        	err := C.clGetCommandQueueInfo(q.clQueue, C.CL_QUEUE_PROPERTIES, C.size_t(unsafe.Sizeof(outVar)), unsafe.Pointer(&outVar), nil)
+	        return outVar, toError(err)
+        }
+        return 0, toError(C.CL_INVALID_COMMAND_QUEUE)
 }
+

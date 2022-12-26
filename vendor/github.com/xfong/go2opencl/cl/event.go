@@ -51,22 +51,21 @@ type Event struct {
 
 ////////////////// Supporting Types ////////////////
 type CL_go_set_event_callback func(event C.cl_event, callback_status C.cl_int, user_data unsafe.Pointer)
-
 var go_set_event_callback_func map[unsafe.Pointer]CL_go_set_event_callback
 
 //////////////// Basic Functions ///////////////
 //export go_set_event_callback
 func go_set_event_callback(event C.cl_event, callback_status C.cl_int, user_data unsafe.Pointer) {
-	var c_user_data []unsafe.Pointer
-	c_user_data = *(*[]unsafe.Pointer)(user_data)
-	go_set_event_callback_func[c_user_data[1]](event, callback_status, c_user_data[0])
+        var c_user_data []unsafe.Pointer
+        c_user_data = *(*[]unsafe.Pointer)(user_data)
+        go_set_event_callback_func[c_user_data[1]](event, callback_status, c_user_data[0])
 }
 
 func releaseEvent(ev *Event) {
-	if ev.clEvent != nil {
-		C.clReleaseEvent(ev.clEvent)
-		ev.clEvent = nil
-	}
+        if ev.clEvent != nil {
+                C.clReleaseEvent(ev.clEvent)
+                ev.clEvent = nil
+        }
 }
 
 func retainEvent(ev *Event) {
@@ -108,7 +107,7 @@ func eventListPtr(el []*Event) *C.cl_event {
 
 //////////////// Abstract Functions ///////////////
 func (e *Event) Release() {
-	releaseEvent(e)
+        releaseEvent(e)
 }
 
 func (e *Event) Retain() {
@@ -146,9 +145,9 @@ func (e *Event) GetContext() (*Context, error) {
 
 func (e *Event) GetCommandType() (CommandType, error) {
 	if e.clEvent != nil {
-		var status C.cl_command_type
+        	var status C.cl_command_type
 		var err C.cl_int
-		err = C.clGetEventInfo(e.clEvent, C.CL_EVENT_COMMAND_TYPE, C.size_t(unsafe.Sizeof(status)), unsafe.Pointer(&status), nil)
+	        err = C.clGetEventInfo(e.clEvent, C.CL_EVENT_COMMAND_TYPE, C.size_t(unsafe.Sizeof(status)), unsafe.Pointer(&status), nil)
 		if gl_sharing_ext {
 			check, gl_command_type := getGlCommandType(status)
 			if check {
@@ -173,48 +172,48 @@ func (e *Event) GetCommandType() (CommandType, error) {
 				return d3d11_command_type, toError(err)
 			}
 		}
-		switch status {
-		case C.CL_COMMAND_NDRANGE_KERNEL:
-			return CommandNDRangeKernel, toError(err)
-		case C.CL_COMMAND_TASK:
-			return CommandTask, toError(err)
-		case C.CL_COMMAND_NATIVE_KERNEL:
-			return CommandNativeKernel, toError(err)
-		case C.CL_COMMAND_READ_BUFFER:
-			return CommandReadBuffer, toError(err)
-		case C.CL_COMMAND_WRITE_BUFFER:
-			return CommandWriteBuffer, toError(err)
-		case C.CL_COMMAND_COPY_BUFFER:
-			return CommandCopyBuffer, toError(err)
-		case C.CL_COMMAND_READ_IMAGE:
-			return CommandReadImage, toError(err)
-		case C.CL_COMMAND_WRITE_IMAGE:
-			return CommandWriteImage, toError(err)
-		case C.CL_COMMAND_COPY_IMAGE:
-			return CommandCopyImage, toError(err)
-		case C.CL_COMMAND_COPY_BUFFER_TO_IMAGE:
-			return CommandCopyBufferToImage, toError(err)
-		case C.CL_COMMAND_COPY_IMAGE_TO_BUFFER:
-			return CommandCopyImageToBuffer, toError(err)
-		case C.CL_COMMAND_MAP_BUFFER:
-			return CommandMapBuffer, toError(err)
-		case C.CL_COMMAND_MAP_IMAGE:
-			return CommandMapImage, toError(err)
-		case C.CL_COMMAND_UNMAP_MEM_OBJECT:
-			return CommandUnmapMemObject, toError(err)
-		case C.CL_COMMAND_MARKER:
-			return CommandMarker, toError(err)
-		default:
-			return -1, toError(err)
-		}
+        	switch status {
+	        case C.CL_COMMAND_NDRANGE_KERNEL:
+        	        return CommandNDRangeKernel, toError(err)
+	        case C.CL_COMMAND_TASK:
+        	        return CommandTask, toError(err)
+	        case C.CL_COMMAND_NATIVE_KERNEL:
+        	        return CommandNativeKernel, toError(err)
+	        case C.CL_COMMAND_READ_BUFFER:
+        	        return CommandReadBuffer, toError(err)
+	        case C.CL_COMMAND_WRITE_BUFFER:
+        	        return CommandWriteBuffer, toError(err)
+	        case C.CL_COMMAND_COPY_BUFFER:
+        	        return CommandCopyBuffer, toError(err)
+	        case C.CL_COMMAND_READ_IMAGE:
+        	        return CommandReadImage, toError(err)
+	        case C.CL_COMMAND_WRITE_IMAGE:
+	                return CommandWriteImage, toError(err)
+        	case C.CL_COMMAND_COPY_IMAGE:
+                	return CommandCopyImage, toError(err)
+        	case C.CL_COMMAND_COPY_BUFFER_TO_IMAGE:
+                	return CommandCopyBufferToImage, toError(err)
+	        case C.CL_COMMAND_COPY_IMAGE_TO_BUFFER:
+        	        return CommandCopyImageToBuffer, toError(err)
+	        case C.CL_COMMAND_MAP_BUFFER:
+        	        return CommandMapBuffer, toError(err)
+	        case C.CL_COMMAND_MAP_IMAGE:
+        	        return CommandMapImage, toError(err)
+	        case C.CL_COMMAND_UNMAP_MEM_OBJECT:
+        	        return CommandUnmapMemObject, toError(err)
+	        case C.CL_COMMAND_MARKER:
+        	        return CommandMarker, toError(err)
+	        default:
+        	        return -1, toError(err)
+	        }
 	}
-	return -1, toError(C.CL_INVALID_EVENT)
+        return -1, toError(C.CL_INVALID_EVENT)
 }
 
 func (e *Event) GetStatus() (CommandExecStatus, error) {
 	if e.clEvent != nil {
 		var status C.cl_int
-		err := C.clGetEventInfo(e.clEvent, C.CL_EVENT_COMMAND_EXECUTION_STATUS, C.size_t(unsafe.Sizeof(status)), unsafe.Pointer(&status), nil)
+ 	        err := C.clGetEventInfo(e.clEvent, C.CL_EVENT_COMMAND_EXECUTION_STATUS, C.size_t(unsafe.Sizeof(status)), unsafe.Pointer(&status), nil)
 		switch {
 		case status == C.CL_QUEUED:
 			return CommandExecStatusQueued, toError(err)
@@ -233,28 +232,28 @@ func (e *Event) GetStatus() (CommandExecStatus, error) {
 
 func (e *Event) GetReferenceCount() (int, error) {
 	if e.clEvent != nil {
-		var outCount C.cl_uint
-		err := C.clGetEventInfo(e.clEvent, C.CL_EVENT_REFERENCE_COUNT, C.size_t(unsafe.Sizeof(outCount)), unsafe.Pointer(&outCount), nil)
-		return int(outCount), toError(err)
+        	var outCount C.cl_uint
+        	err := C.clGetEventInfo(e.clEvent, C.CL_EVENT_REFERENCE_COUNT, C.size_t(unsafe.Sizeof(outCount)), unsafe.Pointer(&outCount), nil)
+        	return int(outCount), toError(err)
 	}
 	return 0, toError(C.CL_INVALID_EVENT)
 }
 
 func (ctx *Context) CreateUserEvent() (*Event, error) {
-	var err C.cl_int
-	clEvent := C.clCreateUserEvent(ctx.clContext, &err)
-	if err != C.CL_SUCCESS {
-		return nil, toError(err)
-	}
-	return newEvent(clEvent), nil
+        var err C.cl_int
+        clEvent := C.clCreateUserEvent(ctx.clContext, &err)
+        if err != C.CL_SUCCESS {
+                return nil, toError(err)
+        }
+        return newEvent(clEvent), nil
 }
 
-func (ev *Event) SetUserEventStatus(status CommandExecStatus) error {
-	return toError(C.clSetUserEventStatus(ev.clEvent, (C.cl_int)(status)))
+func (ev *Event) SetUserEventStatus(status CommandExecStatus) (error) {
+        return toError(C.clSetUserEventStatus(ev.clEvent, (C.cl_int)(status)))
 }
 
-func (ev *Event) SetEventCallback(status CommandExecStatus, user_data unsafe.Pointer) error {
-	return toError(C.CLSetEventCallback(ev.clEvent, (C.cl_int)(status), user_data))
+func (ev *Event) SetEventCallback(status CommandExecStatus, user_data unsafe.Pointer) (error) {
+        return toError(C.CLSetEventCallback(ev.clEvent, (C.cl_int)(status), user_data))
 }
 
 // A synchronization point that enqueues a barrier operation.
@@ -270,3 +269,5 @@ func (q *CommandQueue) EnqueueMarkerWithWaitList(eventWaitList []*Event) (*Event
 	err := toError(C.clEnqueueMarkerWithWaitList(q.clQueue, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
 	return newEvent(event), err
 }
+
+

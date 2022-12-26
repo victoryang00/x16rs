@@ -585,56 +585,56 @@ func (d *Device) MaxWorkItemSizes() []int {
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector.
 func (d *Device) NativeVectorWidthChar() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, true)
+        return int(val)
 }
 
 // Native vector width size for built-in short type that can be put into vectors.
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector.
 func (d *Device) NativeVectorWidthShort() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT, true)
+        return int(val)
 }
 
 // Native vector width size for built-in int type that can be put into vectors.
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector.
 func (d *Device) NativeVectorWidthInt() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, true)
+        return int(val)
 }
 
 // Native vector width size for built-in long type that can be put into vectors.
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector.
 func (d *Device) NativeVectorWidthLong() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG, true)
+        return int(val)
 }
 
 // Native vector width size for built-in float type that can be put into vectors.
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector.
 func (d *Device) NativeVectorWidthFloat() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT, true)
+        return int(val)
 }
 
 // Native vector width size for built-in double type that can be put into vectors.
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector. Must return 0 when cl_khr_fp64 is unsupported.
 func (d *Device) NativeVectorWidthDouble() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE, true)
+        return int(val)
 }
 
 // Native vector width size for built-in half type that can be put into vectors.
 // The vector width is defined as the number of scalar elements that can be stored in
 // the vector. Must return 0 when cl_khr_fp16 is unsupported.
 func (d *Device) NativeVectorWidthHalf() int {
-	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF, true)
-	return int(val)
+        val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF, true)
+        return int(val)
 }
 
 // Preferred native vector width size for built-in char type that can be put into vectors.
@@ -719,155 +719,156 @@ func (d *Device) PartitionDeviceEqually(n int) ([]*Device, error) {
 }
 
 func (d *Device) PartitionDeviceByCounts(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
-	for ii, nn := range n {
-		Counts[ii] = (C.uint)(nn)
-	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByCounts(&Counts[0], (C.uint)(len(n))), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
+        for ii, nn := range n {
+                Counts[ii] = (C.uint)(nn)
+        }
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByCounts(&Counts[0], (C.uint)(len(n))), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
 
 func (d *Device) PartitionDeviceByNumaDomain(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
 	for ii, nn := range n {
 		Counts[ii] = (C.uint)(nn)
 	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByNuma(), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByNuma(), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
 
 func (d *Device) PartitionDeviceByL4CacheDomain(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
-	for ii, nn := range n {
-		Counts[ii] = (C.uint)(nn)
-	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL4Cache(), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
+        for ii, nn := range n {
+                Counts[ii] = (C.uint)(nn)
+        }
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL4Cache(), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
 
 func (d *Device) PartitionDeviceByL3CacheDomain(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
-	for ii, nn := range n {
-		Counts[ii] = (C.uint)(nn)
-	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL3Cache(), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
+        for ii, nn := range n {
+                Counts[ii] = (C.uint)(nn)
+        }
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL3Cache(), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
 
 func (d *Device) PartitionDeviceByL2CacheDomain(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
-	for ii, nn := range n {
-		Counts[ii] = (C.uint)(nn)
-	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL2Cache(), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
+        for ii, nn := range n {
+                Counts[ii] = (C.uint)(nn)
+        }
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL2Cache(), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
 
 func (d *Device) PartitionDeviceByL1CacheDomain(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
-	for ii, nn := range n {
-		Counts[ii] = (C.uint)(nn)
-	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL1Cache(), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
+        for ii, nn := range n {
+                Counts[ii] = (C.uint)(nn)
+        }
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByL1Cache(), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
 
 func (d *Device) PartitionDeviceByNextPartitionableDomain(n []int) ([]*Device, error) {
-	var deviceList []C.cl_device_id
-	var deviceCount C.cl_uint
-	defer C.free(unsafe.Pointer(&deviceList))
-	defer C.free(unsafe.Pointer(&deviceCount))
+        var deviceList []C.cl_device_id
+        var deviceCount C.cl_uint
+        defer C.free(unsafe.Pointer(&deviceList))
+        defer C.free(unsafe.Pointer(&deviceCount))
 
-	Counts := make([]C.uint, len(n))
-	defer C.free(unsafe.Pointer(&Counts))
-	for ii, nn := range n {
-		Counts[ii] = (C.uint)(nn)
-	}
-	err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByNextPartitionable(), 1, &deviceList[0], &deviceCount)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	val := make([]*Device, int(deviceCount))
-	for idx := range val {
-		val[idx].id = deviceList[idx]
-	}
-	return val, nil
+        Counts := make([]C.uint, len(n))
+        defer C.free(unsafe.Pointer(&Counts))
+        for ii, nn := range n {
+                Counts[ii] = (C.uint)(nn)
+        }
+        err := C.clCreateSubDevices(d.nullableId(), C.partitionDeviceByNextPartitionable(), 1, &deviceList[0], &deviceCount)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        val := make([]*Device, int(deviceCount))
+        for idx := range val {
+                val[idx].id = deviceList[idx]
+        }
+        return val, nil
 }
+

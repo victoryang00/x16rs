@@ -40,70 +40,70 @@ import (
 )
 
 //////////////// Basic Types ////////////////
-type GLUint C.cl_GLuint
-type GLInt C.cl_GLint
-type GLEnum C.cl_GLenum
-type GLSync C.cl_GLsync
+type GLUint	C.cl_GLuint
+type GLInt	C.cl_GLint
+type GLEnum	C.cl_GLenum
+type GLSync	C.cl_GLsync
 
 var (
-	ErrInvalidGlObject = errors.New("cl: Invalid Gl Object")
-	ErrInvalidMipLevel = errors.New("cl: Invalid Mip Level")
+        ErrInvalidGlObject                    = errors.New("cl: Invalid Gl Object")
+        ErrInvalidMipLevel                    = errors.New("cl: Invalid Mip Level")
 )
 
 const (
-	ContextGL  ContextPropertiesId = C.CL_GL_CONTEXT_KHR
-	ContextCGL ContextPropertiesId = C.CL_CGL_SHAREGROUP_KHR
-	ContextEGL ContextPropertiesId = C.CL_EGL_DISPLAY_KHR
-	ContextGLX ContextPropertiesId = C.CL_GLX_DISPLAY_KHR
-	ContextWGL ContextPropertiesId = C.CL_WGL_HDC_KHR
+        ContextGL               ContextPropertiesId = C.CL_GL_CONTEXT_KHR
+        ContextCGL              ContextPropertiesId = C.CL_CGL_SHAREGROUP_KHR
+        ContextEGL              ContextPropertiesId = C.CL_EGL_DISPLAY_KHR
+        ContextGLX              ContextPropertiesId = C.CL_GLX_DISPLAY_KHR
+        ContextWGL              ContextPropertiesId = C.CL_WGL_HDC_KHR
 
-	CommandAcquireGLObjects CommandType = C.CL_COMMAND_ACQUIRE_GL_OBJECTS
-	CommandReleaseGLObjects CommandType = C.CL_COMMAND_RELEASE_GL_OBJECTS
+        CommandAcquireGLObjects         CommandType = C.CL_COMMAND_ACQUIRE_GL_OBJECTS
+        CommandReleaseGLObjects         CommandType = C.CL_COMMAND_RELEASE_GL_OBJECTS
 )
 
-type GLTargets int
+type GLTargets	int
 
 const (
-	GlTexture1D          GLTargets = C.GL_TEXTURE_1D
-	GlTexture2D          GLTargets = C.GL_TEXTURE_2D
-	GlTexture1DArray     GLTargets = C.GL_TEXTURE_1D_ARRAY
-	GlTexture2DArray     GLTargets = C.GL_TEXTURE_2D_ARRAY
-	GlTextureRect        GLTargets = C.GL_TEXTURE_RECTANGLE
-	GlTexture3D          GLTargets = C.GL_TEXTURE_3D
-	GlTextureBuffer      GLTargets = C.GL_TEXTURE_BUFFER
-	GlTextureCubeMapPosX GLTargets = C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
-	GlTextureCubeMapNegX GLTargets = C.GL_TEXTURE_CUBE_MAP_NEGATIVE_X
-	GlTextureCubeMapPosY GLTargets = C.GL_TEXTURE_CUBE_MAP_POSITIVE_Y
-	GlTextureCubeMapNegY GLTargets = C.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
-	GlTextureCubeMapPosZ GLTargets = C.GL_TEXTURE_CUBE_MAP_POSITIVE_Z
-	GlTextureCubeMapNegZ GLTargets = C.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	GlTexture1D		GLTargets = C.GL_TEXTURE_1D
+	GlTexture2D		GLTargets = C.GL_TEXTURE_2D
+	GlTexture1DArray	GLTargets = C.GL_TEXTURE_1D_ARRAY
+	GlTexture2DArray	GLTargets = C.GL_TEXTURE_2D_ARRAY
+	GlTextureRect		GLTargets = C.GL_TEXTURE_RECTANGLE
+	GlTexture3D		GLTargets = C.GL_TEXTURE_3D
+	GlTextureBuffer		GLTargets = C.GL_TEXTURE_BUFFER
+	GlTextureCubeMapPosX	GLTargets = C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
+	GlTextureCubeMapNegX	GLTargets = C.GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+	GlTextureCubeMapPosY	GLTargets = C.GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+	GlTextureCubeMapNegY	GLTargets = C.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+	GlTextureCubeMapPosZ	GLTargets = C.GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+	GlTextureCubeMapNegZ	GLTargets = C.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 )
 
 type GLObjectTypes int
 
 const (
-	GlObjectBuffer         GLObjectTypes = C.CL_GL_OBJECT_BUFFER
-	GlObjectTextureBuffer  GLObjectTypes = C.CL_GL_OBJECT_TEXTURE_BUFFER
-	GlObjectTexture1D      GLObjectTypes = C.CL_GL_OBJECT_TEXTURE1D
-	GlObjectTexture2D      GLObjectTypes = C.CL_GL_OBJECT_TEXTURE2D
-	GlObjectTexture3D      GLObjectTypes = C.CL_GL_OBJECT_TEXTURE3D
-	GlObjectTexture1DArray GLObjectTypes = C.CL_GL_OBJECT_TEXTURE1D_ARRAY
-	GlObjectTexture2DArray GLObjectTypes = C.CL_GL_OBJECT_TEXTURE2D_ARRAY
-	GlObjectRenderBuffer   GLObjectTypes = C.CL_GL_OBJECT_RENDERBUFFER
+	GlObjectBuffer		GLObjectTypes = C.CL_GL_OBJECT_BUFFER
+	GlObjectTextureBuffer	GLObjectTypes = C.CL_GL_OBJECT_TEXTURE_BUFFER
+	GlObjectTexture1D	GLObjectTypes = C.CL_GL_OBJECT_TEXTURE1D
+	GlObjectTexture2D	GLObjectTypes = C.CL_GL_OBJECT_TEXTURE2D
+	GlObjectTexture3D	GLObjectTypes = C.CL_GL_OBJECT_TEXTURE3D
+	GlObjectTexture1DArray	GLObjectTypes = C.CL_GL_OBJECT_TEXTURE1D_ARRAY
+	GlObjectTexture2DArray	GLObjectTypes = C.CL_GL_OBJECT_TEXTURE2D_ARRAY
+	GlObjectRenderBuffer	GLObjectTypes = C.CL_GL_OBJECT_RENDERBUFFER
 )
 
 type GLTextureInfoPar int
 
 const (
-	GlTextureTarget GLTextureInfoPar = C.CL_GL_TEXTURE_TARGET
-	GlMipmapLevel   GLTextureInfoPar = C.CL_GL_MIPMAP_LEVEL
+	GlTextureTarget		GLTextureInfoPar = C.CL_GL_TEXTURE_TARGET
+	GlMipmapLevel		GLTextureInfoPar = C.CL_GL_MIPMAP_LEVEL
 )
 
 type GLContextInfoType int
 
 const (
-	GLContextCurrentDevice GLContextInfoType = C.CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR
-	GLContextAllDevices    GLContextInfoType = C.CL_DEVICES_FOR_GL_CONTEXT_KHR
+	GLContextCurrentDevice		GLContextInfoType = C.CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR
+	GLContextAllDevices		GLContextInfoType = C.CL_DEVICES_FOR_GL_CONTEXT_KHR
 )
 
 //////////////// Basic Functions ////////////////
@@ -204,7 +204,7 @@ func (flag MemFlag) GlBufferCreateFlag() C.cl_mem_flags {
 func (ctx *Context) CreateFromGlBuffer(flag MemFlag, GlBufferObject GLUint) (*MemObject, error) {
 	var err C.int
 	memobj := C.clCreateFromGLBuffer(ctx.clContext, flag.GlBufferCreateFlag(), (C.cl_GLuint)(GlBufferObject), &err)
-
+	
 	if toError(C.cl_int(err)) != nil {
 		return nil, toError(GlErrorCodeToCl(int(err)))
 	}
@@ -219,37 +219,37 @@ func (ctx *Context) CreateFromGlBuffer(flag MemFlag, GlBufferObject GLUint) (*Me
 }
 
 func (ctx *Context) CreateFromGlTexture(flag MemFlag, GlBufferObject GLUint, targ GLTargets, miplvl GLInt, texture GLUint) (*MemObject, error) {
-	var err C.cl_int
-	memobj := C.clCreateFromGLTexture(ctx.clContext, flag.GlBufferCreateFlag(), GlTargetToCl(targ), (C.cl_GLint)(miplvl), (C.cl_GLuint)(texture), &err)
+        var err C.cl_int
+        memobj := C.clCreateFromGLTexture(ctx.clContext, flag.GlBufferCreateFlag(), GlTargetToCl(targ), (C.cl_GLint)(miplvl), (C.cl_GLuint)(texture), &err)
 
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
-	GlBufferObj := &MemObject{clMem: memobj, size: 0}
-	bufSize, sizeErr := GlBufferObj.GetSize()
-	if sizeErr != nil {
-		fmt.Printf("Unable to get buffer size in CreateFromGlTexture2D \n")
-		return nil, sizeErr
-	}
-	GlBufferObj.size = bufSize
-	return GlBufferObj, nil
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
+        GlBufferObj := &MemObject{clMem: memobj, size: 0}
+        bufSize, sizeErr := GlBufferObj.GetSize()
+        if sizeErr != nil {
+                fmt.Printf("Unable to get buffer size in CreateFromGlTexture2D \n")
+                return nil, sizeErr
+        }
+        GlBufferObj.size = bufSize
+        return GlBufferObj, nil
 }
 
 func (ctx *Context) CreateFromGlRenderBuffer(flag MemFlag, GlRenderBufferObject GLUint) (*MemObject, error) {
-	var err C.cl_int
-	memobj := C.clCreateFromGLRenderbuffer(ctx.clContext, flag.GlBufferCreateFlag(), (C.cl_GLuint)(GlRenderBufferObject), &err)
+        var err C.cl_int
+        memobj := C.clCreateFromGLRenderbuffer(ctx.clContext, flag.GlBufferCreateFlag(), (C.cl_GLuint)(GlRenderBufferObject), &err)
 
-	if toError(err) != nil {
-		return nil, toError(GlErrorCodeToCl(int(err)))
-	}
-	GlBufferObj := &MemObject{clMem: memobj, size: 0}
-	bufSize, sizeErr := GlBufferObj.GetSize()
-	if sizeErr != nil {
-		fmt.Printf("Unable to get buffer size in CreateFromGlRenderBuffer \n")
-		return nil, sizeErr
-	}
-	GlBufferObj.size = bufSize
-	return GlBufferObj, nil
+        if toError(err) != nil {
+                return nil, toError(GlErrorCodeToCl(int(err)))
+        }
+        GlBufferObj := &MemObject{clMem: memobj, size: 0}
+        bufSize, sizeErr := GlBufferObj.GetSize()
+        if sizeErr != nil {
+                fmt.Printf("Unable to get buffer size in CreateFromGlRenderBuffer \n")
+                return nil, sizeErr
+        }
+        GlBufferObj.size = bufSize
+        return GlBufferObj, nil
 }
 
 func (ctx *Context) CreateEventFromGLsync(gl_sync GLSync) (*Event, error) {
@@ -304,3 +304,4 @@ func (q *CommandQueue) EnqueueReleaseGlObjects(memObjList []*MemObject, eventWai
 	err := C.clEnqueueReleaseGLObjects(q.clQueue, (C.cl_uint)(memObjCnt), &memObjs[0], (C.cl_uint)(len(eventWaitList)), eventListPtr(eventWaitList), &event)
 	return newEvent(event), toError(err)
 }
+

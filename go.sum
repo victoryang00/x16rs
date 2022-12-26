@@ -1,0 +1,10 @@
+github.com/hacash/core v0.0.0-20221127065056-05be43e3ba5d h1:UaVVkbnOq2Rb1I0o5FV7bWRFKgi+zj+QS6915s6lNG8=
+github.com/hacash/core v0.0.0-20221127065056-05be43e3ba5d/go.mod h1:gWuO4D8hawmWHa19g8YLtiYFKNZnMt+4cDTkm8bgQhE=
+github.com/hacash/mint v0.0.0-20220909094906-296778fdefc9 h1:kzVAhZvAxoszQY3pcmzBPbPc7R9ne0AmLeAn/fZLW3E=
+github.com/hacash/mint v0.0.0-20220909094906-296778fdefc9/go.mod h1:7yDfZrvethhkCQ76zbSyeNTZf9Sm4lzW3rp3t2r4zCs=
+github.com/xfong/go2opencl v0.0.0-20170404053003-cce8d3f0116d h1:XM+9BbU8LmOoE2qGhM0Q2TVzEYiS026LfjcrNXTThS0=
+github.com/xfong/go2opencl v0.0.0-20170404053003-cce8d3f0116d/go.mod h1:J6Y4Akra4KpzvaPgIc92elkeSpMm0hC9aAujx7zFMNo=
+golang.org/x/crypto v0.4.0 h1:UVQgzMY87xqpKNgb+kDsll2Igd33HszWHFLmpaRMq/8=
+golang.org/x/crypto v0.4.0/go.mod h1:3quD/ATkf6oY+rnes5c3ExXTbLc8mueNue5/DoinL80=
+golang.org/x/sys v0.3.0 h1:w8ZOecv6NaNa/zC8944JTU3vz4u6Lagfk4RPQxv92NQ=
+golang.org/x/sys v0.3.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

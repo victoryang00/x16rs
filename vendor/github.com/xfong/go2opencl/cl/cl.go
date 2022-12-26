@@ -17,6 +17,8 @@ in the Go standard packages.
 package cl
 
 /*
+#cgo CFLAGS: -I/usr/local/cuda-12.0/targets/x86_64-linux/include/
+#cgo LDFLAGS: -L/usr/local/cuda-12.0/targets/x86_64-linux/lib/ -L/home/victoryang00/Documents/x16rs/build
 #include "./opencl.h"
 */
 import "C"
@@ -99,60 +101,60 @@ var (
 )
 
 var errorMap = map[C.cl_int]error{
-	C.CL_SUCCESS:                         nil,
-	C.CL_DEVICE_NOT_FOUND:                ErrDeviceNotFound,
-	C.CL_DEVICE_NOT_AVAILABLE:            ErrDeviceNotAvailable,
-	C.CL_COMPILER_NOT_AVAILABLE:          ErrCompilerNotAvailable,
-	C.CL_MEM_OBJECT_ALLOCATION_FAILURE:   ErrMemObjectAllocationFailure,
-	C.CL_OUT_OF_RESOURCES:                ErrOutOfResources,
-	C.CL_OUT_OF_HOST_MEMORY:              ErrOutOfHostMemory,
-	C.CL_PROFILING_INFO_NOT_AVAILABLE:    ErrProfilingInfoNotAvailable,
-	C.CL_MEM_COPY_OVERLAP:                ErrMemCopyOverlap,
-	C.CL_IMAGE_FORMAT_MISMATCH:           ErrImageFormatMismatch,
-	C.CL_IMAGE_FORMAT_NOT_SUPPORTED:      ErrImageFormatNotSupported,
-	C.CL_BUILD_PROGRAM_FAILURE:           ErrBuildProgramFailure,
-	C.CL_MAP_FAILURE:                     ErrMapFailure,
-	C.CL_INVALID_VALUE:                   ErrInvalidValue,
-	C.CL_INVALID_DEVICE_TYPE:             ErrInvalidDeviceType,
-	C.CL_INVALID_PLATFORM:                ErrInvalidPlatform,
-	C.CL_INVALID_DEVICE:                  ErrInvalidDevice,
-	C.CL_INVALID_CONTEXT:                 ErrInvalidContext,
-	C.CL_INVALID_QUEUE_PROPERTIES:        ErrInvalidQueueProperties,
-	C.CL_INVALID_COMMAND_QUEUE:           ErrInvalidCommandQueue,
-	C.CL_INVALID_HOST_PTR:                ErrInvalidHostPtr,
-	C.CL_INVALID_MEM_OBJECT:              ErrInvalidMemObject,
-	C.CL_INVALID_IMAGE_FORMAT_DESCRIPTOR: ErrInvalidImageFormatDescriptor,
-	C.CL_INVALID_IMAGE_SIZE:              ErrInvalidImageSize,
-	C.CL_INVALID_SAMPLER:                 ErrInvalidSampler,
-	C.CL_INVALID_BINARY:                  ErrInvalidBinary,
-	C.CL_INVALID_BUILD_OPTIONS:           ErrInvalidBuildOptions,
-	C.CL_INVALID_PROGRAM:                 ErrInvalidProgram,
-	C.CL_INVALID_PROGRAM_EXECUTABLE:      ErrInvalidProgramExecutable,
-	C.CL_INVALID_KERNEL_NAME:             ErrInvalidKernelName,
-	C.CL_INVALID_KERNEL_DEFINITION:       ErrInvalidKernelDefinition,
-	C.CL_INVALID_KERNEL:                  ErrInvalidKernel,
-	C.CL_INVALID_ARG_INDEX:               ErrInvalidArgIndex,
-	C.CL_INVALID_ARG_VALUE:               ErrInvalidArgValue,
-	C.CL_INVALID_ARG_SIZE:                ErrInvalidArgSize,
-	C.CL_INVALID_KERNEL_ARGS:             ErrInvalidKernelArgs,
-	C.CL_INVALID_WORK_DIMENSION:          ErrInvalidWorkDimension,
-	C.CL_INVALID_WORK_GROUP_SIZE:         ErrInvalidWorkGroupSize,
-	C.CL_INVALID_WORK_ITEM_SIZE:          ErrInvalidWorkItemSize,
-	C.CL_INVALID_GLOBAL_OFFSET:           ErrInvalidGlobalOffset,
-	C.CL_INVALID_EVENT_WAIT_LIST:         ErrInvalidEventWaitList,
-	C.CL_INVALID_EVENT:                   ErrInvalidEvent,
-	C.CL_INVALID_OPERATION:               ErrInvalidOperation,
-	C.CL_INVALID_BUFFER_SIZE:             ErrInvalidBufferSize,
-	C.CL_INVALID_GLOBAL_WORK_SIZE:        ErrInvalidGlobalWorkSize,
-	C.CL_COMPILE_PROGRAM_FAILURE:         ErrCompileProgramFailure,
-	C.CL_DEVICE_PARTITION_FAILED:         ErrDevicePartitionFailed,
-	C.CL_INVALID_COMPILER_OPTIONS:        ErrInvalidCompilerOptions,
-	C.CL_INVALID_DEVICE_PARTITION_COUNT:  ErrInvalidDevicePartitionCount,
-	C.CL_INVALID_IMAGE_DESCRIPTOR:        ErrInvalidImageDescriptor,
-	C.CL_INVALID_LINKER_OPTIONS:          ErrInvalidLinkerOptions,
-	C.CL_KERNEL_ARG_INFO_NOT_AVAILABLE:   ErrKernelArgInfoNotAvailable,
-	C.CL_LINK_PROGRAM_FAILURE:            ErrLinkProgramFailure,
-	C.CL_LINKER_NOT_AVAILABLE:            ErrLinkerNotAvailable,
+	C.CL_SUCCESS:                                   nil,
+	C.CL_DEVICE_NOT_FOUND:                          ErrDeviceNotFound,
+	C.CL_DEVICE_NOT_AVAILABLE:                      ErrDeviceNotAvailable,
+	C.CL_COMPILER_NOT_AVAILABLE:                    ErrCompilerNotAvailable,
+	C.CL_MEM_OBJECT_ALLOCATION_FAILURE:             ErrMemObjectAllocationFailure,
+	C.CL_OUT_OF_RESOURCES:                          ErrOutOfResources,
+	C.CL_OUT_OF_HOST_MEMORY:                        ErrOutOfHostMemory,
+	C.CL_PROFILING_INFO_NOT_AVAILABLE:              ErrProfilingInfoNotAvailable,
+	C.CL_MEM_COPY_OVERLAP:                          ErrMemCopyOverlap,
+	C.CL_IMAGE_FORMAT_MISMATCH:                     ErrImageFormatMismatch,
+	C.CL_IMAGE_FORMAT_NOT_SUPPORTED:                ErrImageFormatNotSupported,
+	C.CL_BUILD_PROGRAM_FAILURE:                     ErrBuildProgramFailure,
+	C.CL_MAP_FAILURE:                               ErrMapFailure,
+	C.CL_INVALID_VALUE:                             ErrInvalidValue,
+	C.CL_INVALID_DEVICE_TYPE:                       ErrInvalidDeviceType,
+	C.CL_INVALID_PLATFORM:                          ErrInvalidPlatform,
+	C.CL_INVALID_DEVICE:                            ErrInvalidDevice,
+	C.CL_INVALID_CONTEXT:                           ErrInvalidContext,
+	C.CL_INVALID_QUEUE_PROPERTIES:                  ErrInvalidQueueProperties,
+	C.CL_INVALID_COMMAND_QUEUE:                     ErrInvalidCommandQueue,
+	C.CL_INVALID_HOST_PTR:                          ErrInvalidHostPtr,
+	C.CL_INVALID_MEM_OBJECT:                        ErrInvalidMemObject,
+	C.CL_INVALID_IMAGE_FORMAT_DESCRIPTOR:           ErrInvalidImageFormatDescriptor,
+	C.CL_INVALID_IMAGE_SIZE:                        ErrInvalidImageSize,
+	C.CL_INVALID_SAMPLER:                           ErrInvalidSampler,
+	C.CL_INVALID_BINARY:                            ErrInvalidBinary,
+	C.CL_INVALID_BUILD_OPTIONS:                     ErrInvalidBuildOptions,
+	C.CL_INVALID_PROGRAM:                           ErrInvalidProgram,
+	C.CL_INVALID_PROGRAM_EXECUTABLE:                ErrInvalidProgramExecutable,
+	C.CL_INVALID_KERNEL_NAME:                       ErrInvalidKernelName,
+	C.CL_INVALID_KERNEL_DEFINITION:                 ErrInvalidKernelDefinition,
+	C.CL_INVALID_KERNEL:                            ErrInvalidKernel,
+	C.CL_INVALID_ARG_INDEX:                         ErrInvalidArgIndex,
+	C.CL_INVALID_ARG_VALUE:                         ErrInvalidArgValue,
+	C.CL_INVALID_ARG_SIZE:                          ErrInvalidArgSize,
+	C.CL_INVALID_KERNEL_ARGS:                       ErrInvalidKernelArgs,
+	C.CL_INVALID_WORK_DIMENSION:                    ErrInvalidWorkDimension,
+	C.CL_INVALID_WORK_GROUP_SIZE:                   ErrInvalidWorkGroupSize,
+	C.CL_INVALID_WORK_ITEM_SIZE:                    ErrInvalidWorkItemSize,
+	C.CL_INVALID_GLOBAL_OFFSET:                     ErrInvalidGlobalOffset,
+	C.CL_INVALID_EVENT_WAIT_LIST:                   ErrInvalidEventWaitList,
+	C.CL_INVALID_EVENT:                             ErrInvalidEvent,
+	C.CL_INVALID_OPERATION:                         ErrInvalidOperation,
+	C.CL_INVALID_BUFFER_SIZE:                       ErrInvalidBufferSize,
+	C.CL_INVALID_GLOBAL_WORK_SIZE:                  ErrInvalidGlobalWorkSize,
+        C.CL_COMPILE_PROGRAM_FAILURE:			ErrCompileProgramFailure,
+        C.CL_DEVICE_PARTITION_FAILED:			ErrDevicePartitionFailed,
+        C.CL_INVALID_COMPILER_OPTIONS:			ErrInvalidCompilerOptions,
+        C.CL_INVALID_DEVICE_PARTITION_COUNT:		ErrInvalidDevicePartitionCount,
+        C.CL_INVALID_IMAGE_DESCRIPTOR:			ErrInvalidImageDescriptor,
+        C.CL_INVALID_LINKER_OPTIONS:			ErrInvalidLinkerOptions,
+        C.CL_KERNEL_ARG_INFO_NOT_AVAILABLE:		ErrKernelArgInfoNotAvailable,
+        C.CL_LINK_PROGRAM_FAILURE:			ErrLinkProgramFailure,
+        C.CL_LINKER_NOT_AVAILABLE:			ErrLinkerNotAvailable,
 }
 
 func toError(code C.cl_int) error {
@@ -195,21 +197,21 @@ const (
 type CommandType int
 
 const (
-	CommandNDRangeKernel     CommandType = C.CL_COMMAND_NDRANGE_KERNEL
-	CommandTask              CommandType = C.CL_COMMAND_TASK
-	CommandNativeKernel      CommandType = C.CL_COMMAND_NATIVE_KERNEL
-	CommandReadBuffer        CommandType = C.CL_COMMAND_READ_BUFFER
-	CommandWriteBuffer       CommandType = C.CL_COMMAND_WRITE_BUFFER
-	CommandCopyBuffer        CommandType = C.CL_COMMAND_COPY_BUFFER
-	CommandReadImage         CommandType = C.CL_COMMAND_READ_IMAGE
-	CommandWriteImage        CommandType = C.CL_COMMAND_WRITE_IMAGE
-	CommandCopyImage         CommandType = C.CL_COMMAND_COPY_IMAGE
-	CommandCopyBufferToImage CommandType = C.CL_COMMAND_COPY_BUFFER_TO_IMAGE
-	CommandCopyImageToBuffer CommandType = C.CL_COMMAND_COPY_IMAGE_TO_BUFFER
-	CommandMapBuffer         CommandType = C.CL_COMMAND_MAP_BUFFER
-	CommandMapImage          CommandType = C.CL_COMMAND_MAP_IMAGE
-	CommandUnmapMemObject    CommandType = C.CL_COMMAND_UNMAP_MEM_OBJECT
-	CommandMarker            CommandType = C.CL_COMMAND_MARKER
+	CommandNDRangeKernel		CommandType = C.CL_COMMAND_NDRANGE_KERNEL
+	CommandTask			CommandType = C.CL_COMMAND_TASK
+        CommandNativeKernel		CommandType = C.CL_COMMAND_NATIVE_KERNEL
+        CommandReadBuffer		CommandType = C.CL_COMMAND_READ_BUFFER
+        CommandWriteBuffer		CommandType = C.CL_COMMAND_WRITE_BUFFER
+        CommandCopyBuffer		CommandType = C.CL_COMMAND_COPY_BUFFER
+        CommandReadImage		CommandType = C.CL_COMMAND_READ_IMAGE
+        CommandWriteImage		CommandType = C.CL_COMMAND_WRITE_IMAGE
+        CommandCopyImage		CommandType = C.CL_COMMAND_COPY_IMAGE
+        CommandCopyBufferToImage	CommandType = C.CL_COMMAND_COPY_BUFFER_TO_IMAGE
+        CommandCopyImageToBuffer	CommandType = C.CL_COMMAND_COPY_IMAGE_TO_BUFFER
+	CommandMapBuffer		CommandType = C.CL_COMMAND_MAP_BUFFER
+	CommandMapImage			CommandType = C.CL_COMMAND_MAP_IMAGE
+	CommandUnmapMemObject		CommandType = C.CL_COMMAND_UNMAP_MEM_OBJECT
+	CommandMarker			CommandType = C.CL_COMMAND_MARKER
 )
 
 func clBool(b bool) C.cl_bool {
@@ -227,18 +229,18 @@ func sizeT3(i3 [3]int) [3]C.size_t {
 	return val
 }
 
-type CLUint C.cl_uint
+type CLUint	C.cl_uint
 
 type Dim3 struct {
-	X int
-	Y int
-	Z int
+	X	int
+	Y	int
+	Z	int
 }
 
-var gl_sharing_ext bool
-var dx9_sharing_ext bool
-var d3d10_sharing_ext bool
-var d3d11_sharing_ext bool
+var gl_sharing_ext	bool
+var dx9_sharing_ext	bool
+var d3d10_sharing_ext	bool
+var d3d11_sharing_ext	bool
 
 var getGlCommandType func(C.cl_command_type) (bool, CommandType)
 var getDX9CommandType func(C.cl_command_type) (bool, CommandType)

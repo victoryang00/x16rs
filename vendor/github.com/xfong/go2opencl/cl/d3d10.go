@@ -73,66 +73,66 @@ import (
 
 //////////////// Basic Types ////////////////
 var (
-	ErrInvalidD3D10Device           = errors.New("cl: Invalid D3D10 Device")
-	ErrInvalidD3D10Resource         = errors.New("cl: Invalid D3D10 Resource")
-	ErrD3D10ResourceAlreadyAcquired = errors.New("cl: D3D10 Resource Already Acquired")
-	ErrD3D10ResourceNotAcquired     = errors.New("cl: D3D10 Resource Not Acquired")
+	ErrInvalidD3D10Device		= errors.New("cl: Invalid D3D10 Device")
+	ErrInvalidD3D10Resource		= errors.New("cl: Invalid D3D10 Resource")
+	ErrD3D10ResourceAlreadyAcquired	= errors.New("cl: D3D10 Resource Already Acquired")
+	ErrD3D10ResourceNotAcquired	= errors.New("cl: D3D10 Resource Not Acquired")
 )
 
 const (
-	ContextD3D10PreferredSharedResources ContextInfo = C.CL_CONTEXT_D3D10_PREFER_SHARED_RESOURCES_KHR
+        ContextD3D10PreferredSharedResources    ContextInfo = C.CL_CONTEXT_D3D10_PREFER_SHARED_RESOURCES_KHR
 
-	ContextD3D10Device ContextPropertiesId = C.CL_CONTEXT_D3D10_DEVICE_KHR
+        ContextD3D10Device      ContextPropertiesId = C.CL_CONTEXT_D3D10_DEVICE_KHR
 
-	CommandAcquireD3D10Objects CommandType = C.CL_COMMAND_ACQUIRE_D3D10_OBJECTS_KHR
-	CommandReleaseD3D10Objects CommandType = C.CL_COMMAND_RELEASE_D3D10_OBJECTS_KHR
+        CommandAcquireD3D10Objects         CommandType = C.CL_COMMAND_ACQUIRE_D3D10_OBJECTS_KHR
+        CommandReleaseD3D10Objects         CommandType = C.CL_COMMAND_RELEASE_D3D10_OBJECTS_KHR
 )
 
 type CLD3D10DeviceSourceKHR int
 
 const (
-	CLD3D10Device      CLD3D10DeviceSourceKHR = C.CL_D3D10_DEVICE_KHR
-	CLD3D10DXGIAdapter CLD3D10DeviceSourceKHR = C.CL_D3D10_DXGI_ADAPTER_KHR
+	CLD3D10Device		CLD3D10DeviceSourceKHR = C.CL_D3D10_DEVICE_KHR
+	CLD3D10DXGIAdapter	CLD3D10DeviceSourceKHR = C.CL_D3D10_DXGI_ADAPTER_KHR
 )
 
 type CLD3D10DeviceSetKHR int
 
 const (
-	CLD3D10PreferredDevices CLD3D10DeviceSetKHR = C.CL_PREFERRED_DEVICES_FOR_D3D10_KHR
-	CLD3D10AllDevices       CLD3D10DeviceSetKHR = C.CL_ALL_DEVICES_FOR_D3D10_KHR
+        CLD3D10PreferredDevices       CLD3D10DeviceSetKHR = C.CL_PREFERRED_DEVICES_FOR_D3D10_KHR
+        CLD3D10AllDevices	      CLD3D10DeviceSetKHR = C.CL_ALL_DEVICES_FOR_D3D10_KHR
 )
 
 //////////////// Basic Functions ////////////////
 func init() {
-	errorMap[C.CL_INVALID_D3D10_DEVICE_KHR] = ErrInvalidD3D10Device
-	errorMap[C.CL_INVALID_D3D10_RESOURCE_KHR] = ErrInvalidD3D10Resource
-	errorMap[C.CL_D3D10_RESOURCE_ALREADY_ACQUIRED_KHR] = ErrD3D10ResourceAlreadyAcquired
-	errorMap[C.CL_D3D10_RESOURCE_NOT_ACQUIRED_KHR] = ErrD3D10ResourceNotAcquired
+	errorMap[C.CL_INVALID_D3D10_DEVICE_KHR]			= ErrInvalidD3D10Device
+	errorMap[C.CL_INVALID_D3D10_RESOURCE_KHR]		= ErrInvalidD3D10Resource
+	errorMap[C.CL_D3D10_RESOURCE_ALREADY_ACQUIRED_KHR]	= ErrD3D10ResourceAlreadyAcquired
+	errorMap[C.CL_D3D10_RESOURCE_NOT_ACQUIRED_KHR]		= ErrD3D10ResourceNotAcquired
 
 	d3d10_sharing_ext = true
 	getD3D10CommandType = D3D10StatusToCommandType
 }
 
 func D3D10StatusToCommandType(status C.cl_command_type) (bool, CommandType) {
-	switch status {
-	case C.CL_COMMAND_ACQUIRE_D3D10_OBJECTS_KHR:
-		return true, CommandAcquireD3D10Objects
-	case C.CL_COMMAND_RELEASE_D3D10_OBJECTS_KHR:
-		return true, CommandReleaseD3D10Objects
-	default:
-		return false, -1
-	}
+        switch status {
+        case C.CL_COMMAND_ACQUIRE_D3D10_OBJECTS_KHR:
+                return true, CommandAcquireD3D10Objects
+        case C.CL_COMMAND_RELEASE_D3D10_OBJECTS_KHR:
+                return true, CommandReleaseD3D10Objects
+        default:
+                return false, -1
+        }
 }
 
 //////////////// Abstract Functions ////////////////
 func (p *Platform) SetupD3D10Sharing() {
-	C.SetupD3D10Sharing(p.id)
+        C.SetupD3D10Sharing(p.id)
 }
 
 func (p *Platform) GetDeviceIDsFromD3D10(D3D10DeviceSrc CLD3D10DeviceSourceKHR, D3D10Obj unsafe.Pointer, D3D10DeviceSet CLD3D10DeviceSetKHR, num_devices int) ([]*Device, error) {
 	var device_id_tmp []C.cl_device_id
 	defer C.free(device_id_tmp)
-	var device_count C.cl_uint
+	var device_count  C.cl_uint
 	defer C.free(device_count)
 	err := C.CLGetDeviceIDsFromD3D10(p.id, (C.cl_d3d10_device_source_khr)(D3D10DeviceSrc), D3D10Obj, (C.cl_d3d10_device_set_khr)(D3D10DeviceSet), (C.cl_uint)(num_devices), &device_id_tmp[0], &device_count)
 	go_count := int(device_count)
@@ -148,38 +148,38 @@ func (ctx *Context) CreateFromD3D10Buffer(flag MemFlag, src unsafe.Pointer) (*Me
 	defer C.free(err)
 	memObj := C.CLCreateFromD3D10Buffer(ctx.clContext, (C.cl_mem_flags)(flag), (*C.ID3D10Buffer)(src), &err)
 	tmpBuf := &MemObject{clMem: memObj, size: 0}
-	bufSize, sizeErr := tmpBuf.GetSize()
-	if sizeErr != nil {
-		fmt.Printf("Unable to get buffer size in CreateFromD3D10BufferKHR \n")
-		return nil, sizeErr
-	}
+        bufSize, sizeErr := tmpBuf.GetSize()
+        if sizeErr != nil {
+                fmt.Printf("Unable to get buffer size in CreateFromD3D10BufferKHR \n")
+                return nil, sizeErr
+        }
 	return &MemObject{clMem: memObj, size: bufSize}, toError(err)
 }
 
 func (ctx *Context) CreateFromD3D10Texture2D(flag MemFlag, src unsafe.Pointer, subResource int) (*MemObject, error) {
-	var err C.cl_int
-	defer C.free(err)
-	memObj := C.CLCreateFromD3D10Texture2D(ctx.clContext, (C.cl_mem_flags)(flag), (*C.ID3D10Texture2D)(src), (C.UINT)(subResource), &err)
-	tmpBuf := &MemObject{clMem: memObj, size: 0}
-	bufSize, sizeErr := tmpBuf.GetSize()
-	if sizeErr != nil {
-		fmt.Printf("Unable to get buffer size in CreateFromD3D10BufferKHR \n")
-		return nil, sizeErr
-	}
-	return &MemObject{clMem: memObj, size: bufSize}, toError(err)
+        var err C.cl_int
+        defer C.free(err)
+        memObj := C.CLCreateFromD3D10Texture2D(ctx.clContext, (C.cl_mem_flags)(flag), (*C.ID3D10Texture2D)(src), (C.UINT)(subResource), &err)
+        tmpBuf := &MemObject{clMem: memObj, size: 0}
+        bufSize, sizeErr := tmpBuf.GetSize()
+        if sizeErr != nil {
+                fmt.Printf("Unable to get buffer size in CreateFromD3D10BufferKHR \n")
+                return nil, sizeErr
+        }
+        return &MemObject{clMem: memObj, size: bufSize}, toError(err)
 }
 
 func (ctx *Context) CreateFromD3D10Texture3D(flag MemFlag, src unsafe.Pointer, subResource int) (*MemObject, error) {
-	var err C.cl_int
-	defer C.free(err)
-	memObj := C.CLCreateFromD3D10Texture3D(ctx.clContext, (C.cl_mem_flags)(flag), (*C.ID3D10Texture3D)(src), (C.UINT)(subResource), &err)
-	tmpBuf := &MemObject{clMem: memObj, size: 0}
-	bufSize, sizeErr := tmpBuf.GetSize()
-	if sizeErr != nil {
-		fmt.Printf("Unable to get buffer size in CreateFromD3D10BufferKHR \n")
-		return nil, sizeErr
-	}
-	return &MemObject{clMem: memObj, size: bufSize}, toError(err)
+        var err C.cl_int
+        defer C.free(err)
+        memObj := C.CLCreateFromD3D10Texture3D(ctx.clContext, (C.cl_mem_flags)(flag), (*C.ID3D10Texture3D)(src), (C.UINT)(subResource), &err)
+        tmpBuf := &MemObject{clMem: memObj, size: 0}
+        bufSize, sizeErr := tmpBuf.GetSize()
+        if sizeErr != nil {
+                fmt.Printf("Unable to get buffer size in CreateFromD3D10BufferKHR \n")
+                return nil, sizeErr
+        }
+        return &MemObject{clMem: memObj, size: bufSize}, toError(err)
 }
 
 func (q *CommandQueue) EnqueueAcquireD3D10Objects(memObj []*MemObject, eventWaitList []*Event) (*Event, error) {
@@ -217,13 +217,15 @@ func (b *MemObject) GetD3D10Resource() (*C.ID3D10Resource, error) {
 }
 
 func (image_desc *ImageDescription) GetD3D10Subresource() (*C.ID3D10Resource, error) {
-	if image_desc.Buffer != nil {
+        if image_desc.Buffer != nil {
 		var val C.ID3D10Resource
 		err := C.clGetImageInfo(image_desc.Buffer.clMem, C.CL_IMAGE_D3D10_SUBRESOURCE_KHR, (C.size_t)(unsafe.Sizeof(val)), unsafe.Pointer(&val), nil)
 		if toError(err) != nil {
 			return nil, toError(err)
 		}
 		return &val, nil
-	}
-	return nil, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return nil, toError(C.CL_INVALID_MEM_OBJECT)
 }
+
+

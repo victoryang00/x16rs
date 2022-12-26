@@ -54,34 +54,34 @@ import (
 
 //////////////// Basic Types ////////////////
 const (
-	CommandAcquireDX9Objects CommandType = C.CL_COMMAND_ACQUIRE_DX9_MEDIA_SURFACES_KHR
-	CommandReleaseDX9Objects CommandType = C.CL_COMMAND_RELEASE_DX9_MEDIA_SURFACES_KHR
+	CommandAcquireDX9Objects	CommandType = C.CL_COMMAND_ACQUIRE_DX9_MEDIA_SURFACES_KHR
+	CommandReleaseDX9Objects	CommandType = C.CL_COMMAND_RELEASE_DX9_MEDIA_SURFACES_KHR
 
-	ContextD3D9Adapter   ContextPropertiesId = C.CL_CONTEXT_ADAPTER_D3D9_KHR
-	ContextD3D9EXAdapter ContextPropertiesId = C.CL_CONTEXT_ADAPTER_D3D9EX_KHR
-	ContextDXVAAdapter   ContextPropertiesId = C.CL_CONTEXT_ADAPTER_DXVA_KHR
+	ContextD3D9Adapter      ContextPropertiesId = C.CL_CONTEXT_ADAPTER_D3D9_KHR
+	ContextD3D9EXAdapter    ContextPropertiesId = C.CL_CONTEXT_ADAPTER_D3D9EX_KHR
+	ContextDXVAAdapter      ContextPropertiesId = C.CL_CONTEXT_ADAPTER_DXVA_KHR
 )
 
 type CLDX9AdapterType int
 
 var (
-	ErrInvalidDX9MediaAdapter    = errors.New("cl: Invalid DX9 Media Adapter")
-	ErrInvalidDX9MediaSurface    = errors.New("cl: Invalid DX9 Media Surface")
-	ErrDX9SurfaceAlreadyAcquired = errors.New("cl: DX9 Surface Already Acquired")
-	ErrDX9SurfaceNotAcquired     = errors.New("cl: DX9 Surface Not Acquired")
+	ErrInvalidDX9MediaAdapter	= errors.New("cl: Invalid DX9 Media Adapter")
+	ErrInvalidDX9MediaSurface	= errors.New("cl: Invalid DX9 Media Surface")
+	ErrDX9SurfaceAlreadyAcquired	= errors.New("cl: DX9 Surface Already Acquired")
+	ErrDX9SurfaceNotAcquired	= errors.New("cl: DX9 Surface Not Acquired")
 )
 
 const (
-	CLDX9Adapter   CLDX9AdapterType = C.CL_ADAPTER_D3D9_KHR
-	CLDX9EXAdapter CLDX9AdapterType = C.CL_ADAPTER_D3D9EX_KHR
-	CLDXVAAdapter  CLDX9AdapterType = C.CL_ADAPTER_DXVA_KHR
+	CLDX9Adapter		CLDX9AdapterType = C.CL_ADAPTER_D3D9_KHR
+	CLDX9EXAdapter		CLDX9AdapterType = C.CL_ADAPTER_D3D9EX_KHR
+	CLDXVAAdapter		CLDX9AdapterType = C.CL_ADAPTER_DXVA_KHR
 )
 
 type CLDX9DeviceSetKHR int
 
 const (
-	CLDX9PreferredDevices CLDX9DeviceSetKHR = C.CL_PREFERRED_DEVICES_FOR_DX9_MEDIA_ADAPTER_KHR
-	CLDX9AllDevices       CLDX9DeviceSetKHR = C.CL_ALL_DEVICES_FOR_DX9_MEDIA_ADAPTER_KHR
+        CLDX9PreferredDevices		CLDX9DeviceSetKHR = C.CL_PREFERRED_DEVICES_FOR_DX9_MEDIA_ADAPTER_KHR
+        CLDX9AllDevices	      		CLDX9DeviceSetKHR = C.CL_ALL_DEVICES_FOR_DX9_MEDIA_ADAPTER_KHR
 )
 
 //////////////// Basic Functions ////////////////
@@ -91,31 +91,31 @@ func init() {
 	errorMap[C.CL_DX9_MEDIA_SURFACE_ALREADY_ACQUIRED_KHR] = ErrDX9SurfaceAlreadyAcquired
 	errorMap[C.CL_DX9_MEDIA_SURFACE_NOT_ACQUIRED_KHR] = ErrDX9SurfaceNotAcquired
 
-	dx9_sharing_ext = true
-	getDX9CommandType = DX9StatusToCommandType
+        dx9_sharing_ext = true
+        getDX9CommandType = DX9StatusToCommandType
 }
 
 func DX9StatusToCommandType(status C.cl_command_type) (bool, CommandType) {
-	switch status {
-	case C.CL_COMMAND_ACQUIRE_DX9_MEDIA_SURFACES_KHR:
-		return true, CommandAcquireDX9Objects
-	case C.CL_COMMAND_RELEASE_DX9_MEDIA_SURFACES_KHR:
-		return true, CommandReleaseDX9Objects
-	default:
-		return false, -1
-	}
+        switch status {
+        case C.CL_COMMAND_ACQUIRE_DX9_MEDIA_SURFACES_KHR:
+                return true, CommandAcquireDX9Objects
+        case C.CL_COMMAND_RELEASE_DX9_MEDIA_SURFACES_KHR:
+                return true, CommandReleaseDX9Objects
+        default:
+                return false, -1
+        }
 }
 
 //////////////// Abstract Functions ////////////////
 func (p *Platform) SetupDX9Sharing() {
-	C.SetupDX9MediaSharing(p.id)
+        C.SetupDX9MediaSharing(p.id)
 }
 
 func (p *Platform) GetDeviceIDsFromDX9MediaAdapter(num_adapters int, media_adapter_types []CLDX9AdapterType,
-	media_adapters unsafe.Pointer, media_adapter_set CLDX9DeviceSetKHR) ([]*Device, error) {
+		media_adapters unsafe.Pointer, media_adapter_set CLDX9DeviceSetKHR) ([]*Device, error) {
 	var device_id_tmp []C.cl_device_id
 	defer C.free(device_id_tmp)
-	var device_count C.cl_uint
+	var device_count  C.cl_uint
 	defer C.free(device_count)
 	tmpAdapterTypeList := make([]C.cl_dx9_media_adapter_type_khr, len(media_adapter_types))
 	defer C.free(tmpAdapterTypeList)
@@ -123,15 +123,15 @@ func (p *Platform) GetDeviceIDsFromDX9MediaAdapter(num_adapters int, media_adapt
 		tmpAdapterTypeList[i] = (C.cl_dx9_media_adapter_type_khr)(type_val)
 	}
 	err := C.CLGetDeviceIDsFromDX9MediaAdapter(p.id, (C.cl_uint)(num_adapters), &tmpAdapterTypeList[0], media_adapters,
-		(C.cl_dx9_media_adapter_set_khr)(media_adapter_set), 1, &device_id_tmp[0], &device_count)
+						   (C.cl_dx9_media_adapter_set_khr)(media_adapter_set), 1, &device_id_tmp[0], &device_count)
 	if toError(err) != nil {
 		return nil, toError(err)
 	}
 	err = C.CLGetDeviceIDsFromDX9MediaAdapter(p.id, (C.cl_uint)(num_adapters), &tmpAdapterTypeList[0], media_adapters,
-		(C.cl_dx9_media_adapter_set_khr)(media_adapter_set), device_count, &device_id_tmp[0], nil)
-	if toError(err) != nil {
-		return nil, toError(err)
-	}
+                                                   (C.cl_dx9_media_adapter_set_khr)(media_adapter_set), device_count, &device_id_tmp[0], nil)
+        if toError(err) != nil {
+                return nil, toError(err)
+        }
 	go_count := int(device_count)
 	outDeviceList := make([]*Device, go_count)
 	for i := 0; i < go_count; i++ {
@@ -141,16 +141,16 @@ func (p *Platform) GetDeviceIDsFromDX9MediaAdapter(num_adapters int, media_adapt
 }
 
 func (ctx *Context) CreateFromDX9MediaSurface(flag MemFlag, dx9_adapter_type CLDX9AdapterType,
-	surface_info unsafe.Pointer, plane int) (*MemObject, error) {
+					      surface_info unsafe.Pointer, plane int) (*MemObject, error) {
 	var err C.cl_int
 	defer C.free(err)
 	memObj := C.CLCreateFromDX9MediaSurface(ctx.clContext, (C.cl_mem_flags)(flag), (C.cl_dx9_media_adapter_type_khr)(dx9_adapter_type), surface_info, (C.cl_uint)(plane), &err)
 	tmpBuf := &MemObject{clMem: memObj, size: 0}
-	bufSize, sizeErr := tmpBuf.GetSize()
-	if sizeErr != nil {
-		fmt.Printf("Unable to get buffer size in CreateFromDX9MediaSurfaceKHR \n")
-		return nil, sizeErr
-	}
+        bufSize, sizeErr := tmpBuf.GetSize()
+        if sizeErr != nil {
+                fmt.Printf("Unable to get buffer size in CreateFromDX9MediaSurfaceKHR \n")
+                return nil, sizeErr
+        }
 	return &MemObject{clMem: memObj, size: bufSize}, toError(err)
 }
 
@@ -162,8 +162,8 @@ func (q *CommandQueue) EnqueueAcquireDX9MediaSurfaces(memObj []*MemObject, event
 	}
 	var event C.cl_event
 	err := C.CLEnqueueAcquireDX9MediaSurfaces(q.clQueue, (C.cl_uint)(len(memObj)), &memList[0],
-		(C.cl_uint)(len(eventWaitList)), eventListPtr(eventWaitList),
-		&event)
+						  (C.cl_uint)(len(eventWaitList)), eventListPtr(eventWaitList),
+						  &event)
 	return newEvent(event), toError(err)
 }
 
@@ -175,8 +175,8 @@ func (q *CommandQueue) EnqueueReleaseDX9MediaSurfaces(memObj []*MemObject, event
 	}
 	var event C.cl_event
 	err := C.CLEnqueueReleaseDX9MediaSurfaces(q.clQueue,
-		(C.cl_uint)(len(memObj)), &memList[0], (C.cl_uint)(len(eventWaitList)),
-		eventListPtr(eventWaitList), &event)
+						  (C.cl_uint)(len(memObj)), &memList[0], (C.cl_uint)(len(eventWaitList)),
+					         eventListPtr(eventWaitList), &event)
 	return newEvent(event), toError(err)
 }
 
@@ -214,13 +214,14 @@ func (b *MemObject) GetDX9SurfaceInfo() (unsafe.Pointer, error) {
 }
 
 func (image_desc *ImageDescription) GetDX9MediaPlane() (int, error) {
-	if image_desc.Buffer != nil {
+        if image_desc.Buffer != nil {
 		var val C.cl_uint
 		err := C.clGetImageInfo(image_desc.Buffer.clMem, C.CL_IMAGE_DX9_MEDIA_PLANE_KHR, (C.size_t)(unsafe.Sizeof(val)), unsafe.Pointer(&val), nil)
 		if toError(err) != nil {
 			return -1, toError(err)
 		}
 		return int(val), nil
-	}
-	return -1, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return -1, toError(C.CL_INVALID_MEM_OBJECT)
 }
+

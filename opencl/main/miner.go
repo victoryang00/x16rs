@@ -546,8 +546,8 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 		}
 		fmt.Println("build complete get binaries...")
 		//fmt.Println("program.GetBinarySizes_2()")
-		size := len(mr.devices)
-		sizes, _ := program.GetBinarySizes_2(size)
+		// size := len(mr.devices)
+		sizes, _ := program.GetBinarySizes()
 		//fmt.Println(sizes)
 		//fmt.Println(sizes[0])
 		//fmt.Println("program.GetBinaries_2()")
@@ -576,7 +576,7 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 		}
 		fmt.Println("create program with binary...")
 		var berr error
-		program, berr = mr.context.CreateProgramWithBinary_2(mr.devices, sizes, bins)
+		program, berr = mr.context.CreateProgramWithBinary(mr.devices, sizes, bins)
 		if berr != nil {
 			panic(berr)
 		}

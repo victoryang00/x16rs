@@ -77,36 +77,36 @@ func (ct MemCacheType) String() string {
 type MemFlag int
 
 const (
-	MemReadWrite     MemFlag = C.CL_MEM_READ_WRITE
-	MemWriteOnly     MemFlag = C.CL_MEM_WRITE_ONLY
-	MemReadOnly      MemFlag = C.CL_MEM_READ_ONLY
-	MemUseHostPtr    MemFlag = C.CL_MEM_USE_HOST_PTR
-	MemAllocHostPtr  MemFlag = C.CL_MEM_ALLOC_HOST_PTR
-	MemCopyHostPtr   MemFlag = C.CL_MEM_COPY_HOST_PTR
-	MemHostNoAccess  MemFlag = C.CL_MEM_HOST_NO_ACCESS
-	MemHostReadOnly  MemFlag = C.CL_MEM_HOST_READ_ONLY
-	MemHostWriteOnly MemFlag = C.CL_MEM_HOST_WRITE_ONLY
+	MemReadWrite			MemFlag = C.CL_MEM_READ_WRITE
+	MemWriteOnly			MemFlag = C.CL_MEM_WRITE_ONLY
+	MemReadOnly			MemFlag = C.CL_MEM_READ_ONLY
+	MemUseHostPtr			MemFlag = C.CL_MEM_USE_HOST_PTR
+	MemAllocHostPtr			MemFlag = C.CL_MEM_ALLOC_HOST_PTR
+	MemCopyHostPtr			MemFlag = C.CL_MEM_COPY_HOST_PTR
+        MemHostNoAccess			MemFlag = C.CL_MEM_HOST_NO_ACCESS
+        MemHostReadOnly			MemFlag = C.CL_MEM_HOST_READ_ONLY
+        MemHostWriteOnly		MemFlag = C.CL_MEM_HOST_WRITE_ONLY
 )
 
 type MemObjectType int
 
 const (
-	MemObjectTypeBuffer MemObjectType = C.CL_MEM_OBJECT_BUFFER
+	MemObjectTypeBuffer  MemObjectType = C.CL_MEM_OBJECT_BUFFER
 )
 
 type MapFlag int
 
 const (
 	// This flag specifies that the region being mapped in the memory object is being mapped for reading.
-	MapFlagRead  MapFlag = C.CL_MAP_READ
-	MapFlagWrite MapFlag = C.CL_MAP_WRITE
-	// This flag specifies that the region being mapped in the memory object is being mapped for writing.
-	//
-	// The contents of the region being mapped are to be discarded. This is typically the case when the
-	// region being mapped is overwritten by the host. This flag allows the implementation to no longer
-	// guarantee that the pointer returned by clEnqueueMapBuffer or clEnqueueMapImage contains the
-	// latest bits in the region being mapped which can be a significant performance enhancement.
-	MapFlagWriteInvalidateRegion MapFlag = C.CL_MAP_WRITE_INVALIDATE_REGION
+	MapFlagRead                  MapFlag = C.CL_MAP_READ
+	MapFlagWrite                 MapFlag = C.CL_MAP_WRITE
+        // This flag specifies that the region being mapped in the memory object is being mapped for writing.
+        //
+        // The contents of the region being mapped are to be discarded. This is typically the case when the
+        // region being mapped is overwritten by the host. This flag allows the implementation to no longer
+        // guarantee that the pointer returned by clEnqueueMapBuffer or clEnqueueMapImage contains the
+        // latest bits in the region being mapped which can be a significant performance enhancement.
+        MapFlagWriteInvalidateRegion	MapFlag = C.CL_MAP_WRITE_INVALIDATE_REGION
 )
 
 func (mf MapFlag) toCl() C.cl_map_flags {
@@ -122,41 +122,41 @@ type MappedMemObject struct {
 
 //////////////// Abstract Types ////////////////
 type MemObject struct {
-	clMem C.cl_mem
-	size  int
+        clMem C.cl_mem
+        size  int
 }
 
 ////////////////// Supporting Types ////////////////
 type CL_go_set_memdestructor_callback func(memObj C.cl_mem, user_data unsafe.Pointer)
-
 var go_set_memdestructor_callback_func map[unsafe.Pointer]CL_go_set_memdestructor_callback
 
 //////////////// Basic Functions ///////////////
 //export go_set_memdestructor_callback
 func go_set_memdestructor_callback(memObj C.cl_mem, user_data unsafe.Pointer) {
-	var c_user_data []unsafe.Pointer
-	c_user_data = *(*[]unsafe.Pointer)(user_data)
-	go_set_memdestructor_callback_func[c_user_data[1]](memObj, c_user_data[0])
+        var c_user_data []unsafe.Pointer
+        c_user_data = *(*[]unsafe.Pointer)(user_data)
+        go_set_memdestructor_callback_func[c_user_data[1]](memObj, c_user_data[0])
 }
 
 func retainMemObject(b *MemObject) {
-	if b.clMem != nil {
-		C.clRetainMemObject(b.clMem)
-	}
+        if b.clMem != nil {
+                C.clRetainMemObject(b.clMem)
+        }
 }
 
 func releaseMemObject(b *MemObject) {
-	if b.clMem != nil {
-		C.clReleaseMemObject(b.clMem)
-		b.clMem = nil
-	}
+        if b.clMem != nil {
+                C.clReleaseMemObject(b.clMem)
+                b.clMem = nil
+        }
 }
 
 func newMemObject(mo C.cl_mem, size int) *MemObject {
-	memObject := &MemObject{clMem: mo, size: size}
-	runtime.SetFinalizer(memObject, releaseMemObject)
-	return memObject
+        memObject := &MemObject{clMem: mo, size: size}
+        runtime.SetFinalizer(memObject, releaseMemObject)
+        return memObject
 }
+
 
 //////////////// Abstract Functions ////////////////
 func (mb *MappedMemObject) ByteSlice() []byte {
@@ -185,11 +185,11 @@ func (mb *MappedMemObject) SlicePitch() int {
 }
 
 func (b *MemObject) Retain() {
-	retainMemObject(b)
+        retainMemObject(b)
 }
 
 func (b *MemObject) Release() {
-	releaseMemObject(b)
+        releaseMemObject(b)
 }
 
 func (b *MemObject) GetType() (string, error) {
@@ -214,106 +214,106 @@ func (b *MemObject) GetType() (string, error) {
 }
 
 func (b *MemObject) GetContext() (*Context, error) {
-	if b.clMem != nil {
+        if b.clMem != nil {
 		var tmp C.cl_context
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_CONTEXT, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
 		if toError(err) != nil {
 			return nil, nil
 		}
 		return &Context{clContext: tmp, devices: nil}, toError(err)
-	}
-	return nil, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return nil, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetSize() (int, error) {
-	if b.clMem != nil {
+        if b.clMem != nil {
 		var tmp C.size_t
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_SIZE, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
 		if toError(err) != nil {
 			return int(-1), toError(err)
 		}
 		return int(tmp), nil
-	}
-	return 0, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return 0, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetRefenceCount() (int, error) {
-	if b.clMem != nil {
+        if b.clMem != nil {
 		var tmp C.cl_uint
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_REFERENCE_COUNT, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
 		if toError(err) != nil {
 			return 0, toError(err)
 		}
 		return int(tmp), nil
-	}
-	return 0, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return 0, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetMapCount() (int, error) {
-	if b.clMem != nil {
-		var tmp C.cl_uint
-		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_MAP_COUNT, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
-		if toError(err) != nil {
-			return 0, toError(err)
-		}
-		return int(tmp), nil
-	}
-	return 0, toError(C.CL_INVALID_MEM_OBJECT)
+        if b.clMem != nil {
+	        var tmp C.cl_uint
+        	err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_MAP_COUNT, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
+	        if toError(err) != nil {
+        	        return 0, toError(err)
+	        }
+        	return int(tmp), nil
+        }
+        return 0, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetHostPtr() (unsafe.Pointer, error) {
 	if b.clMem != nil {
 		var tmp unsafe.Pointer
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_HOST_PTR, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
-		if toError(err) != nil {
-			return nil, toError(err)
-		}
-		return tmp, nil
-	}
-	return nil, toError(C.CL_INVALID_MEM_OBJECT)
+	        if toError(err) != nil {
+        	        return nil, toError(err)
+	        }
+        	return tmp, nil
+        }
+        return nil, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetFlags() (MemFlag, error) {
-	if b.clMem != nil {
+        if b.clMem != nil {
 		var tmp C.cl_mem_flags
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_FLAGS, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
-		if toError(err) != nil {
-			return -1, toError(err)
-		}
+	        if toError(err) != nil {
+        	        return -1, toError(err)
+	        }
 		switch {
 		case tmp == C.CL_MEM_READ_WRITE:
 			return MemReadWrite, nil
-		case tmp == C.CL_MEM_WRITE_ONLY:
-			return MemWriteOnly, nil
-		case tmp == C.CL_MEM_READ_ONLY:
-			return MemReadOnly, nil
-		case tmp == C.CL_MEM_USE_HOST_PTR:
-			return MemUseHostPtr, nil
-		case tmp == C.CL_MEM_ALLOC_HOST_PTR:
-			return MemAllocHostPtr, nil
-		case tmp == C.CL_MEM_COPY_HOST_PTR:
-			return MemCopyHostPtr, nil
+	        case tmp == C.CL_MEM_WRITE_ONLY:
+        	        return MemWriteOnly, nil
+	        case tmp == C.CL_MEM_READ_ONLY:
+        	        return MemReadOnly, nil
+	        case tmp == C.CL_MEM_USE_HOST_PTR:
+        	        return MemUseHostPtr, nil
+	        case tmp == C.CL_MEM_ALLOC_HOST_PTR:
+        	        return MemAllocHostPtr, nil
+	        case tmp == C.CL_MEM_COPY_HOST_PTR:
+        	        return MemCopyHostPtr, nil
 		default:
-			return -1, nil
-		}
-	}
-	return -1, toError(C.CL_INVALID_MEM_OBJECT)
+	        	return -1, nil
+	 	}
+        }
+        return -1, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetOffset() (int, error) {
-	if b.clMem != nil {
+        if b.clMem != nil {
 		var tmp C.size_t
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_OFFSET, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
 		if toError(err) != nil {
 			return int(-1), toError(err)
 		}
 		return int(tmp), nil
-	}
-	return 0, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return 0, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) GetAssociatedMemObject() (*MemObject, error) {
-	if b.clMem != nil {
+        if b.clMem != nil {
 		var tmp C.cl_mem
 		err := C.clGetMemObjectInfo(b.clMem, C.CL_MEM_ASSOCIATED_MEMOBJECT, C.size_t(unsafe.Sizeof(tmp)), unsafe.Pointer(&tmp), nil)
 		if toError(err) != nil {
@@ -326,8 +326,8 @@ func (b *MemObject) GetAssociatedMemObject() (*MemObject, error) {
 			return newMemObject(tmp, 0), nil
 		}
 		return newMemObject(tmp, val), nil
-	}
-	return nil, toError(C.CL_INVALID_MEM_OBJECT)
+        }
+        return nil, toError(C.CL_INVALID_MEM_OBJECT)
 }
 
 func (b *MemObject) SetMemObjectDestructorCallback(user_data unsafe.Pointer) error {
@@ -461,44 +461,44 @@ func (q *CommandQueue) EnqueueReadBufferRect(buffer *MemObject, blocking bool, b
 }
 
 func (ctx *Context) CreateBufferUnsafe(flags MemFlag, size int, dataPtr unsafe.Pointer) (*MemObject, error) {
-	var err C.cl_int
-	clBuffer := C.clCreateBuffer(ctx.clContext, C.cl_mem_flags(flags), C.size_t(size), dataPtr, &err)
-	if err != C.CL_SUCCESS {
-		return nil, toError(err)
-	}
-	if clBuffer == nil {
-		return nil, ErrUnknown
-	}
-	return newMemObject(clBuffer, size), nil
+        var err C.cl_int
+        clBuffer := C.clCreateBuffer(ctx.clContext, C.cl_mem_flags(flags), C.size_t(size), dataPtr, &err)
+        if err != C.CL_SUCCESS {
+                return nil, toError(err)
+        }
+        if clBuffer == nil {
+                return nil, ErrUnknown
+        }
+        return newMemObject(clBuffer, size), nil
 }
 
 func (ctx *Context) CreateEmptyBuffer(flags MemFlag, size int) (*MemObject, error) {
-	return ctx.CreateBufferUnsafe(flags, size, nil)
+        return ctx.CreateBufferUnsafe(flags, size, nil)
 }
 
 func (ctx *Context) CreateEmptyBufferFloat32(flags MemFlag, size int) (*MemObject, error) {
-	return ctx.CreateBufferUnsafe(flags, 4*size, nil)
+        return ctx.CreateBufferUnsafe(flags, 4*size, nil)
 }
 
 func (ctx *Context) CreateBuffer(flags MemFlag, data []byte) (*MemObject, error) {
-	return ctx.CreateBufferUnsafe(flags, len(data), unsafe.Pointer(&data[0]))
+        return ctx.CreateBufferUnsafe(flags, len(data), unsafe.Pointer(&data[0]))
 }
 
 //float64
 func (ctx *Context) CreateBufferFloat32(flags MemFlag, data []float32) (*MemObject, error) {
-	return ctx.CreateBufferUnsafe(flags, 4*len(data), unsafe.Pointer(&data[0]))
+        return ctx.CreateBufferUnsafe(flags, 4*len(data), unsafe.Pointer(&data[0]))
 }
 
 func (mobj *MemObject) CreateSubBuffer(flags MemFlag, origin, bSize int) (*MemObject, error) {
-	var err C.cl_int
-	clBuffer := C.CLcreateSubBuffer(mobj.clMem, C.cl_mem_flags(flags), (C.size_t)(origin), (C.size_t)(bSize), &err)
-	if err != C.CL_SUCCESS {
-		return nil, toError(err)
-	}
-	if clBuffer == nil {
-		return nil, ErrUnknown
-	}
-	return newMemObject(clBuffer, bSize), nil
+        var err C.cl_int
+        clBuffer := C.CLcreateSubBuffer(mobj.clMem, C.cl_mem_flags(flags), (C.size_t)(origin), (C.size_t)(bSize), &err)
+        if err != C.CL_SUCCESS {
+                return nil, toError(err)
+        }
+        if clBuffer == nil {
+                return nil, ErrUnknown
+        }
+        return newMemObject(clBuffer, bSize), nil
 }
 
 func (q *CommandQueue) EnqueueFillBuffer(buffer *MemObject, pattern unsafe.Pointer, patternSize, offset, size int, eventWaitList []*Event) (*Event, error) {
@@ -522,13 +522,14 @@ func (q *CommandQueue) EnqueueMigrateMemObjectsToHost(memObjs []*MemObject, even
 
 // Enqueue a command to migrate memory objects into a command queue without their content
 func (q *CommandQueue) EnqueueMigrateMemObjectsIntoQueue(memObjs []*MemObject, eventWaitList []*Event) (*Event, error) {
-	ObjCount := len(memObjs)
-	mem_obj_list := make([]C.cl_mem, ObjCount)
-	defer C.free(unsafe.Pointer(&mem_obj_list))
-	for idx, obj := range memObjs {
-		mem_obj_list[idx] = obj.clMem
-	}
-	var event C.cl_event
+        ObjCount := len(memObjs)
+        mem_obj_list := make([]C.cl_mem, ObjCount)
+        defer C.free(unsafe.Pointer(&mem_obj_list))
+        for idx, obj := range memObjs {
+                mem_obj_list[idx] = obj.clMem
+        }
+        var event C.cl_event
 	err := C.clEnqueueMigrateMemObjects(q.clQueue, C.cl_uint(ObjCount), &mem_obj_list[0], C.CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event)
-	return newEvent(event), toError(err)
+        return newEvent(event), toError(err)
 }
+

@@ -92,7 +92,7 @@ func (mr *GpuMiner) buildOrLoadProgram() *cl.Program {
 			sizes[k] = int(binstat.Size())
 		}
 		fmt.Println("Create program with binary...")
-		program, berr = mr.context.CreateProgramWithBinary_2(mr.devices, sizes, bins)
+		program, berr = mr.context.CreateProgramWithBinary(mr.devices, sizes, bins)
 		if berr != nil {
 			panic(berr)
 		}

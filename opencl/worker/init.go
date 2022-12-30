@@ -9,7 +9,7 @@ import (
 
 package worker
 // 输出所有 opencl 文件
-func getRenderCreateAllOpenclFiles() map[string]string {
+func GetRenderCreateAllOpenclFiles() map[string]string {
 	files := map[string]string{}
 
 
@@ -53545,8 +53545,8 @@ func (mr *GpuMiner) Init() error {
 		tardir := GetCurrentDirectory() + "/opencl/"
 		if _, err := os.Stat(tardir); err != nil {
 			fmt.Println("Create opencl dir and render files...")
-			files := getRenderCreateAllOpenclFiles() // 输出所有文件
-			err := writeClFiles(tardir, files)
+			files := GetRenderCreateAllOpenclFiles() // 输出所有文件
+			err := WriteClFiles(tardir, files)
 			if err != nil {
 				fmt.Println(e)
 				os.Exit(0) // 致命错误
@@ -53616,7 +53616,7 @@ func (mr *GpuMiner) Init() error {
 }
 
 // 写入 opencl 文件
-func writeClFiles(tardir string, files map[string]string) error {
+func WriteClFiles(tardir string, files map[string]string) error {
 
 	e := os.MkdirAll(tardir, os.ModePerm)
 	if e != nil {

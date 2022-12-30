@@ -31,7 +31,7 @@ const allfiles = [
 let gopkgfilecon = `
 package worker
 // 输出所有 opencl 文件
-func getRenderCreateAllOpenclFiles() map[string]string {
+func GetRenderCreateAllOpenclFiles() map[string]string {
 	files := map[string]string{}
 
 `;

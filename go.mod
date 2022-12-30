@@ -1,4 +1,4 @@
-module github.com/hacash/x16rs
+module github.com/victoryang00/x16rs
 
 go 1.19
 
